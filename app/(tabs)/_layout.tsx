@@ -1,6 +1,6 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { Tabs } from 'expo-router';
-
+import { useUser } from '../../contexts/UserContext';
 import Colors from '../../constants/Colors';
 
 function TabBarIcon(props: {
@@ -11,6 +11,7 @@ function TabBarIcon(props: {
 }
 
 export default function TabLayout() {
+  const { movies, addMovieReview } = useUser();
   const colorScheme = 'light';
 
   return (
@@ -26,6 +27,13 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <TabBarIcon name="home" color={color} />,
         }}
       />
+        <Tabs.Screen
+          name="three"
+          options={{
+            title: 'Recomendações',
+            tabBarIcon: ({ color }) => <TabBarIcon name="film" color={color} />,
+          }}
+        />
       <Tabs.Screen
         name="two"
         options={{

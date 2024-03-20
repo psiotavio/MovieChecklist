@@ -13,9 +13,8 @@ import axios from "axios";
 import StarRating from "../../components/starComponent/starComponent";
 import { Text, View } from "../../components/Themed";
 import { useColorScheme } from "react-native";
-
 import { isSameWeek, isSameYear, isSameMonth, parse } from "date-fns";
-
+import { useUser } from "../../contexts/UserContext";
 import logo from "../../assets/images/logo.png";
 
 interface Movie {
@@ -27,71 +26,45 @@ interface Movie {
   imageUrl?: string;
 }
 
-let movieList: Movie[] = [];
-
-export function getTotalMoviesWatchedThisYear(): number {
+// let movieList: Movie[] = [];
+export function getTotalMoviesWatchedThisYear(movies: Movie[]): number {
   const currentYear = new Date().getFullYear();
-  const totalMoviesWatched = movieList.reduce((count, movie) => {
-    const dateParts = movie.date.split("/");
-    const movieYear = dateParts.length === 3 ? parseInt(dateParts[2], 10) : NaN;
-
-    return !isNaN(movieYear) && movieYear === currentYear ? count + 1 : count;
+  return movies.reduce((count, movie) => {
+    const movieYear = new Date(movie.date).getFullYear();
+    return movieYear === currentYear ? count + 1 : count;
   }, 0);
-
-  return totalMoviesWatched;
 }
 
-export function getTotalMoviesWatchedThisWeek(): number {
+export function getTotalMoviesWatchedThisWeek(movies: Movie[]): number {
   const currentDate = new Date();
-
-  const totalMoviesWatched = movieList.reduce((count, movie) => {
-    try {
-      const movieDate = parse(movie.date, "dd/MM/yyyy", new Date());
-
-      if (
-        isSameYear(movieDate, currentDate) &&
-        isSameWeek(movieDate, currentDate)
-      ) {
-        return count + 1;
-      }
-    } catch (error) {}
-
-    return count;
+  return movies.reduce((count, movie) => {
+    const movieDate = new Date(movie.date);
+    return isSameYear(movieDate, currentDate) &&
+      isSameWeek(movieDate, currentDate)
+      ? count + 1
+      : count;
   }, 0);
-
-  return totalMoviesWatched;
 }
 
-export function getTotalMoviesWatchedThisMonth(): number {
+export function getTotalMoviesWatchedThisMonth(movies: Movie[]): number {
   const currentDate = new Date();
-
-  const totalMoviesWatched = movieList.reduce((count, movie) => {
-    try {
-      const movieDate = parse(movie.date, "dd/MM/yyyy", new Date());
-
-      if (
-        isSameYear(movieDate, currentDate) &&
-        isSameMonth(movieDate, currentDate)
-      ) {
-        return count + 1;
-      }
-    } catch (error) {}
-
-    return count;
+  return movies.reduce((count, movie) => {
+    const movieDate = new Date(movie.date);
+    return isSameYear(movieDate, currentDate) &&
+      isSameMonth(movieDate, currentDate)
+      ? count + 1
+      : count;
   }, 0);
-
-  return totalMoviesWatched;
 }
 
-export function getAllWatchedMovies(): string[] {
-  const watchedMovieTitles = movieList.map((movie) => movie.title);
-  return watchedMovieTitles;
+export function getAllWatchedMovies(movies: Movie[]): string[] {
+  return movies.map((movie) => movie.title);
 }
 
 export default function HomeScreen() {
+  const { movies, addMovieReview, recommendedMovies } = useUser(); // Use o contexto de usuário
   const colorScheme = useColorScheme();
   const [movieInput, setMovieInput] = useState<string>("");
-  const [movies, setMovies] = useState<Movie[]>([]);
   const [searchResults, setSearchResults] = useState<Movie[]>([]);
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
   const [selectedMovieRating, setSelectedMovieRating] = useState<Movie | null>(
@@ -100,8 +73,10 @@ export default function HomeScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [modalVisible1, setModalVisible1] = useState(false);
   const [rating, setRating] = useState<number>(0);
-
   const TMDB_API_KEY = "172e0af0e176f9c169387e094fb67c75";
+  const totalMoviesThisYear = getTotalMoviesWatchedThisYear(movies);
+  const totalMoviesThisWeek = getTotalMoviesWatchedThisWeek(movies);
+  const totalMoviesThisMonth = getTotalMoviesWatchedThisMonth(movies);
 
   const searchMovies = async (query: string) => {
     try {
@@ -141,16 +116,14 @@ export default function HomeScreen() {
   };
 
   const handleAddMovie = () => {
-    if (!selectedMovie) {
-      return;
-    }
+    if (!selectedMovie) return;
 
     const alreadyAdded = movies.some((movie) => movie.id === selectedMovie.id);
-
     if (!alreadyAdded) {
-      const updatedMovies = [...movies, selectedMovie];
-      setMovies(updatedMovies);
-      movieList = updatedMovies;
+      addMovieReview({
+        ...selectedMovie,
+        rating: rating,
+      });
     }
 
     setModalVisible(false);
@@ -232,6 +205,17 @@ export default function HomeScreen() {
     });
 
   const combinedArray = combineLists(organizedMoviesArray, bestMoviesArray);
+
+  function updateMovieReview(arg0: {
+    rating: number;
+    rank?: React.JSX.Element | undefined;
+    id: number;
+    title: string;
+    date: string;
+    imageUrl?: string | undefined;
+  }) {
+    throw new Error("Function not implemented.");
+  }
 
   return (
     <View style={styles.container}>
@@ -351,6 +335,7 @@ export default function HomeScreen() {
             </View>
           </View>
         </Modal>
+
       </ScrollView>
 
       {/* Modal de Avaliar */}
@@ -401,12 +386,7 @@ export default function HomeScreen() {
                 style={{ ...styles.modalButton, backgroundColor: "#2196F3" }}
                 onPress={() => {
                   if (selectedMovieRating) {
-                    const updatedMovies = movies.map((movie) =>
-                      movie.id === selectedMovieRating.id
-                        ? { ...movie, rating: rating }
-                        : movie
-                    );
-                    setMovies(updatedMovies);
+                    addMovieReview({ ...selectedMovieRating, rating: rating });
                     setModalVisible1(false);
                     setRating(0);
                   }
