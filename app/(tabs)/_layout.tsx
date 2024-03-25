@@ -34,6 +34,13 @@ export default function TabLayout() {
             tabBarIcon: ({ color }) => <TabBarIcon name="film" color={color} />,
           }}
         />
+        <Tabs.Screen
+          name="four"
+          options={{
+            title: 'Listas',
+            tabBarIcon: ({ color }) => <TabBarIcon name="list" color={color} />,
+          }}
+        />
       <Tabs.Screen
         name="two"
         options={{

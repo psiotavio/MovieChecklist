@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, FlatList, Image, TouchableOpacity, ScrollView } from "react-native";
+import { StyleSheet, FlatList, Image, TouchableOpacity } from "react-native";
 import { Text, View } from "../../components/Themed";
 import { useUser } from "../../contexts/UserContext";
 import logo from "../../assets/images/logo.png";
@@ -13,25 +13,25 @@ export default function TabThreeScreen() {
   return (
     <View style={styles.container}>
       <Image source={logo} style={styles.logo} />
-      <ScrollView style={styles.scrollView}>
-        <Text style={styles.movieListTitle}>SEUS FILMES AVALIADOS</Text>
-        <FlatList
-          data={moviesSortedByRating}
-          keyExtractor={(movie) => movie.id.toString()}
-          horizontal={true}
-          showsHorizontalScrollIndicator={false}
-          renderItem={({ item }) => (
-            <View style={[styles.movieItem, { marginLeft: 9 }]}>
-              <TouchableOpacity>
-                <Image
-                  style={styles.movieImage}
-                  source={{ uri: item.imageUrl || "default_image_url" }} // Substitua "default_image_url" pela URL de uma imagem padrão se necessário
-                />
-              </TouchableOpacity>
-            </View>
-          )}
-        />
-      </ScrollView>
+      <Text style={styles.movieListTitle}>SEUS FILMES AVALIADOS</Text>
+      <FlatList
+        style={styles.scrollView} // Apply styling here if needed
+        contentContainerStyle={{ alignItems: 'center' }} // This will ensure items are centered
+        data={moviesSortedByRating}
+        keyExtractor={(movie) => movie.id.toString()}
+        numColumns={3} // Define o número de colunas para a grade
+        showsHorizontalScrollIndicator={false}
+        renderItem={({ item }) => (
+          <View style={[styles.movieItem, { marginLeft: 9 }]}>
+            <TouchableOpacity>
+              <Image
+                style={styles.movieImage}
+                source={{ uri: item.imageUrl || "default_image_url" }} 
+              />
+            </TouchableOpacity>
+          </View>
+        )}
+      />
     </View>
   );
 }
@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 16,
     marginTop: 20,
-    marginLeft: 20,
+    alignSelf: 'center', // Center the title
   },
   movieItem: {
     marginBottom: 16,
