@@ -1,57 +1,71 @@
-import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { Tabs } from 'expo-router';
-import { useUser } from '../../contexts/UserContext';
-import Colors from '../../constants/Colors';
-import { useTheme } from '../../constants/temas/ThemeContext';
+import React from "react";
+import { BottomNavigation } from "react-native-paper";
+import FontAwesome from "@expo/vector-icons/FontAwesome";
+import { useTheme } from "../../constants/temas/ThemeContext";
+
+import HomeScreen from ".";
+import TabThreeScreen from "./three";
+import TabFourScreen from "./four";
+import TabTwoScreen from "./two";
 
 function TabBarIcon(props: {
-  name: React.ComponentProps<typeof FontAwesome>['name'];
+  name: React.ComponentProps<typeof FontAwesome>["name"];
   color: string;
 }) {
-  return <FontAwesome size={28} style={{ marginBottom: -3 }} {...props} />;
+  return <FontAwesome size={28} {...props} />;
 }
 
 export default function TabLayout() {
-  const { movies, addMovieReview } = useUser();
   const { theme } = useTheme();
-  const colorScheme = 'light';
+  const [index, setIndex] = React.useState(0);
+  const [routes] = React.useState([
+    {
+      key: 'home',
+      title: 'Home',
+      focusedIcon: 'home',
+      unfocusedIcon: 'home-outline',
+      color: theme.text,
+    },
+    {
+      key: 'recommendations',
+      title: 'Recomendações',
+      focusedIcon: 'movie',
+      unfocusedIcon: 'movie-outline',
+      color: theme.text,
+    },
+    {
+      key: 'lists',
+      title: 'Listas',
+      focusedIcon: 'format-list-bulleted',
+      unfocusedIcon: 'format-list-bulleted-square',
+      color: theme.text,
+    },
+    {
+      key: 'profile',
+      title: 'Perfil',
+      focusedIcon: 'account',
+      unfocusedIcon: 'account-outline',
+      color: theme.text,
+    },
+  ]);
+  
+
+  const renderScene = BottomNavigation.SceneMap({
+    home: HomeScreen,
+    recommendations: TabFourScreen,
+    lists: TabThreeScreen,
+    profile: TabTwoScreen,
+  });
 
   return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint, // Aqui você pode querer usar o tema também
-        tabBarInactiveTintColor: theme.text, // Usa a cor do texto do tema para ícones inativos
-        tabBarStyle: { backgroundColor: theme.background }, // Define o fundo da tabBar com base no tema
-        headerShown: false, 
-      }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <TabBarIcon name="home" color={color} />,
-        }}
-      />
-        <Tabs.Screen
-          name="three"
-          options={{
-            title: 'Recomendações',
-            tabBarIcon: ({ color }) => <TabBarIcon name="film" color={color} />,
-          }}
-        />
-        <Tabs.Screen
-          name="four"
-          options={{
-            title: 'Listas',
-            tabBarIcon: ({ color }) => <TabBarIcon name="list" color={color} />,
-          }}
-        />
-      <Tabs.Screen
-        name="two"
-        options={{
-          title: 'Perfil',
-          tabBarIcon: ({ color }) => <TabBarIcon name="user" color={color} />,
-        }}
-      />
-    </Tabs>
+    <BottomNavigation
+      navigationState={{ index, routes }}
+      onIndexChange={setIndex}
+      renderScene={renderScene}
+      activeIndicatorStyle={{ backgroundColor: theme.borderRed }}
+      activeColor={theme.text}
+      inactiveColor={theme.text}
+      barStyle={{ backgroundColor: theme.background }}
+    />
   );
 }

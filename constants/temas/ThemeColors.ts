@@ -2,18 +2,21 @@
 export type Theme = {
     background: string;
     text: string;
-    // Adicione mais propriedades conforme necessário
+    borderRed: string;
+    modalBackground: string;
   };
   
   export const themes: Record<'light' | 'dark', Theme> = {
     light: {
-      background: '#FFFFFF', // Coloque sua cor de fundo clara aqui
-      text: '#000000', // Coloque sua cor de texto claro aqui
-      // outros valores para tema claro
+      background: '#FFFFFF', 
+      text: '#000000', 
+      borderRed: '#E21221', 
+      modalBackground: '#1E2129',
     },
     dark: {
-      background: '#000000', // Coloque sua cor de fundo escura aqui
-      text: '#FFFFFF', // Coloque sua cor de texto escuro aqui
-      // outros valores para tema escuro
-    },
+        background: '#181A20',
+        text: '#FDFDFD', 
+        borderRed: '#E21221', 
+        modalBackground: '#1E2129',
+      }
   };

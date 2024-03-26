@@ -223,9 +223,7 @@ export default function HomeScreen() {
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       <Image source={logo} style={styles.logo} />
 
-      <TouchableOpacity onPress={toggleTheme}>
-        <Text style={{ color: theme.text }}>Mudar Tema</Text>
-      </TouchableOpacity>
+      
 
       <View
         style={[styles.inputContainer, { backgroundColor: theme.background }]}
@@ -233,7 +231,7 @@ export default function HomeScreen() {
         <TextInput
           style={[
             styles.input, // Estilos pré-definidos do TextInput
-            { color: theme.text }, // Estilo dinâmico baseado no tema atual
+            { color: theme.text , borderColor: theme.borderRed, backgroundColor: theme.modalBackground}, // Estilo dinâmico baseado no tema atual
           ]}
           placeholder="Digite o nome do filme"
           placeholderTextColor={theme.text}
@@ -338,7 +336,13 @@ export default function HomeScreen() {
                 { backgroundColor: theme.background }, // Estilo dinâmico baseado no tema atual
               ]}
             >
-              <Text>Adicionar o Filme {selectedMovie?.title}</Text>
+              <Text
+                style={
+                  { color: theme.text } // Estilo dinâmico baseado no tema atual
+                }
+              >
+                Adicionar o Filme {selectedMovie?.title}
+              </Text>
               <View
                 style={{
                   ...styles.modalButtons,
@@ -380,7 +384,13 @@ export default function HomeScreen() {
               { backgroundColor: theme.background }, // Estilo dinâmico baseado no tema atual
             ]}
           >
-            <Text>Avaliar o Filme {selectedMovieRating?.title}</Text>
+            <Text
+              style={
+                { color: theme.text } // Estilo dinâmico baseado no tema atual
+              }
+            >
+              Avaliar o Filme {selectedMovieRating?.title}
+            </Text>
             <View style={styles.ratingButtons}>
               <TouchableOpacity
                 style={styles.ratingButton}
@@ -390,9 +400,22 @@ export default function HomeScreen() {
                   }
                 }}
               >
-                <Text style={styles.textStyle}>-</Text>
+                <Text
+                  style={[
+                    styles.textStyle,
+                    { color: theme.text }, // Estilo dinâmico baseado no tema atual
+                  ]}
+                >
+                  -
+                </Text>
               </TouchableOpacity>
-              <Text>{rating}</Text>
+              <Text
+                style={
+                  { color: theme.text } // Estilo dinâmico baseado no tema atual
+                }
+              >
+                {rating}
+              </Text>
               <TouchableOpacity
                 style={styles.ratingButton}
                 onPress={() => {
@@ -455,8 +478,7 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     flex: 1,
     height: 40,
-    borderColor: "gray",
-    borderWidth: 1,
+    borderWidth: 2.5,
     paddingLeft: 8,
     position: "relative",
   },

@@ -12,7 +12,7 @@ import StarRating from "../../components/starComponent/starComponent";
 import logo from "../../assets/images/logo.png";
 import { useTheme } from "../../constants/temas/ThemeContext";
 
-export default function TabThreeScreen() {
+export default function TabFourScreen() {
   const { movies } = useUser();
   const { theme } = useTheme();
 

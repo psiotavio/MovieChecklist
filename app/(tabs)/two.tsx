@@ -22,9 +22,6 @@ export default function TabTwoScreen() {
     const { theme, toggleTheme } = useTheme();
     const themeName = theme.background === themes.dark.background ? 'dark' : 'light';
 
-
-
-
   const goalMovies = 365;
   const goalMoviesMonth = 30;
   const goalMoviesWeek = 7;
