@@ -8,14 +8,15 @@ import {
   ScrollView,
   Modal,
   TouchableHighlight,
+  Text,
+  View,
 } from "react-native";
 import axios from "axios";
 import StarRating from "../../components/starComponent/starComponent";
-import { Text, View } from "../../components/Themed";
-import { useColorScheme } from "react-native";
 import { isSameWeek, isSameYear, isSameMonth, parse } from "date-fns";
 import { useUser } from "../../contexts/UserContext";
 import logo from "../../assets/images/logo.png";
+import { useTheme } from "../../constants/temas/ThemeContext";
 
 interface Movie {
   rank?: React.JSX.Element;
@@ -63,7 +64,6 @@ export function getAllWatchedMovies(movies: Movie[]): string[] {
 
 export default function HomeScreen() {
   const { movies, addMovieReview, recommendedMovies } = useUser(); // Use o contexto de usuário
-  const colorScheme = useColorScheme();
   const [movieInput, setMovieInput] = useState<string>("");
   const [searchResults, setSearchResults] = useState<Movie[]>([]);
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
@@ -77,6 +77,8 @@ export default function HomeScreen() {
   const totalMoviesThisYear = getTotalMoviesWatchedThisYear(movies);
   const totalMoviesThisWeek = getTotalMoviesWatchedThisWeek(movies);
   const totalMoviesThisMonth = getTotalMoviesWatchedThisMonth(movies);
+
+  const { theme, toggleTheme } = useTheme();
 
   const searchMovies = async (query: string) => {
     try {
@@ -218,16 +220,23 @@ export default function HomeScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       <Image source={logo} style={styles.logo} />
 
-      <View style={styles.inputContainer}>
+      <TouchableOpacity onPress={toggleTheme}>
+        <Text style={{ color: theme.text }}>Mudar Tema</Text>
+      </TouchableOpacity>
+
+      <View
+        style={[styles.inputContainer, { backgroundColor: theme.background }]}
+      >
         <TextInput
-          style={{
-            ...styles.input,
-            color: colorScheme === "dark" ? "white" : "black",
-          }}
+          style={[
+            styles.input, // Estilos pré-definidos do TextInput
+            { color: theme.text }, // Estilo dinâmico baseado no tema atual
+          ]}
           placeholder="Digite o nome do filme"
+          placeholderTextColor={theme.text}
           value={movieInput}
           onChangeText={handleInputChange}
         />
@@ -240,10 +249,10 @@ export default function HomeScreen() {
               onPress={() => handleSelectSuggestion(item)}
             >
               <View
-                style={{
-                  ...styles.suggestionItem,
-                  backgroundColor: colorScheme === "dark" ? "black" : "white",
-                }}
+                style={[
+                  styles.suggestionItem, // Estilo pré-definido
+                  { backgroundColor: theme.background }, // Estilo dinâmico baseado no tema
+                ]}
               >
                 <Image
                   style={styles.suggestionImage}
@@ -251,7 +260,7 @@ export default function HomeScreen() {
                 />
                 <Text
                   style={{
-                    color: "#fff",
+                    color: theme.text,
                     flexShrink: 1,
                   }}
                   numberOfLines={2}
@@ -267,8 +276,16 @@ export default function HomeScreen() {
 
       <ScrollView style={styles.moviesChekclist}>
         {combinedArray.map((item) => (
-          <View key={item.title} style={styles.movieListContainer}>
-            <Text style={styles.movieListTitle}>{item.title}</Text>
+          <View
+            key={item.title}
+            style={[
+              styles.movieListContainer,
+              { backgroundColor: theme.background },
+            ]}
+          >
+            <Text style={[styles.movieListTitle, { color: theme.text }]}>
+              {item.title}
+            </Text>
             <View key={item.title} style={styles.flatlist}>
               <FlatList
                 data={item.data}
@@ -316,16 +333,15 @@ export default function HomeScreen() {
         >
           <View style={styles.modalContainer}>
             <View
-              style={{
-                ...styles.modalContent,
-                backgroundColor: colorScheme === "dark" ? "#435E79" : "white",
-              }}
+              style={[
+                styles.modalContent, // Estilos pré-definidos
+                { backgroundColor: theme.background }, // Estilo dinâmico baseado no tema atual
+              ]}
             >
               <Text>Adicionar o Filme {selectedMovie?.title}</Text>
               <View
                 style={{
                   ...styles.modalButtons,
-                  backgroundColor: colorScheme === "dark" ? "#435E79" : "white",
                 }}
               >
                 <TouchableHighlight
@@ -358,7 +374,12 @@ export default function HomeScreen() {
         }}
       >
         <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
+          <View
+            style={[
+              styles.modalContent, // Estilos pré-definidos
+              { backgroundColor: theme.background }, // Estilo dinâmico baseado no tema atual
+            ]}
+          >
             <Text>Avaliar o Filme {selectedMovieRating?.title}</Text>
             <View style={styles.ratingButtons}>
               <TouchableOpacity
@@ -450,7 +471,7 @@ const styles = StyleSheet.create({
     maxHeight: 200,
     marginBottom: 16,
     position: "absolute",
-    top: 210,
+    top: 220,
     borderBottomRightRadius: 20,
     borderBottomLeftRadius: 20,
     shadowColor: "#000",

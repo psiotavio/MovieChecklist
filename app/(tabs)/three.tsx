@@ -7,10 +7,12 @@ import {
   ActivityIndicator,
   Modal,
   ScrollView,
+  Text,
+  View,
 } from 'react-native';
-import { Text, View } from "../../components/Themed";
 import { useUser } from "../../contexts/UserContext";
 import logo from "../../assets/images/logo.png";
+import { useTheme } from '../../constants/temas/ThemeContext';
 
 export default function TabThreeScreen() {
   const { recommendedMovies, recommendedByGenre } = useUser();
@@ -18,6 +20,7 @@ export default function TabThreeScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [showDropdown, setShowDropdown] = useState(false);
   const [genres, setGenres] = useState(['Recomendado para você']);
+  const { theme } = useTheme();
 
   
   useEffect(() => {
@@ -36,13 +39,13 @@ export default function TabThreeScreen() {
   }, [recommendedMovies, selectedGenre]);
   
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, {backgroundColor: theme.background} ]}>
       <Image source={logo} style={styles.logo} />
       <TouchableOpacity
         style={styles.dropdownButton}
         onPress={() => setShowDropdown(true)}
       >
-        <Text style={styles.dropdownButtonText}>
+        <Text style={[styles.dropdownButtonText, {color: theme.text}]}>
           {selectedGenre}
         </Text>
       </TouchableOpacity>
@@ -57,7 +60,7 @@ export default function TabThreeScreen() {
           activeOpacity={1}
           onPressOut={() => setShowDropdown(false)}
         >
-          <View style={styles.dropdown}>
+          <View style={[styles.dropdown, , {backgroundColor: theme.background}]}>
             <ScrollView>
               {genres.map((genre) => (
                 <TouchableOpacity
@@ -68,14 +71,14 @@ export default function TabThreeScreen() {
                     setShowDropdown(false);
                   }}
                 >
-                  <Text style={styles.dropdownItemText}>{genre}</Text>
+                  <Text style={[styles.dropdownItemText , {color: theme.text}]}>{genre}</Text>
                 </TouchableOpacity>
               ))}
             </ScrollView>
           </View>
         </TouchableOpacity>
       </Modal>
-      <Text style={styles.movieListTitle}>{selectedGenre.toUpperCase()}</Text>
+      <Text style={[styles.movieListTitle, {color: theme.text}]}>{selectedGenre.toUpperCase()}</Text>
       {isLoading ? (
         <ActivityIndicator size="large" color="#0000ff" />
       ) : (

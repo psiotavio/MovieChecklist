@@ -6,17 +6,24 @@ import {
   Image,
   Button,
   Switch,
+  Text,
+  View,
 } from "react-native";
-
-import { Text, View } from "../../components/Themed";
 import { useFocusEffect } from "@react-navigation/native";
 import { useUser } from "../../contexts/UserContext";
 import logo from "../../assets/images/logo.png";
 import { isSameWeek, isSameYear, isSameMonth, parse } from "date-fns";
+import { useTheme } from "../../constants/temas/ThemeContext";
+import { themes } from "../../constants/temas/ThemeColors";
 
 export default function TabTwoScreen() {
   const { movies, setMovies, recommendedByGenre, setRecommendedMovies } =
     useUser(); // Usando os filmes do contexto
+    const { theme, toggleTheme } = useTheme();
+    const themeName = theme.background === themes.dark.background ? 'dark' : 'light';
+
+
+
 
   const goalMovies = 365;
   const goalMoviesMonth = 30;
@@ -29,7 +36,6 @@ export default function TabTwoScreen() {
   const [totalMoviesWatchedThisWeek, setTotalMoviesWatchedThisWeek] =
     useState(0);
   const [fadeIn] = useState(new Animated.Value(0));
-  const [theme, setTheme] = useState("light"); // 'light' ou 'dark'
 
   useFocusEffect(
     React.useCallback(() => {
@@ -67,11 +73,11 @@ export default function TabTwoScreen() {
   );
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       <Image source={logo} style={styles.logo} />
       <Animated.View style={[styles.content, { opacity: fadeIn }]}>
-        <Text style={styles.title}>ESTATÍSTICAS</Text>
-        <Text style={styles.subtitle}>
+        <Text style={[styles.title, { color: theme.text }]}>ESTATÍSTICAS</Text>
+        <Text style={[styles.subtitle, { color: theme.text }]}>
           Total de filmes assistidos este ano: {totalMoviesWatchedThisYear}
         </Text>
         {/* Barra de progresso ANO */}
@@ -80,11 +86,11 @@ export default function TabTwoScreen() {
             style={[styles.progressBar, { width: `${completionPercentage}%` }]}
           />
         </View>
-        <Text style={styles.progressBarMeta}>
+        <Text style={[styles.progressBarMeta, { color: theme.text }]}>
           {totalMoviesWatchedThisYear}/365
         </Text>
 
-        <Text style={styles.subtitle}>
+        <Text style={[styles.subtitle, { color: theme.text }]}>
           Total de filmes assistidos este mês: {totalMoviesWatchedThisMonth}
         </Text>
         {/* Barra de progresso MÊS */}
@@ -96,11 +102,11 @@ export default function TabTwoScreen() {
             ]}
           />
         </View>
-        <Text style={styles.progressBarMeta}>
+        <Text style={[styles.progressBarMeta, { color: theme.text }]}>
           {totalMoviesWatchedThisMonth}/30
         </Text>
 
-        <Text style={styles.subtitle}>
+        <Text style={[styles.subtitle, { color: theme.text }]}>
           Total de filmes assistidos esta semana: {totalMoviesWatchedThisWeek}
         </Text>
         {/* Barra de progresso SEMANA */}
@@ -112,7 +118,7 @@ export default function TabTwoScreen() {
             ]}
           />
         </View>
-        <Text style={styles.progressBarMeta}>
+        <Text style={[styles.progressBarMeta, { color: theme.text }]}>
           {totalMoviesWatchedThisWeek}/7
         </Text>
 
@@ -120,12 +126,11 @@ export default function TabTwoScreen() {
         <Button title="Redefinir Filmes" onPress={handleResetMovies} />
 
         <View style={styles.switchContainer}>
-          <Text>{theme === "light" ? "Claro" : "Escuro"}</Text>
           <Switch
             trackColor={{ false: "#767577", true: "#81b0ff" }}
-            thumbColor={theme === "light" ? "#f5dd4b" : "#f4f3f4"}
-            onValueChange={() => setTheme(theme === "light" ? "dark" : "light")}
-            value={theme === "dark"}
+            thumbColor={themeName === "dark" ? "#f5dd4b" : "#f4f3f4"}
+            onValueChange={toggleTheme}
+            value={themeName === "dark"}
           />
         </View>
       </Animated.View>
@@ -160,14 +165,13 @@ function getTotalMoviesWatchedThisMonth(movies: any[]) {
 }
 
 const styles = StyleSheet.create({
-
   switchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     marginTop: 20,
   },
-  
+
   container: {
     flex: 1,
     paddingTop: 56,

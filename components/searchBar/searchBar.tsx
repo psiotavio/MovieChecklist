@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   Text,
   ScrollView,
-  Animated,
   TouchableWithoutFeedback,
   Keyboard,
 } from "react-native";

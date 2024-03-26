@@ -1,34 +1,40 @@
 import React from "react";
-import { StyleSheet, FlatList, Image, TouchableOpacity} from "react-native";
+import {
+  StyleSheet,
+  FlatList,
+  Image,
+  TouchableOpacity,
+  Text,
+  View,
+} from "react-native";
 import { useUser } from "../../contexts/UserContext"; // Certifique-se de que esta é a importação correta
 import StarRating from "../../components/starComponent/starComponent";
-import { Text, View } from "../../components/Themed";
 import logo from "../../assets/images/logo.png";
-
+import { useTheme } from "../../constants/temas/ThemeContext";
 
 export default function TabThreeScreen() {
-  const { movies } = useUser(); 
+  const { movies } = useUser();
+  const { theme } = useTheme();
 
   const moviesSortedByRating = [...movies].sort((a, b) => b.rating - a.rating);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container , {backgroundColor: theme.background}]}>
       <Image source={logo} style={styles.logo} />
-      <Text style={styles.movieListTitle}>SEUS FILMES AVALIADOS</Text>
+      <Text style={[styles.movieListTitle, {color: theme.text}]}>SEUS FILMES AVALIADOS</Text>
       <FlatList
         data={moviesSortedByRating}
         keyExtractor={(movie) => movie.id.toString()}
-        numColumns={3} 
+        numColumns={3}
         showsHorizontalScrollIndicator={false}
         renderItem={({ item }) => (
           <View style={[styles.movieItem, { marginLeft: 9 }]}>
             <TouchableOpacity>
               <Image
                 style={styles.movieImage}
-                source={{ uri: item.imageUrl || "default_image_url" }} 
+                source={{ uri: item.imageUrl || "default_image_url" }}
               />
               <StarRating rating={item.rating}></StarRating>
-              
             </TouchableOpacity>
           </View>
         )}
@@ -44,8 +50,8 @@ const styles = StyleSheet.create({
   movieRatingText: {
     fontSize: 14,
     fontWeight: "bold",
-    marginTop: 4, 
-    textAlign: "center", 
+    marginTop: 4,
+    textAlign: "center",
   },
   container: {
     flex: 1,
@@ -65,7 +71,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 16,
     marginTop: 20,
-    alignSelf: 'center', 
+    alignSelf: "center",
   },
   movieItem: {
     marginBottom: 16,
