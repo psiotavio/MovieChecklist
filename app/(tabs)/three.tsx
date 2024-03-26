@@ -17,22 +17,23 @@ export default function TabThreeScreen() {
   const [selectedGenre, setSelectedGenre] = useState('Recomendado para você');
   const [isLoading, setIsLoading] = useState(true);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [genres, setGenres] = useState(['Recomendado para você']);
 
-  // Update the initial 'all' value to 'Recomendado para você' in genres array
-  const genres = ['Recomendado para você', ...Object.keys(recommendedByGenre)];
+  
+  useEffect(() => {
+    console.log(recommendedByGenre);
+    if (Object.keys(recommendedByGenre).length) {
+      setGenres(['Recomendado para você', ...Object.keys(recommendedByGenre)]);
+      console.log(genres)
+    }
+  }, [recommendedByGenre]);
+  
+  
 
   useEffect(() => {
-    setIsLoading(true);
-  
-    const checkIfMoviesAreLoaded = () => {
-      const moviesToCheck = selectedGenre === 'Recomendado para você' ? recommendedMovies : recommendedByGenre[selectedGenre];
-      if (moviesToCheck && moviesToCheck.length >= 6) {
-        setIsLoading(false);
-      }
-    };
-  
-    checkIfMoviesAreLoaded();
-  }, [recommendedMovies, recommendedByGenre, selectedGenre]);
+    const moviesToCheck = selectedGenre === 'Recomendado para você' ? recommendedMovies : recommendedByGenre[selectedGenre];
+    setIsLoading(!moviesToCheck || moviesToCheck.length === 0);
+  }, [recommendedMovies, selectedGenre]);
   
   return (
     <View style={styles.container}>
@@ -79,7 +80,7 @@ export default function TabThreeScreen() {
         <ActivityIndicator size="large" color="#0000ff" />
       ) : (
         <FlatList
-          data={selectedGenre === 'Recomendado para você' ? recommendedMovies : recommendedByGenre[selectedGenre]}
+          data={selectedGenre === 'Recomendado para você' ? recommendedMovies : (recommendedByGenre[selectedGenre])}
           keyExtractor={(item) => item.id.toString()}
           numColumns={3}
           renderItem={({ item }) => (
@@ -97,6 +98,7 @@ export default function TabThreeScreen() {
     </View>
   );
 }
+
 
 
 const styles = StyleSheet.create({

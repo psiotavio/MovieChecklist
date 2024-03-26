@@ -249,7 +249,16 @@ export default function HomeScreen() {
                   style={styles.suggestionImage}
                   source={{ uri: item.imageUrl }}
                 />
-                <Text style={styles.suggestionText}>{item.title}</Text>
+                <Text
+                  style={{
+                    color: "#fff",
+                    flexShrink: 1,
+                  }}
+                  numberOfLines={2}
+                  ellipsizeMode="tail"
+                >
+                  {item.title}
+                </Text>
               </View>
             </TouchableOpacity>
           ))}
@@ -275,10 +284,14 @@ export default function HomeScreen() {
                         setModalVisible1(true);
                       }}
                     >
-                      <Image
-                        style={styles.movieImage}
-                        source={{ uri: item.imageUrl }}
-                      />
+                      <View style={styles.shadowContainer}>
+                        <View style={styles.imageContainer}>
+                          <Image
+                            style={styles.movieImage}
+                            source={{ uri: item.imageUrl }}
+                          />
+                        </View>
+                      </View>
                     </TouchableOpacity>
                     <View style={styles.movieInfo}>
                       {item.rank && (
@@ -292,8 +305,6 @@ export default function HomeScreen() {
             </View>
           </View>
         ))}
-
-        {/* Modal de Confirmar */}
 
         <Modal
           animationType="fade"
@@ -335,7 +346,6 @@ export default function HomeScreen() {
             </View>
           </View>
         </Modal>
-
       </ScrollView>
 
       {/* Modal de Avaliar */}
@@ -434,7 +444,6 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 20,
   },
   moviesLists: {
-    backgroundColor: "rgba(0,0,0,0)",
     display: "flex",
     zIndex: 2,
     width: "80%",
@@ -445,13 +454,10 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 20,
     borderBottomLeftRadius: 20,
     shadowColor: "#000",
-    shadowOffset: {
-      width: 5,
-      height: 5,
-    },
-    shadowOpacity: 1,
-    shadowRadius: 10,
-    elevation: 6,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.5,
+    shadowRadius: 3,
+    elevation: 5,
   },
   suggestionItem: {
     flexDirection: "row",
@@ -461,23 +467,47 @@ const styles = StyleSheet.create({
     borderBottomColor: "#ccc",
   },
   suggestionImage: {
-    width: 20,
-    height: 40,
+    borderRadius: 5,
+    width: 50,
+    height: 75,
     resizeMode: "cover",
     marginRight: 15,
     marginLeft: 10,
   },
-  suggestionText: {},
+  suggestionText: {
+    flexShrink: 1,
+    numberOfLines: 1,
+    ellipsizeMode: "tail",
+  },
   movieItem: {
     marginBottom: 16,
     alignItems: "center",
   },
-  movieImage: {
-    width: 100,
-    height: 150,
-    resizeMode: "cover",
+
+  shadowContainer: {
+    width: 120,
+    height: 185,
     marginBottom: 8,
-    borderRadius: 10,
+    borderRadius: 10, // Mantém as bordas arredondadas para a sombra
+    backgroundColor: "white", // A cor de fundo é necessária para a sombra aparecer
+    shadowColor: "#000", // Cor da sombra
+    shadowOffset: { width: 0, height: 2 }, // Deslocamento da sombra
+    shadowOpacity: 0.5, // Opacidade da sombra
+    shadowRadius: 3, // Raio da sombra
+    elevation: 5, // Adiciona sombra no Android
+  },
+
+  imageContainer: {
+    width: "100%", // Usa 100% do contêiner de sombra
+    height: "100%", // Usa 100% do contêiner de sombra
+    borderRadius: 8, // Arredonda as bordas da imagem
+    overflow: "hidden", // Mantém a imagem dentro do contorno arredondado
+  },
+
+  movieImage: {
+    width: "100%", // Preenche o contêiner da imagem
+    height: "100%", // Preenche o contêiner da imagem
+    resizeMode: "cover", // Ajusta a imagem para cobrir o contêiner
   },
 
   movieInfo: {
