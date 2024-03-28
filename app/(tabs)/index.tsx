@@ -17,6 +17,7 @@ import { isSameWeek, isSameYear, isSameMonth, parse } from "date-fns";
 import { useUser } from "../../contexts/UserContext";
 import logo from "../../assets/images/logo.png";
 import { useTheme } from "../../constants/temas/ThemeContext";
+import Slider from "@react-native-community/slider";
 
 interface Movie {
   rank?: React.JSX.Element;
@@ -72,7 +73,7 @@ export default function HomeScreen() {
   );
   const [modalVisible, setModalVisible] = useState(false);
   const [modalVisible1, setModalVisible1] = useState(false);
-  const [rating, setRating] = useState<number>(0);
+  const [rating, setRating] = useState(2.5);
   const TMDB_API_KEY = "172e0af0e176f9c169387e094fb67c75";
   const totalMoviesThisYear = getTotalMoviesWatchedThisYear(movies);
   const totalMoviesThisWeek = getTotalMoviesWatchedThisWeek(movies);
@@ -223,15 +224,17 @@ export default function HomeScreen() {
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       <Image source={logo} style={styles.logo} />
 
-      
-
       <View
         style={[styles.inputContainer, { backgroundColor: theme.background }]}
       >
         <TextInput
           style={[
             styles.input, // Estilos pré-definidos do TextInput
-            { color: theme.text , borderColor: theme.borderRed, backgroundColor: theme.modalBackground}, // Estilo dinâmico baseado no tema atual
+            {
+              color: theme.text,
+              borderColor: theme.borderRed,
+              backgroundColor: theme.modalBackground,
+            }, // Estilo dinâmico baseado no tema atual
           ]}
           placeholder="Digite o nome do filme"
           placeholderTextColor={theme.text}
@@ -240,7 +243,12 @@ export default function HomeScreen() {
         />
       </View>
       <View style={styles.moviesLists}>
-        <ScrollView style={styles.suggestionsContainer}>
+        <ScrollView
+          style={[
+            styles.suggestionsContainer,
+            { backgroundColor: theme.modalBackground },
+          ]}
+        >
           {searchResults.map((item) => (
             <TouchableOpacity
               key={item.id}
@@ -249,7 +257,7 @@ export default function HomeScreen() {
               <View
                 style={[
                   styles.suggestionItem, // Estilo pré-definido
-                  { backgroundColor: theme.background }, // Estilo dinâmico baseado no tema
+                  { backgroundColor: theme.modalBackground }, // Estilo dinâmico baseado no tema
                 ]}
               >
                 <Image
@@ -349,7 +357,10 @@ export default function HomeScreen() {
                 }}
               >
                 <TouchableHighlight
-                  style={{ ...styles.modalButton, backgroundColor: "#2196F3" }}
+                  style={{
+                    ...styles.modalButton,
+                    backgroundColor: theme.modalBackground,
+                  }}
                   onPress={() => {
                     setModalVisible(false);
                   }}
@@ -357,7 +368,10 @@ export default function HomeScreen() {
                   <Text style={styles.textStyle}>Cancelar</Text>
                 </TouchableHighlight>
                 <TouchableHighlight
-                  style={{ ...styles.modalButton, backgroundColor: "#2196F3" }}
+                  style={{
+                    ...styles.modalButton,
+                    backgroundColor: theme.borderRed,
+                  }}
                   onPress={handleAddMovie}
                 >
                   <Text style={styles.textStyle}>Adicionar</Text>
@@ -386,50 +400,42 @@ export default function HomeScreen() {
           >
             <Text
               style={
-                { color: theme.text } // Estilo dinâmico baseado no tema atual
+                { color: theme.text, marginTop: 5} // Estilo dinâmico baseado no tema atual
               }
             >
-              Avaliar o Filme {selectedMovieRating?.title}
+              Avaliar o Filme: 
+            </Text>
+            <Text
+              style={
+                { color: theme.text, fontWeight: 'bold', fontSize: 18, marginTop: 10} // Estilo dinâmico baseado no tema atual
+              }
+            >
+              {selectedMovieRating?.title}
             </Text>
             <View style={styles.ratingButtons}>
-              <TouchableOpacity
-                style={styles.ratingButton}
-                onPress={() => {
-                  if (selectedMovieRating && rating > 0) {
-                    setRating((prev) => prev - 0.5);
-                  }
-                }}
-              >
-                <Text
-                  style={[
-                    styles.textStyle,
-                    { color: theme.text }, // Estilo dinâmico baseado no tema atual
-                  ]}
-                >
-                  -
+              <View style={styles.slider}>
+                <Slider
+                  style={{ width: 200, height: 40 }}
+                  minimumValue={0}
+                  maximumValue={5}
+                  step={0.5}
+                  value={rating}
+                  onValueChange={setRating}
+                  minimumTrackTintColor={theme.borderRed} 
+                  maximumTrackTintColor={theme.modalBackgroundSecondary} 
+                  thumbTintColor={theme.text} 
+                />
+                <Text style={{ color: theme.text, marginTop: 10 }}>
+                  Avaliação: {rating.toFixed(1)}
                 </Text>
-              </TouchableOpacity>
-              <Text
-                style={
-                  { color: theme.text } // Estilo dinâmico baseado no tema atual
-                }
-              >
-                {rating}
-              </Text>
-              <TouchableOpacity
-                style={styles.ratingButton}
-                onPress={() => {
-                  if (selectedMovieRating && rating < 5) {
-                    setRating((prev) => prev + 0.5);
-                  }
-                }}
-              >
-                <Text style={styles.textStyle}>+</Text>
-              </TouchableOpacity>
+              </View>
             </View>
             <View style={styles.modalButtons}>
               <TouchableHighlight
-                style={{ ...styles.modalButton, backgroundColor: "#2196F3" }}
+                style={{
+                  ...styles.modalButton,
+                  backgroundColor: theme.modalBackground,
+                }}
                 onPress={() => {
                   setModalVisible1(false);
                 }}
@@ -437,7 +443,10 @@ export default function HomeScreen() {
                 <Text style={styles.textStyle}>Cancelar</Text>
               </TouchableHighlight>
               <TouchableHighlight
-                style={{ ...styles.modalButton, backgroundColor: "#2196F3" }}
+                style={{
+                  ...styles.modalButton,
+                  backgroundColor: theme.borderRed,
+                }}
                 onPress={() => {
                   if (selectedMovieRating) {
                     addMovieReview({ ...selectedMovieRating, rating: rating });
@@ -471,7 +480,7 @@ const styles = StyleSheet.create({
     width: "85%",
     flexDirection: "row",
     alignItems: "center",
-    zIndex: 1,
+    zIndex: 9999,
   },
 
   input: {
@@ -493,14 +502,9 @@ const styles = StyleSheet.create({
     maxHeight: 200,
     marginBottom: 16,
     position: "absolute",
-    top: 220,
+    top: 226,
     borderBottomRightRadius: 20,
     borderBottomLeftRadius: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.5,
-    shadowRadius: 3,
-    elevation: 5,
   },
   suggestionItem: {
     flexDirection: "row",
@@ -535,7 +539,7 @@ const styles = StyleSheet.create({
     backgroundColor: "white", // A cor de fundo é necessária para a sombra aparecer
     shadowColor: "#000", // Cor da sombra
     shadowOffset: { width: 0, height: 2 }, // Deslocamento da sombra
-    shadowOpacity: 0.5, // Opacidade da sombra
+    shadowOpacity: 1, // Opacidade da sombra
     shadowRadius: 3, // Raio da sombra
     elevation: 5, // Adiciona sombra no Android
   },
@@ -566,10 +570,11 @@ const styles = StyleSheet.create({
     filter: "blur(10)",
   },
   modalContent: {
+    width: "85%",
     padding: 22,
     justifyContent: "center",
     alignItems: "center",
-    borderRadius: 4,
+    borderRadius: 10,
     borderColor: "rgba(0, 0, 0, 0.1)",
   },
   modalButtons: {
@@ -577,7 +582,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   modalButton: {
-    borderRadius: 4,
+    borderRadius: 30,
     padding: 10,
     marginHorizontal: 8,
   },
@@ -617,7 +622,7 @@ const styles = StyleSheet.create({
     marginVertical: 16,
     width: 80,
     height: 80,
-    marginBottom: 16,
+    marginBottom: 40,
     resizeMode: "contain",
   },
   rankNumber: {
@@ -631,5 +636,13 @@ const styles = StyleSheet.create({
     textShadowRadius: 5,
     zIndex: 1,
     fontWeight: "bold",
+  },
+  slider:{
+     display: 'flex',
+     flexDirection: 'column',
+     gap: 10,
+     paddingVertical: 20,
+     justifyContent: 'center',
+     alignItems: 'center'
   },
 });

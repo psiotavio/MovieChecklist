@@ -27,6 +27,7 @@ export default function TabLayout() {
       color: theme.text,
     },
     {
+      
       key: 'recommendations',
       title: 'Recomendações',
       focusedIcon: 'movie',
@@ -52,8 +53,8 @@ export default function TabLayout() {
 
   const renderScene = BottomNavigation.SceneMap({
     home: HomeScreen,
-    recommendations: TabFourScreen,
-    lists: TabThreeScreen,
+    recommendations: TabThreeScreen,
+    lists: TabFourScreen,
     profile: TabTwoScreen,
   });
 
@@ -65,7 +66,7 @@ export default function TabLayout() {
       activeIndicatorStyle={{ backgroundColor: theme.borderRed }}
       activeColor={theme.text}
       inactiveColor={theme.text}
-      barStyle={{ backgroundColor: theme.background }}
+      barStyle={{ backgroundColor: theme.modalBackground }}
     />
   );
 }

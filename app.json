@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "MovieChecklist",
-    "slug": "MovieChecklist",
+    "name": "WatchFolio",
+    "slug": "WatchFolio",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -9,8 +9,7 @@
     "userInterfaceStyle": "automatic",
     "splash": {
       "image": "./assets/images/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "resizeMode": "cover"
     },
     "assetBundlePatterns": [
       "**/*"

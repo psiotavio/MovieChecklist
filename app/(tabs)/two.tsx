@@ -17,7 +17,7 @@ import { useTheme } from "../../constants/temas/ThemeContext";
 import { themes } from "../../constants/temas/ThemeColors";
 
 export default function TabTwoScreen() {
-  const { movies, setMovies, recommendedByGenre, setRecommendedMovies } =
+  const { movies, setMovies, recommendedByGenre, setRecommendedMovies, setToWatchMovies } =
     useUser(); // Usando os filmes do contexto
     const { theme, toggleTheme } = useTheme();
     const themeName = theme.background === themes.dark.background ? 'dark' : 'light';
@@ -54,6 +54,7 @@ export default function TabTwoScreen() {
   const handleResetMovies = () => {
     setRecommendedMovies([]);
     setMovies([]);
+    setToWatchMovies([]);
   };
 
   const completionPercentage = Math.min(
@@ -80,7 +81,7 @@ export default function TabTwoScreen() {
         {/* Barra de progresso ANO */}
         <View style={styles.progressBarContainer}>
           <View
-            style={[styles.progressBar, { width: `${completionPercentage}%` }]}
+            style={[styles.progressBar, { width: `${completionPercentage}%` , backgroundColor: theme.borderRed }]}
           />
         </View>
         <Text style={[styles.progressBarMeta, { color: theme.text }]}>
@@ -95,7 +96,7 @@ export default function TabTwoScreen() {
           <View
             style={[
               styles.progressBar,
-              { width: `${completionPercentageMonth}%` },
+              { width: `${completionPercentageMonth}%`, backgroundColor: theme.borderRed },
             ]}
           />
         </View>
@@ -111,7 +112,7 @@ export default function TabTwoScreen() {
           <View
             style={[
               styles.progressBar,
-              { width: `${completionPercentageWeek}%` },
+              { width: `${completionPercentageWeek}%`, backgroundColor: theme.borderRed },
             ]}
           />
         </View>
@@ -124,8 +125,8 @@ export default function TabTwoScreen() {
 
         <View style={styles.switchContainer}>
           <Switch
-            trackColor={{ false: "#767577", true: "#81b0ff" }}
-            thumbColor={themeName === "dark" ? "#f5dd4b" : "#f4f3f4"}
+            trackColor={{ false: "red", true: theme.modalBackgroundSecondary }}
+            thumbColor={themeName === "dark" ? theme.borderRed : theme.borderRed}
             onValueChange={toggleTheme}
             value={themeName === "dark"}
           />
@@ -211,7 +212,6 @@ const styles = StyleSheet.create({
   },
   progressBar: {
     height: "100%",
-    backgroundColor: "#4caf50",
     borderRadius: 10,
   },
 });
