@@ -359,7 +359,7 @@ export default function HomeScreen() {
                 <TouchableHighlight
                   style={{
                     ...styles.modalButton,
-                    backgroundColor: theme.modalBackground,
+                    backgroundColor: theme.modalBackgroundSecondary,
                   }}
                   onPress={() => {
                     setModalVisible(false);
@@ -434,7 +434,7 @@ export default function HomeScreen() {
               <TouchableHighlight
                 style={{
                   ...styles.modalButton,
-                  backgroundColor: theme.modalBackground,
+                  backgroundColor: theme.modalBackgroundSecondary,
                 }}
                 onPress={() => {
                   setModalVisible1(false);

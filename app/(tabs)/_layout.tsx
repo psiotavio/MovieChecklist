@@ -7,13 +7,9 @@ import HomeScreen from ".";
 import TabThreeScreen from "./three";
 import TabFourScreen from "./four";
 import TabTwoScreen from "./two";
+import TabFiveScreen from "./five";
 
-function TabBarIcon(props: {
-  name: React.ComponentProps<typeof FontAwesome>["name"];
-  color: string;
-}) {
-  return <FontAwesome size={28} {...props} />;
-}
+
 
 export default function TabLayout() {
   const { theme } = useTheme();
@@ -24,29 +20,31 @@ export default function TabLayout() {
       title: 'Home',
       focusedIcon: 'home',
       unfocusedIcon: 'home-outline',
-      color: theme.text,
     },
     {
       
       key: 'recommendations',
-      title: 'Recomendações',
+      title: 'Para você',
       focusedIcon: 'movie',
       unfocusedIcon: 'movie-outline',
-      color: theme.text,
     },
     {
       key: 'lists',
       title: 'Listas',
       focusedIcon: 'format-list-bulleted',
       unfocusedIcon: 'format-list-bulleted-square',
-      color: theme.text,
     },
     {
       key: 'profile',
       title: 'Perfil',
       focusedIcon: 'account',
       unfocusedIcon: 'account-outline',
-      color: theme.text,
+    },
+    {
+      key: 'cog',
+      title: 'Ajustes',
+      focusedIcon: 'cog',
+      unfocusedIcon: 'cog-outline',
     },
   ]);
   
@@ -56,6 +54,7 @@ export default function TabLayout() {
     recommendations: TabThreeScreen,
     lists: TabFourScreen,
     profile: TabTwoScreen,
+    cog: TabFiveScreen
   });
 
   return (
@@ -66,7 +65,7 @@ export default function TabLayout() {
       activeIndicatorStyle={{ backgroundColor: theme.borderRed }}
       activeColor={theme.text}
       inactiveColor={theme.text}
-      barStyle={{ backgroundColor: theme.modalBackground }}
+      barStyle={{ backgroundColor: theme.modalBackground}}
     />
   );
 }

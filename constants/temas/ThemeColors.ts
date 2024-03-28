@@ -10,12 +10,12 @@ export type Theme = {
   
   export const themes: Record<'light' | 'dark', Theme> = {
     light: {
-      background: '#FFFFFF', 
-      text: '#000000', 
-      borderRed: '#E7B13D', 
+      background: '#F5F5F7', 
+      text: '#383838', 
+      borderRed: '#B3ABD4', 
       modalBackground: '#F2F2F2',
       modalBackgroundSecondary: '#35383F',
-      textButtons: '#FFFF'
+      textButtons: '#383838'
     },
     dark: {
         background: '#181A20',

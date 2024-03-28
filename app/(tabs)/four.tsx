@@ -24,7 +24,8 @@ interface Movie {
 
 export default function TabFourScreen() {
   const [activeTab, setActiveTab] = useState("ratedMovies"); // 'ratedMovies' ou 'toWatchMovies'
-  const { movies, toWatchMovies, removeFromWatchList, addMovieReview } = useUser(); // Adicione toWatchMovies aqui
+  const { movies, toWatchMovies, removeFromWatchList, addMovieReview } =
+    useUser(); // Adicione toWatchMovies aqui
   const { theme } = useTheme();
 
   const [showModal, setShowModal] = useState(false);
@@ -46,20 +47,17 @@ export default function TabFourScreen() {
 
       const movieReview: Movie = {
         id: selectedMovieId.id,
-        title: selectedMovieId.title, 
-        date: new Date().toLocaleDateString(), 
+        title: selectedMovieId.title,
+        date: new Date().toLocaleDateString(),
         rating: 0,
         imageUrl: selectedMovieId.imageUrl,
-        rank: selectedMovieId.rank
+        rank: selectedMovieId.rank,
       };
-      addMovieReview(movieReview); // Adiciona a revisão ao filme
+      addMovieReview(movieReview);
 
-
-      // addMovieReview(selectedMovieId);
       closeModal();
     }
   };
-  
 
   const moviesSortedByRating = [...movies].sort((a, b) => b.rating - a.rating);
 
@@ -80,7 +78,7 @@ export default function TabFourScreen() {
           <Text
             style={
               activeTab === "ratedMovies"
-                ? [styles.tabText, { color: theme.textButtons }] // Você pode precisar ajustar isso também para manter a consistência
+                ? [styles.tabText, { color: theme.textButtons }]
                 : styles.tabText
             }
           >
@@ -99,7 +97,7 @@ export default function TabFourScreen() {
           <Text
             style={
               activeTab === "toWatchMovies"
-                ? [styles.tabText, { color: theme.text }] // Ajuste conforme necessário
+                ? [styles.tabText, { color: theme.text }]
                 : styles.tabText
             }
           >
@@ -108,47 +106,56 @@ export default function TabFourScreen() {
         </TouchableOpacity>
       </View>
 
+      <View style={[styles.containerSecondary, { backgroundColor: theme.background }]}>
       {activeTab === "ratedMovies" ? (
-        <>
-          <Text style={[styles.movieListTitle, { color: theme.text }]}>
-            SEUS FILMES AVALIADOS
-          </Text>
-          <FlatList
-            style={styles.flatlist}
-            data={moviesSortedByRating}
-            keyExtractor={(movie) => movie.id.toString()}
-            showsVerticalScrollIndicator={false}
-            renderItem={({ item, index }) => (
-              <View style={styles.movieItem}>
-                <TouchableOpacity style={styles.movieList}>
-                  <View style={styles.imageIndex}>
-                    <Text style={[styles.itemIndex, { color: theme.text }]}>
-                      {index + 1 + "º"}
-                    </Text>
-                    <View
-                      style={[
-                        styles.moviesLists,
-                        { backgroundColor: theme.background },
-                      ]}
-                    >
-                      <Image
-                        style={styles.movieImage}
-                        source={{ uri: item.imageUrl || "default_image_url" }}
-                      />
+        moviesSortedByRating.length > 0 ? (
+          <>
+            <Text style={[styles.movieListTitle, { color: theme.text }]}>
+              SEUS FILMES AVALIADOS
+            </Text>
+            <FlatList
+              style={styles.flatlist}
+              data={moviesSortedByRating}
+              keyExtractor={(movie) => movie.id.toString()}
+              showsVerticalScrollIndicator={false}
+              renderItem={({ item, index }) => (
+                <View style={styles.movieItem}>
+                  <TouchableOpacity style={styles.movieList}>
+                    <View style={styles.imageIndex}>
+                      <Text style={[styles.itemIndex, { color: theme.text }]}>
+                        {index + 1 + "º"}
+                      </Text>
+                      <View
+                        style={[
+                          styles.moviesLists,
+                          { backgroundColor: theme.background },
+                        ]}
+                      >
+                        <Image
+                          style={styles.movieImage}
+                          source={{ uri: item.imageUrl || "default_image_url" }}
+                        />
+                      </View>
                     </View>
-                  </View>
-                  <View style={styles.textRate}>
-                    <Text style={[styles.textRateText, { color: theme.text }]}>
-                      {item.title}
-                    </Text>
-                    <StarRating rating={item.rating}></StarRating>
-                  </View>
-                </TouchableOpacity>
-              </View>
-            )}
-          />
-        </>
-      ) : (
+                    <View style={styles.textRate}>
+                      <Text
+                        style={[styles.textRateText, { color: theme.text }]}
+                      >
+                        {item.title}
+                      </Text>
+                      <StarRating rating={item.rating}></StarRating>
+                    </View>
+                  </TouchableOpacity>
+                </View>
+              )}
+            />
+          </>
+        ) : (
+            <Text style={{ color: theme.text, marginTop: 20 }}>
+              Você não avaliou nenhum filme.
+            </Text>
+        )
+      ) : toWatchMovies.length > 0 ? (
         <FlatList
           data={toWatchMovies}
           keyExtractor={(movie) => movie.id.toString()}
@@ -176,7 +183,19 @@ export default function TabFourScreen() {
             </View>
           )}
         />
+      ) : (
+        <Text
+          style={{ color: theme.text, marginTop: 20, paddingHorizontal: 20 }}
+        >
+          Você não tem nenhum filme na lista. Adicione um filme para assistir
+          mais tarde procurando na aba Recomendações.
+        </Text>
       )}
+
+</View>
+
+
+
       <Modal
         animationType="fade"
         transparent={true}
@@ -208,7 +227,7 @@ export default function TabFourScreen() {
                 ]}
                 onPress={closeModal}
               >
-                <Text style={{ color: theme.text}}>Não</Text>
+                <Text style={{ color: theme.text }}>Não</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -280,6 +299,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  containerSecondary: {
+    flex: 1,
+    alignItems: "center",
+    width: '100%'
+  },
   logo: {
     marginVertical: 16,
     width: 80,
@@ -308,14 +332,14 @@ const styles = StyleSheet.create({
   },
   tabsContainer: {
     flexDirection: "row",
-    justifyContent: "space-around",
+    justifyContent: "space-evenly",
     width: "100%",
     marginVertical: 30,
   },
   tabButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 5,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 30,
   },
   tabText: {
     color: "#fff", // Cor para abas inativas
@@ -375,11 +399,11 @@ const styles = StyleSheet.create({
     padding: 10,
     marginVertical: 5,
     borderRadius: 30,
-    paddingHorizontal: 35
+    paddingHorizontal: 35,
   },
   modalButtons: {
     flexDirection: "row",
     marginTop: 16,
-    gap: 20
+    gap: 20,
   },
 });

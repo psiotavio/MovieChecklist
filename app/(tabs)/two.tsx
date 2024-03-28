@@ -8,6 +8,8 @@ import {
   Switch,
   Text,
   View,
+  TouchableOpacity,
+  Alert
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { useUser } from "../../contexts/UserContext";
@@ -17,10 +19,16 @@ import { useTheme } from "../../constants/temas/ThemeContext";
 import { themes } from "../../constants/temas/ThemeColors";
 
 export default function TabTwoScreen() {
-  const { movies, setMovies, recommendedByGenre, setRecommendedMovies, setToWatchMovies } =
-    useUser(); // Usando os filmes do contexto
-    const { theme, toggleTheme } = useTheme();
-    const themeName = theme.background === themes.dark.background ? 'dark' : 'light';
+  const {
+    movies,
+    setMovies,
+    recommendedByGenre,
+    setRecommendedMovies,
+    setToWatchMovies,
+  } = useUser(); // Usando os filmes do contexto
+  const { theme, toggleTheme } = useTheme();
+  const themeName =
+    theme.background === themes.dark.background ? "dark" : "light";
 
   const goalMovies = 365;
   const goalMoviesMonth = 30;
@@ -52,10 +60,30 @@ export default function TabTwoScreen() {
   );
 
   const handleResetMovies = () => {
-    setRecommendedMovies([]);
-    setMovies([]);
-    setToWatchMovies([]);
+    Alert.alert(
+      "Redefinir Conta", // Título do Alerta
+      "Você realmente quer redefinir sua conta e apagar todo conteúdo salvo?", // Mensagem do Alerta
+      [
+        {
+          text: "Cancelar",
+          onPress: () => console.log("Cancelado"), // Ação para o botão Cancelar
+          style: "cancel",
+        },
+        {
+          text: "Sim",
+          onPress: () => {
+            // Aqui você chama as funções para redefinir a conta
+            setRecommendedMovies([]);
+            setMovies([]);
+            setToWatchMovies([]);
+            console.log("Conta redefinida");
+          },
+        },
+      ],
+      { cancelable: false } // Esta opção impede que o alerta seja fechado ao tocar fora dele
+    );
   };
+  
 
   const completionPercentage = Math.min(
     (totalMoviesWatchedThisYear / goalMovies) * 100,
@@ -81,7 +109,13 @@ export default function TabTwoScreen() {
         {/* Barra de progresso ANO */}
         <View style={styles.progressBarContainer}>
           <View
-            style={[styles.progressBar, { width: `${completionPercentage}%` , backgroundColor: theme.borderRed }]}
+            style={[
+              styles.progressBar,
+              {
+                width: `${completionPercentage}%`,
+                backgroundColor: theme.borderRed,
+              },
+            ]}
           />
         </View>
         <Text style={[styles.progressBarMeta, { color: theme.text }]}>
@@ -96,7 +130,10 @@ export default function TabTwoScreen() {
           <View
             style={[
               styles.progressBar,
-              { width: `${completionPercentageMonth}%`, backgroundColor: theme.borderRed },
+              {
+                width: `${completionPercentageMonth}%`,
+                backgroundColor: theme.borderRed,
+              },
             ]}
           />
         </View>
@@ -112,7 +149,10 @@ export default function TabTwoScreen() {
           <View
             style={[
               styles.progressBar,
-              { width: `${completionPercentageWeek}%`, backgroundColor: theme.borderRed },
+              {
+                width: `${completionPercentageWeek}%`,
+                backgroundColor: theme.borderRed,
+              },
             ]}
           />
         </View>
@@ -120,13 +160,19 @@ export default function TabTwoScreen() {
           {totalMoviesWatchedThisWeek}/7
         </Text>
 
-        {/* Botão para redefinir os filmes */}
-        <Button title="Redefinir Filmes" onPress={handleResetMovies} />
+        <TouchableOpacity
+          style={[styles.button, { backgroundColor: theme.borderRed }]}
+          onPress={handleResetMovies}
+        >
+          <Text style={{ color: theme.text, fontWeight: 'bold' }}>Redefinir Conta</Text>
+        </TouchableOpacity>
 
         <View style={styles.switchContainer}>
           <Switch
             trackColor={{ false: "red", true: theme.modalBackgroundSecondary }}
-            thumbColor={themeName === "dark" ? theme.borderRed : theme.borderRed}
+            thumbColor={
+              themeName === "dark" ? theme.borderRed : theme.borderRed
+            }
             onValueChange={toggleTheme}
             value={themeName === "dark"}
           />
@@ -213,5 +259,12 @@ const styles = StyleSheet.create({
   progressBar: {
     height: "100%",
     borderRadius: 10,
+  },
+
+  button: {
+    padding: 10,
+    borderRadius: 30,
+    paddingHorizontal: 10,
+    marginTop: 20,
   },
 });
