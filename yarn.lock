@@ -2941,22 +2941,7 @@ babel-preset-current-node-syntax@^1.0.0:
     "@babel/plugin-syntax-optional-chaining" "^7.8.3"
     "@babel/plugin-syntax-top-level-await" "^7.8.3"
 
-babel-preset-expo@^10.0.1:
-  version "10.0.1"
-  resolved "https://registry.yarnpkg.com/babel-preset-expo/-/babel-preset-expo-10.0.1.tgz#a0e7ad0119f46e58cb3f0738c3ca0c6e97b69c11"
-  integrity sha512-uWIGmLfbP3dS5+8nesxaW6mQs41d4iP7X82ZwRdisB/wAhKQmuJM9Y1jQe4006uNYkw6Phf2TT03ykLVro7KuQ==
-  dependencies:
-    "@babel/plugin-proposal-decorators" "^7.12.9"
-    "@babel/plugin-transform-export-namespace-from" "^7.22.11"
-    "@babel/plugin-transform-object-rest-spread" "^7.12.13"
-    "@babel/plugin-transform-parameters" "^7.22.15"
-    "@babel/preset-env" "^7.20.0"
-    "@babel/preset-react" "^7.22.15"
-    "@react-native/babel-preset" "^0.73.18"
-    babel-plugin-react-native-web "~0.18.10"
-    react-refresh "0.14.0"
-
-babel-preset-expo@~10.0.1:
+babel-preset-expo@^10.0.1, babel-preset-expo@~10.0.1:
   version "10.0.1"
   resolved "https://registry.npmjs.org/babel-preset-expo/-/babel-preset-expo-10.0.1.tgz"
   integrity sha512-uWIGmLfbP3dS5+8nesxaW6mQs41d4iP7X82ZwRdisB/wAhKQmuJM9Y1jQe4006uNYkw6Phf2TT03ykLVro7KuQ==
@@ -4138,7 +4123,7 @@ expo-linking@~6.2.2:
     expo-constants "~15.4.3"
     invariant "^2.2.4"
 
-expo-modules-autolinking@1.10.3, expo-modules-autolinking@~1.10.3:
+expo-modules-autolinking@1.10.3:
   version "1.10.3"
   resolved "https://registry.npmjs.org/expo-modules-autolinking/-/expo-modules-autolinking-1.10.3.tgz"
   integrity sha512-pn4n2Dl4iRh/zUeiChjRIe1C7EqOw1qhccr85viQV7W6l5vgRpY0osE51ij5LKg/kJmGRcJfs12+PwbdTplbKw==
