@@ -378,7 +378,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    filter: "blur(10)",
   },
   modalContent: {
     backgroundColor: "#fff",

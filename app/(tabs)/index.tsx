@@ -73,7 +73,7 @@ export default function HomeScreen() {
   );
   const [modalVisible, setModalVisible] = useState(false);
   const [modalVisible1, setModalVisible1] = useState(false);
-  const [rating, setRating] = useState(2.5);
+  const [rating, setRating] = useState(0);
   const TMDB_API_KEY = "172e0af0e176f9c169387e094fb67c75";
   const totalMoviesThisYear = getTotalMoviesWatchedThisYear(movies);
   const totalMoviesThisWeek = getTotalMoviesWatchedThisWeek(movies);
@@ -523,8 +523,6 @@ const styles = StyleSheet.create({
   },
   suggestionText: {
     flexShrink: 1,
-    numberOfLines: 1,
-    ellipsizeMode: "tail",
   },
   movieItem: {
     marginBottom: 16,
@@ -567,7 +565,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    filter: "blur(10)",
   },
   modalContent: {
     width: "85%",

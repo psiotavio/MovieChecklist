@@ -17,14 +17,14 @@ export default function TabLayout() {
   const [routes] = React.useState([
     {
       key: 'home',
-      title: 'Home',
+      title: 'Início',
       focusedIcon: 'home',
       unfocusedIcon: 'home-outline',
     },
     {
       
       key: 'recommendations',
-      title: 'Para você',
+      title: 'Recomendados',
       focusedIcon: 'movie',
       unfocusedIcon: 'movie-outline',
     },
@@ -40,12 +40,12 @@ export default function TabLayout() {
       focusedIcon: 'account',
       unfocusedIcon: 'account-outline',
     },
-    {
-      key: 'cog',
-      title: 'Ajustes',
-      focusedIcon: 'cog',
-      unfocusedIcon: 'cog-outline',
-    },
+    // {
+    //   key: 'cog',
+    //   title: 'Ajustes',
+    //   focusedIcon: 'cog',
+    //   unfocusedIcon: 'cog-outline',
+    // },
   ]);
   
 
@@ -54,7 +54,7 @@ export default function TabLayout() {
     recommendations: TabThreeScreen,
     lists: TabFourScreen,
     profile: TabTwoScreen,
-    cog: TabFiveScreen
+    // cog: TabFiveScreen
   });
 
   return (

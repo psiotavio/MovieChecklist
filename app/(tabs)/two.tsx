@@ -9,7 +9,7 @@ import {
   Text,
   View,
   TouchableOpacity,
-  Alert
+  Alert,
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { useUser } from "../../contexts/UserContext";
@@ -83,7 +83,6 @@ export default function TabTwoScreen() {
       { cancelable: false } // Esta opção impede que o alerta seja fechado ao tocar fora dele
     );
   };
-  
 
   const completionPercentage = Math.min(
     (totalMoviesWatchedThisYear / goalMovies) * 100,
@@ -160,22 +159,34 @@ export default function TabTwoScreen() {
           {totalMoviesWatchedThisWeek}/7
         </Text>
 
-        <TouchableOpacity
-          style={[styles.button, { backgroundColor: theme.borderRed }]}
-          onPress={handleResetMovies}
-        >
-          <Text style={{ color: theme.text, fontWeight: 'bold' }}>Redefinir Conta</Text>
-        </TouchableOpacity>
+        <View style={styles.buttonsContainer}>
+          <TouchableOpacity
+            style={[styles.button, { backgroundColor: theme.borderRed }]}
+            onPress={handleResetMovies}
+          >
+            <Text style={{ color: theme.text, fontWeight: "bold" }}>
+              Redefinir Conta
+            </Text>
+          </TouchableOpacity>
 
-        <View style={styles.switchContainer}>
-          <Switch
-            trackColor={{ false: "red", true: theme.modalBackgroundSecondary }}
-            thumbColor={
-              themeName === "dark" ? theme.borderRed : theme.borderRed
-            }
-            onValueChange={toggleTheme}
-            value={themeName === "dark"}
-          />
+          <View style={styles.switchContainer}>
+            <Text
+              style={{ color: theme.text, fontWeight: "bold", marginRight: 10 }}
+            >
+              Tema Escuro:
+            </Text>
+            <Switch
+              trackColor={{
+                false: "red",
+                true: theme.modalBackgroundSecondary,
+              }}
+              thumbColor={
+                themeName === "dark" ? theme.borderRed : theme.borderRed
+              }
+              onValueChange={toggleTheme}
+              value={themeName === "dark"}
+            />
+          </View>
         </View>
       </Animated.View>
     </View>
@@ -209,6 +220,13 @@ function getTotalMoviesWatchedThisMonth(movies: any[]) {
 }
 
 const styles = StyleSheet.create({
+  buttonsContainer: {
+    width: "100%",
+    display: "flex",
+    flexDirection: "row",
+    justifyContent: "space-evenly",
+    paddingVertical: 60
+  },
   switchContainer: {
     flexDirection: "row",
     alignItems: "center",

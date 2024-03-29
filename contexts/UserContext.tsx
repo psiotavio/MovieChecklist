@@ -48,6 +48,7 @@ interface UserContextType {
   setToWatchMovies: Dispatch<SetStateAction<Movie[]>>;
   addToWatchList: (movie: Movie) => void;
   removeFromWatchList: (movieId: number) => void;
+  removeFromRecommendedMovies: (movieId: number) => void;
 }
 
 const UserContext = createContext<UserContextType>({
@@ -63,6 +64,7 @@ const UserContext = createContext<UserContextType>({
   setToWatchMovies: () => {},
   addToWatchList: () => {},
   removeFromWatchList: () => {},
+  removeFromRecommendedMovies: () => {},
 });
 
 interface UserProviderProps {
@@ -124,6 +126,13 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     });
   };
 
+  const removeFromRecommendedMovies = (movieId: number) => {
+    setRecommendedMovies((currentRecommendedMovies) => 
+      currentRecommendedMovies.filter(movie => movie.id !== movieId));
+  };
+  
+  
+
   useEffect(() => {
     const loadToWatchMovies = async () => {
       try {
@@ -179,34 +188,38 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
         `https://api.themoviedb.org/3/movie/${movie.id}/recommendations?api_key=${TMDB_API_KEY}&language=pt-BR`
       )
     );
-
+  
     try {
       const moviesResponses = await Promise.all(moviePromises);
-      const allRecommendedMap = new Map<number, Movie>(); // Usar um Map para evitar duplicatas baseado no id do filme
+      const allRecommendedMap = new Map<number, Movie>();
       for (let response of moviesResponses) {
         if (response && response.results) {
           for (let recommendedMovie of response.results) {
-            // Use o id do filme como chave para evitar adicionar filmes duplicados
             if (!allRecommendedMap.has(recommendedMovie.id)) {
-              // Supõe que 'genre_ids' está disponível e é um array de ids de gêneros.
-              // Adapte essa linha conforme necessário para corresponder ao formato de dados da API.
               allRecommendedMap.set(recommendedMovie.id, {
                 id: recommendedMovie.id,
                 title: recommendedMovie.title,
-                rating: recommendedMovie.vote_average, // Supõe que vote_average esteja disponível
+                rating: recommendedMovie.vote_average,
                 date: recommendedMovie.release_date,
                 imageUrl: `https://image.tmdb.org/t/p/w500${recommendedMovie.poster_path}`,
-                genreId: recommendedMovie.genre_ids.join(","), // Assumindo que genre_ids é um array de ids
+                genreId: recommendedMovie.genre_ids.join(","),
               });
             }
           }
         }
       }
-      setRecommendedMovies([...allRecommendedMap.values()]);
+      // Filtrar filmes que o usuário já assistiu ou adicionou à lista de para assistir
+      const filteredRecommendedMovies = Array.from(allRecommendedMap.values()).filter(
+        (recommendedMovie) => 
+          !movies.some((movie) => movie.id === recommendedMovie.id) &&
+          !toWatchMovies.some((movie) => movie.id === recommendedMovie.id)
+      );
+      setRecommendedMovies(filteredRecommendedMovies);
     } catch (error) {
       console.error("Error fetching recommended movies:", error);
     }
   };
+  
 
   interface GenreMappings {
     [key: string]: string;
@@ -384,6 +397,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
         setToWatchMovies,
         addToWatchList,
         removeFromWatchList,
+        removeFromRecommendedMovies,
       }}
     >
       {children}

@@ -25,7 +25,7 @@ interface Movie {
 }
 
 export default function TabThreeScreen() {
-  const { recommendedMovies, recommendedByGenre, addToWatchList } = useUser(); // Supondo que `addToWatchList` é o método do contexto
+  const { recommendedMovies, recommendedByGenre, addToWatchList, removeFromRecommendedMovies } = useUser(); // Supondo que `addToWatchList` é o método do contexto
   const [selectedGenre, setSelectedGenre] = useState("Recomendado para você");
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -67,8 +67,7 @@ export default function TabThreeScreen() {
         imageUrl: selectedMovie.imageUrl,
         rank: selectedMovie.rank
       };
-
-
+       removeFromRecommendedMovies(selectedMovie.id);
       addToWatchList(toWatch);
       closeModal();
       setSelectedMovie(null);
@@ -312,7 +311,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "rgba(0, 0, 0, 0.60)",
-    filter: "blur(10)",
   },
   modalContent: {
     backgroundColor: "#fff",

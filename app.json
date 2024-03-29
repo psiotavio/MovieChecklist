@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "WatchFolio",
-    "slug": "WatchFolio",
+    "name": "Watchfolio",
+    "slug": "MovieChecklist",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -9,13 +9,15 @@
     "userInterfaceStyle": "automatic",
     "splash": {
       "image": "./assets/images/splash.png",
-      "resizeMode": "cover"
+      "resizeMode": "cover",
+      "backgroundColor": "#ffffff"
     },
     "assetBundlePatterns": [
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true, 
+      "bundleIdentifier": "com.psiotavio.MovieChecklist"
     },
     "android": {
       "adaptiveIcon": {
