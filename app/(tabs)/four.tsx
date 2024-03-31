@@ -12,6 +12,7 @@ import { useUser } from "../../contexts/UserContext"; // Certifique-se de que es
 import StarRating from "../../components/starComponent/starComponent";
 import logo from "../../assets/images/logo.png";
 import { useTheme } from "../../constants/temas/ThemeContext";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 interface Movie {
   rank?: React.JSX.Element;
@@ -62,178 +63,186 @@ export default function TabFourScreen() {
   const moviesSortedByRating = [...movies].sort((a, b) => b.rating - a.rating);
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.background }]}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: theme.background }]}
+    >
       <Image source={logo} style={styles.logo} />
-
-      <View style={styles.tabsContainer}>
-        <TouchableOpacity
-          style={[
-            styles.tabButton,
-            activeTab === "ratedMovies"
-              ? { backgroundColor: theme.borderRed }
-              : { backgroundColor: theme.modalBackgroundSecondary },
-          ]}
-          onPress={() => setActiveTab("ratedMovies")}
-        >
-          <Text
-            style={
+      <View style={styles.containerSecondaryy}>
+        <View style={styles.tabsContainer}>
+          <TouchableOpacity
+            style={[
+              styles.tabButton,
               activeTab === "ratedMovies"
-                ? [styles.tabText, { color: theme.textButtons }]
-                : styles.tabText
-            }
+                ? { backgroundColor: theme.borderRed }
+                : { backgroundColor: theme.modalBackgroundSecondary },
+            ]}
+            onPress={() => setActiveTab("ratedMovies")}
           >
-            Avaliados
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[
-            styles.tabButton,
-            activeTab === "toWatchMovies"
-              ? { backgroundColor: theme.borderRed }
-              : { backgroundColor: theme.modalBackgroundSecondary },
-          ]}
-          onPress={() => setActiveTab("toWatchMovies")}
-        >
-          <Text
-            style={
-              activeTab === "toWatchMovies"
-                ? [styles.tabText, { color: theme.text }]
-                : styles.tabText
-            }
-          >
-            Para Assistir
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      <View style={[styles.containerSecondary, { backgroundColor: theme.background }]}>
-      {activeTab === "ratedMovies" ? (
-        moviesSortedByRating.length > 0 ? (
-          <>
-            <Text style={[styles.movieListTitle, { color: theme.text }]}>
-              SEUS FILMES AVALIADOS
+            <Text
+              style={
+                activeTab === "ratedMovies"
+                  ? [styles.tabText, { color: theme.textButtons }]
+                  : styles.tabText
+              }
+            >
+              Avaliados
             </Text>
-            <FlatList
-              style={styles.flatlist}
-              data={moviesSortedByRating}
-              keyExtractor={(movie) => movie.id.toString()}
-              showsVerticalScrollIndicator={false}
-              renderItem={({ item, index }) => (
-                <View style={styles.movieItem}>
-                  <TouchableOpacity style={styles.movieList}>
-                    <View style={styles.imageIndex}>
-                      <Text style={[styles.itemIndex, { color: theme.text }]}>
-                        {index + 1 + "º"}
-                      </Text>
-                      <View
-                        style={[
-                          styles.moviesLists,
-                          { backgroundColor: theme.background },
-                        ]}
-                      >
-                        <Image
-                          style={styles.movieImage}
-                          source={{ uri: item.imageUrl || "default_image_url" }}
-                        />
-                      </View>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.tabButton,
+              activeTab === "toWatchMovies"
+                ? { backgroundColor: theme.borderRed }
+                : { backgroundColor: theme.modalBackgroundSecondary },
+            ]}
+            onPress={() => setActiveTab("toWatchMovies")}
+          >
+            <Text
+              style={
+                activeTab === "toWatchMovies"
+                  ? [styles.tabText, { color: theme.text }]
+                  : styles.tabText
+              }
+            >
+              Para Assistir
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={[styles.containerSecondary]}>
+          {activeTab === "ratedMovies" ? (
+            moviesSortedByRating.length > 0 ? (
+              <>
+                <Text style={[styles.movieListTitle, { color: theme.text }]}>
+                  SEUS FILMES AVALIADOS
+                </Text>
+                <FlatList
+                  style={styles.flatlist}
+                  data={moviesSortedByRating}
+                  keyExtractor={(movie) => movie.id.toString()}
+                  showsVerticalScrollIndicator={false}
+                  renderItem={({ item, index }) => (
+                    <View style={styles.movieItem}>
+                      <TouchableOpacity style={styles.movieList}>
+                        <View style={styles.imageIndex}>
+                          <Text
+                            style={[styles.itemIndex, { color: theme.text }]}
+                          >
+                            {index + 1 + "º"}
+                          </Text>
+                          <View
+                            style={[
+                              styles.moviesLists,
+                              { backgroundColor: theme.background },
+                            ]}
+                          >
+                            <Image
+                              style={styles.movieImage}
+                              source={{
+                                uri: item.imageUrl || "default_image_url",
+                              }}
+                            />
+                          </View>
+                        </View>
+                        <View style={styles.textRate}>
+                          <Text
+                            style={[styles.textRateText, { color: theme.text }]}
+                          >
+                            {item.title}
+                          </Text>
+                          <StarRating rating={item.rating}></StarRating>
+                        </View>
+                      </TouchableOpacity>
                     </View>
-                    <View style={styles.textRate}>
-                      <Text
-                        style={[styles.textRateText, { color: theme.text }]}
-                      >
-                        {item.title}
-                      </Text>
-                      <StarRating rating={item.rating}></StarRating>
+                  )}
+                />
+              </>
+            ) : (
+              <Text style={{ color: theme.text, marginTop: 20 }}>
+                Você não avaliou nenhum filme.
+              </Text>
+            )
+          ) : toWatchMovies.length > 0 ? (
+            <FlatList
+              data={toWatchMovies}
+              keyExtractor={(movie) => movie.id.toString()}
+              numColumns={3}
+              showsHorizontalScrollIndicator={false}
+              showsVerticalScrollIndicator={false}
+              renderItem={({ item }) => (
+                <View style={styles.toWatchmovieItem}>
+                  <TouchableOpacity
+                    style={styles.toWatch}
+                    onPress={() => openModal(item)}
+                  >
+                    <View
+                      style={[
+                        styles.toWatchmoviesLists,
+                        { backgroundColor: theme.background },
+                      ]}
+                    >
+                      <Image
+                        style={styles.toWatchmovieImage}
+                        source={{ uri: item.imageUrl || "default_image_url" }}
+                      />
                     </View>
                   </TouchableOpacity>
                 </View>
               )}
             />
-          </>
-        ) : (
-            <Text style={{ color: theme.text, marginTop: 20 }}>
-              Você não avaliou nenhum filme.
+          ) : (
+            <Text
+              style={{
+                color: theme.text,
+                marginTop: 20,
+                paddingHorizontal: 20,
+              }}
+            >
+              Você não tem nenhum filme na lista. Adicione um filme para
+              assistir mais tarde procurando na aba Recomendações.
             </Text>
-        )
-      ) : toWatchMovies.length > 0 ? (
-        <FlatList
-          data={toWatchMovies}
-          keyExtractor={(movie) => movie.id.toString()}
-          numColumns={3}
-          showsHorizontalScrollIndicator={false}
-          showsVerticalScrollIndicator={false}
-          renderItem={({ item }) => (
-            <View style={styles.toWatchmovieItem}>
-              <TouchableOpacity
-                style={styles.toWatch}
-                onPress={() => openModal(item)}
-              >
-                <View
-                  style={[
-                    styles.toWatchmoviesLists,
-                    { backgroundColor: theme.background },
-                  ]}
-                >
-                  <Image
-                    style={styles.toWatchmovieImage}
-                    source={{ uri: item.imageUrl || "default_image_url" }}
-                  />
-                </View>
-              </TouchableOpacity>
-            </View>
           )}
-        />
-      ) : (
-        <Text
-          style={{ color: theme.text, marginTop: 20, paddingHorizontal: 20 }}
+        </View>
+
+        <Modal
+          animationType="fade"
+          transparent={true}
+          visible={showModal}
+          onRequestClose={closeModal}
         >
-          Você não tem nenhum filme na lista. Adicione um filme para assistir
-          mais tarde procurando na aba Recomendações.
-        </Text>
-      )}
-
-</View>
-
-
-
-      <Modal
-        animationType="fade"
-        transparent={true}
-        visible={showModal}
-        onRequestClose={closeModal}
-      >
-        <View style={styles.modalContainer}>
-          <View
-            style={[
-              styles.modalContent, // Estilos pré-definidos
-              { backgroundColor: theme.background }, // Estilo dinâmico baseado no tema atual
-            ]}
-          >
-            <Text style={{ color: theme.text }}>Já assistiu esse filme?</Text>
-            <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={[
-                  styles.modalButton,
-                  { backgroundColor: theme.borderRed },
-                ]}
-                onPress={confirmRemoveMovie}
-              >
-                <Text style={{ color: theme.text }}>Sim</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.modalButton,
-                  { backgroundColor: theme.modalBackground },
-                ]}
-                onPress={closeModal}
-              >
-                <Text style={{ color: theme.text }}>Não</Text>
-              </TouchableOpacity>
+          <View style={styles.modalContainer}>
+            <View
+              style={[
+                styles.modalContent, // Estilos pré-definidos
+                { backgroundColor: theme.background }, // Estilo dinâmico baseado no tema atual
+              ]}
+            >
+              <Text style={{ color: theme.text }}>Já assistiu esse filme?</Text>
+              <View style={styles.modalButtons}>
+                <TouchableOpacity
+                  style={[
+                    styles.modalButton,
+                    { backgroundColor: theme.borderRed },
+                  ]}
+                  onPress={confirmRemoveMovie}
+                >
+                  <Text style={{ color: theme.text }}>Sim</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.modalButton,
+                    { backgroundColor: theme.modalBackground },
+                  ]}
+                  onPress={closeModal}
+                >
+                  <Text style={{ color: theme.text }}>Não</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
-        </View>
-      </Modal>
-    </View>
+        </Modal>
+      </View>
+    </SafeAreaView>
   );
 }
 
@@ -294,21 +303,26 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   container: {
-    flex: 1,
-    paddingTop: 56,
+    display: "flex",
     alignItems: "center",
     justifyContent: "center",
+    flex: 1,
   },
   containerSecondary: {
+    display: 'flex',
+    alignItems: "center",
+    width: "100%",
+    height: '100%'
+  },
+  containerSecondaryy: {
     flex: 1,
     alignItems: "center",
-    width: '100%'
+    width: "100%",
   },
   logo: {
-    marginVertical: 16,
+    marginVertical: 10,
     width: 80,
     height: 80,
-    marginBottom: 16,
     resizeMode: "contain",
   },
   movieListTitle: {

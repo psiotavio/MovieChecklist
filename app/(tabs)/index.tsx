@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   StyleSheet,
   TextInput,
@@ -11,6 +11,7 @@ import {
   Text,
   View,
 } from "react-native";
+import { TouchableWithoutFeedback, Keyboard } from "react-native";
 import axios from "axios";
 import StarRating from "../../components/starComponent/starComponent";
 import { isSameWeek, isSameYear, isSameMonth, parse } from "date-fns";
@@ -18,6 +19,10 @@ import { useUser } from "../../contexts/UserContext";
 import logo from "../../assets/images/logo.png";
 import { useTheme } from "../../constants/temas/ThemeContext";
 import Slider from "@react-native-community/slider";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 
 interface Movie {
   rank?: React.JSX.Element;
@@ -78,6 +83,7 @@ export default function HomeScreen() {
   const totalMoviesThisYear = getTotalMoviesWatchedThisYear(movies);
   const totalMoviesThisWeek = getTotalMoviesWatchedThisWeek(movies);
   const totalMoviesThisMonth = getTotalMoviesWatchedThisMonth(movies);
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
 
   const { theme, toggleTheme } = useTheme();
 
@@ -207,6 +213,31 @@ export default function HomeScreen() {
       };
     });
 
+  const dismissKeyboardAndResults = () => {
+    setSearchResults([]);
+    Keyboard.dismiss();
+  };
+
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener(
+      "keyboardDidShow",
+      () => setKeyboardVisible(true)
+    );
+    const keyboardDidHideListener = Keyboard.addListener(
+      "keyboardDidHide",
+      () => {
+        setKeyboardVisible(false);
+        // Simplesmente ocultar os resultados da pesquisa quando o teclado for fechado
+        setSearchResults([]);
+      }
+    );
+
+    return () => {
+      keyboardDidShowListener.remove();
+      keyboardDidHideListener.remove();
+    };
+  }, []);
+
   const combinedArray = combineLists(organizedMoviesArray, bestMoviesArray);
 
   function updateMovieReview(arg0: {
@@ -220,256 +251,287 @@ export default function HomeScreen() {
     throw new Error("Function not implemented.");
   }
 
+  const insets = useSafeAreaInsets();
+
   return (
-    <View style={[styles.container, { backgroundColor: theme.background }]}>
+    <SafeAreaView
+      style={[
+        styles.container,
+        { backgroundColor: theme.background, paddingVertical: 10 },
+      ]}
+    >
       <Image source={logo} style={styles.logo} />
-
-      <View
-        style={[styles.inputContainer, { backgroundColor: theme.background }]}
+      <TouchableWithoutFeedback
+        onPress={dismissKeyboardAndResults}
+        accessible={false}
       >
-        <TextInput
-          style={[
-            styles.input, // Estilos pré-definidos do TextInput
-            {
-              color: theme.text,
-              borderColor: theme.borderRed,
-              backgroundColor: theme.modalBackground,
-            }, // Estilo dinâmico baseado no tema atual
-          ]}
-          placeholder="Digite o nome do filme"
-          placeholderTextColor={theme.text}
-          value={movieInput}
-          onChangeText={handleInputChange}
-        />
-      </View>
-      <View style={styles.moviesLists}>
-        <ScrollView
-          style={[
-            styles.suggestionsContainer,
-            { backgroundColor: theme.modalBackground },
-          ]}
+        <View
+          style={{
+            height: "100%",
+            display: "flex",
+            width: "100%",
+            alignItems: "center",
+          }}
         >
-          {searchResults.map((item) => (
-            <TouchableOpacity
-              key={item.id}
-              onPress={() => handleSelectSuggestion(item)}
-            >
-              <View
-                style={[
-                  styles.suggestionItem, // Estilo pré-definido
-                  { backgroundColor: theme.modalBackground }, // Estilo dinâmico baseado no tema
-                ]}
-              >
-                <Image
-                  style={styles.suggestionImage}
-                  source={{ uri: item.imageUrl }}
-                />
-                <Text
-                  style={{
-                    color: theme.text,
-                    flexShrink: 1,
-                  }}
-                  numberOfLines={2}
-                  ellipsizeMode="tail"
-                >
-                  {item.title}
-                </Text>
-              </View>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
 
-      <ScrollView style={styles.moviesChekclist}>
-        {combinedArray.map((item) => (
           <View
-            key={item.title}
             style={[
-              styles.movieListContainer,
+              styles.inputContainer,
               { backgroundColor: theme.background },
             ]}
           >
-            <Text style={[styles.movieListTitle, { color: theme.text }]}>
-              {item.title}
-            </Text>
-            <View key={item.title} style={styles.flatlist}>
-              <FlatList
-                data={item.data}
-                keyExtractor={(movie) => movie.id.toString()}
-                horizontal={true}
-                showsHorizontalScrollIndicator={false}
-                renderItem={({ item, index }) => (
-                  <View style={[styles.movieItem, { marginLeft: 9 }]}>
-                    <TouchableOpacity
-                      onPress={() => {
-                        setRating(item.rating);
-                        setSelectedMovieRating(item);
-                        setModalVisible1(true);
-                      }}
-                    >
-                      <View style={styles.shadowContainer}>
-                        <View style={styles.imageContainer}>
-                          <Image
-                            style={styles.movieImage}
-                            source={{ uri: item.imageUrl }}
-                          />
-                        </View>
-                      </View>
-                    </TouchableOpacity>
-                    <View style={styles.movieInfo}>
-                      {item.rank && (
-                        <Text style={styles.rankNumber}>{item.rank}</Text>
-                      )}
-                      <StarRating rating={item.rating}></StarRating>
-                    </View>
-                  </View>
-                )}
-              />
-            </View>
-          </View>
-        ))}
-
-        <Modal
-          animationType="fade"
-          transparent={true}
-          visible={modalVisible}
-          onRequestClose={() => {
-            setModalVisible(!modalVisible);
-          }}
-        >
-          <View style={styles.modalContainer}>
-            <View
+            <TextInput
               style={[
-                styles.modalContent, // Estilos pré-definidos
-                { backgroundColor: theme.background }, // Estilo dinâmico baseado no tema atual
+                styles.input, // Estilos pré-definidos do TextInput
+                {
+                  color: theme.text,
+                  borderColor: theme.borderRed,
+                  backgroundColor: theme.modalBackground,
+                }, // Estilo dinâmico baseado no tema atual
+              ]}
+              placeholder="Digite o nome do filme"
+              placeholderTextColor={theme.text}
+              value={movieInput}
+              onChangeText={handleInputChange}
+            />
+          </View>
+          <View style={styles.moviesLists}>
+            <ScrollView
+              style={[
+                styles.suggestionsContainer,
+                { backgroundColor: theme.modalBackground },
               ]}
             >
-              <Text
-                style={
-                  { color: theme.text } // Estilo dinâmico baseado no tema atual
-                }
-              >
-                Adicionar o Filme {selectedMovie?.title}
-              </Text>
-              <View
-                style={{
-                  ...styles.modalButtons,
-                }}
-              >
-                <TouchableHighlight
-                  style={{
-                    ...styles.modalButton,
-                    backgroundColor: theme.modalBackgroundSecondary,
-                  }}
-                  onPress={() => {
-                    setModalVisible(false);
-                  }}
+              {searchResults.map((item) => (
+                <TouchableOpacity
+                  key={item.id}
+                  onPress={() => handleSelectSuggestion(item)}
                 >
-                  <Text style={styles.textStyle}>Cancelar</Text>
-                </TouchableHighlight>
-                <TouchableHighlight
-                  style={{
-                    ...styles.modalButton,
-                    backgroundColor: theme.borderRed,
-                  }}
-                  onPress={handleAddMovie}
-                >
-                  <Text style={styles.textStyle}>Adicionar</Text>
-                </TouchableHighlight>
-              </View>
-            </View>
+                  <View
+                    style={[
+                      styles.suggestionItem, // Estilo pré-definido
+                      { backgroundColor: theme.modalBackground }, // Estilo dinâmico baseado no tema
+                    ]}
+                  >
+                    <Image
+                      style={styles.suggestionImage}
+                      source={{ uri: item.imageUrl }}
+                    />
+                    <Text
+                      style={{
+                        color: theme.text,
+                        flexShrink: 1,
+                      }}
+                      numberOfLines={2}
+                      ellipsizeMode="tail"
+                    >
+                      {item.title}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
           </View>
-        </Modal>
-      </ScrollView>
 
-      {/* Modal de Avaliar */}
-      <Modal
-        animationType="fade"
-        transparent={true}
-        visible={modalVisible1}
-        onRequestClose={() => {
-          setModalVisible1(!modalVisible1);
-        }}
-      >
-        <View style={styles.modalContainer}>
-          <View
-            style={[
-              styles.modalContent, // Estilos pré-definidos
-              { backgroundColor: theme.background }, // Estilo dinâmico baseado no tema atual
-            ]}
-          >
-            <Text
-              style={
-                { color: theme.text, marginTop: 5} // Estilo dinâmico baseado no tema atual
-              }
-            >
-              Avaliar o Filme: 
-            </Text>
-            <Text
-              style={
-                { color: theme.text, fontWeight: 'bold', fontSize: 18, marginTop: 10} // Estilo dinâmico baseado no tema atual
-              }
-            >
-              {selectedMovieRating?.title}
-            </Text>
-            <View style={styles.ratingButtons}>
-              <View style={styles.slider}>
-                <Slider
-                  style={{ width: 200, height: 40 }}
-                  minimumValue={0}
-                  maximumValue={5}
-                  step={0.5}
-                  value={rating}
-                  onValueChange={setRating}
-                  minimumTrackTintColor={theme.borderRed} 
-                  maximumTrackTintColor={theme.modalBackgroundSecondary} 
-                  thumbTintColor={theme.text} 
-                />
-                <Text style={{ color: theme.text, marginTop: 10 }}>
-                  Avaliação: {rating.toFixed(1)}
+          <ScrollView style={styles.moviesChekclist}>
+            {combinedArray.map((item) => (
+              <View
+                key={item.title}
+                style={[
+                  styles.movieListContainer,
+                  { backgroundColor: theme.background },
+                ]}
+              >
+                <Text style={[styles.movieListTitle, { color: theme.text }]}>
+                  {item.title}
                 </Text>
+                <View key={item.title} style={styles.flatlist}>
+                  <FlatList
+                    data={item.data}
+                    keyExtractor={(movie) => movie.id.toString()}
+                    horizontal={true}
+                    showsHorizontalScrollIndicator={false}
+                    renderItem={({ item, index }) => (
+                      <View style={[styles.movieItem, { marginLeft: 9 }]}>
+                        <TouchableOpacity
+                          onPress={() => {
+                            setRating(item.rating);
+                            setSelectedMovieRating(item);
+                            setModalVisible1(true);
+                          }}
+                        >
+                          <View style={styles.shadowContainer}>
+                            <View style={styles.imageContainer}>
+                              <Image
+                                style={styles.movieImage}
+                                source={{ uri: item.imageUrl }}
+                              />
+                            </View>
+                          </View>
+                        </TouchableOpacity>
+                        <View style={styles.movieInfo}>
+                          {item.rank && (
+                            <Text style={styles.rankNumber}>{item.rank}</Text>
+                          )}
+                          <StarRating rating={item.rating}></StarRating>
+                        </View>
+                      </View>
+                    )}
+                  />
+                </View>
+              </View>
+            ))}
+
+            <Modal
+              animationType="fade"
+              transparent={true}
+              visible={modalVisible}
+              onRequestClose={() => {
+                setModalVisible(!modalVisible);
+              }}
+            >
+              <View style={styles.modalContainer}>
+                <View
+                  style={[
+                    styles.modalContent, // Estilos pré-definidos
+                    { backgroundColor: theme.background }, // Estilo dinâmico baseado no tema atual
+                  ]}
+                >
+                  <Text
+                    style={
+                      { color: theme.text } // Estilo dinâmico baseado no tema atual
+                    }
+                  >
+                    Adicionar o Filme {selectedMovie?.title}
+                  </Text>
+                  <View
+                    style={{
+                      ...styles.modalButtons,
+                    }}
+                  >
+                    <TouchableHighlight
+                      style={{
+                        ...styles.modalButton,
+                        backgroundColor: theme.modalBackgroundSecondary,
+                      }}
+                      onPress={() => {
+                        setModalVisible(false);
+                      }}
+                    >
+                      <Text style={styles.textStyle}>Cancelar</Text>
+                    </TouchableHighlight>
+                    <TouchableHighlight
+                      style={{
+                        ...styles.modalButton,
+                        backgroundColor: theme.borderRed,
+                      }}
+                      onPress={handleAddMovie}
+                    >
+                      <Text style={styles.textStyle}>Adicionar</Text>
+                    </TouchableHighlight>
+                  </View>
+                </View>
+              </View>
+            </Modal>
+          </ScrollView>
+
+          {/* Modal de Avaliar */}
+          <Modal
+            animationType="fade"
+            transparent={true}
+            visible={modalVisible1}
+            onRequestClose={() => {
+              setModalVisible1(!modalVisible1);
+            }}
+          >
+            <View style={styles.modalContainer}>
+              <View
+                style={[
+                  styles.modalContent, // Estilos pré-definidos
+                  { backgroundColor: theme.background }, // Estilo dinâmico baseado no tema atual
+                ]}
+              >
+                <Text
+                  style={
+                    { color: theme.text, marginTop: 5 } // Estilo dinâmico baseado no tema atual
+                  }
+                >
+                  Avaliar o Filme:
+                </Text>
+                <Text
+                  style={
+                    {
+                      color: theme.text,
+                      fontWeight: "bold",
+                      fontSize: 18,
+                      marginTop: 10,
+                    } // Estilo dinâmico baseado no tema atual
+                  }
+                >
+                  {selectedMovieRating?.title}
+                </Text>
+                <View style={styles.ratingButtons}>
+                  <View style={styles.slider}>
+                    <Slider
+                      style={{ width: 200, height: 40 }}
+                      minimumValue={0}
+                      maximumValue={5}
+                      step={0.5}
+                      value={rating}
+                      onValueChange={setRating}
+                      minimumTrackTintColor={theme.borderRed}
+                      maximumTrackTintColor={theme.modalBackgroundSecondary}
+                      thumbTintColor={theme.text}
+                    />
+                    <Text style={{ color: theme.text, marginTop: 10 }}>
+                      Avaliação: {rating.toFixed(1)}
+                    </Text>
+                  </View>
+                </View>
+                <View style={styles.modalButtons}>
+                  <TouchableHighlight
+                    style={{
+                      ...styles.modalButton,
+                      backgroundColor: theme.modalBackgroundSecondary,
+                    }}
+                    onPress={() => {
+                      setModalVisible1(false);
+                    }}
+                  >
+                    <Text style={styles.textStyle}>Cancelar</Text>
+                  </TouchableHighlight>
+                  <TouchableHighlight
+                    style={{
+                      ...styles.modalButton,
+                      backgroundColor: theme.borderRed,
+                    }}
+                    onPress={() => {
+                      if (selectedMovieRating) {
+                        addMovieReview({
+                          ...selectedMovieRating,
+                          rating: rating,
+                        });
+                        setModalVisible1(false);
+                        setRating(0);
+                      }
+                    }}
+                  >
+                    <Text style={styles.textStyle}>Confirmar</Text>
+                  </TouchableHighlight>
+                </View>
               </View>
             </View>
-            <View style={styles.modalButtons}>
-              <TouchableHighlight
-                style={{
-                  ...styles.modalButton,
-                  backgroundColor: theme.modalBackgroundSecondary,
-                }}
-                onPress={() => {
-                  setModalVisible1(false);
-                }}
-              >
-                <Text style={styles.textStyle}>Cancelar</Text>
-              </TouchableHighlight>
-              <TouchableHighlight
-                style={{
-                  ...styles.modalButton,
-                  backgroundColor: theme.borderRed,
-                }}
-                onPress={() => {
-                  if (selectedMovieRating) {
-                    addMovieReview({ ...selectedMovieRating, rating: rating });
-                    setModalVisible1(false);
-                    setRating(0);
-                  }
-                }}
-              >
-                <Text style={styles.textStyle}>Confirmar</Text>
-              </TouchableHighlight>
-            </View>
-          </View>
+          </Modal>
         </View>
-      </Modal>
-    </View>
+      </TouchableWithoutFeedback>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    paddingTop: 56,
     alignItems: "center",
+    justifyContent: "flex-start",
   },
   title: {
     fontSize: 24,
@@ -499,10 +561,10 @@ const styles = StyleSheet.create({
     display: "flex",
     zIndex: 2,
     width: "80%",
-    maxHeight: 200,
+    maxHeight: 240,
     marginBottom: 16,
     position: "absolute",
-    top: 226,
+    top: 170,
     borderBottomRightRadius: 20,
     borderBottomLeftRadius: 20,
   },
@@ -613,13 +675,16 @@ const styles = StyleSheet.create({
   moviesChekclist: {
     marginTop: 35,
     width: "100%",
+    height: "100%",
+    display: "flex",
+    flex: 1,
   },
   flatlist: {},
   logo: {
-    marginVertical: 16,
+    marginBottom: 30,
+    alignSelf: "center",
     width: 80,
     height: 80,
-    marginBottom: 40,
     resizeMode: "contain",
   },
   rankNumber: {
@@ -634,12 +699,12 @@ const styles = StyleSheet.create({
     zIndex: 1,
     fontWeight: "bold",
   },
-  slider:{
-     display: 'flex',
-     flexDirection: 'column',
-     gap: 10,
-     paddingVertical: 20,
-     justifyContent: 'center',
-     alignItems: 'center'
+  slider: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 10,
+    paddingVertical: 20,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });

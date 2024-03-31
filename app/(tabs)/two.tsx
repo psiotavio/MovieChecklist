@@ -1,10 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   StyleSheet,
-  Animated,
-  Easing,
   Image,
-  Button,
+  ScrollView,
   Switch,
   Text,
   View,
@@ -17,6 +15,8 @@ import logo from "../../assets/images/logo.png";
 import { isSameWeek, isSameYear, isSameMonth, parse } from "date-fns";
 import { useTheme } from "../../constants/temas/ThemeContext";
 import { themes } from "../../constants/temas/ThemeColors";
+import { SafeAreaView } from 'react-native-safe-area-context';
+
 
 export default function TabTwoScreen() {
   const {
@@ -25,7 +25,7 @@ export default function TabTwoScreen() {
     recommendedByGenre,
     setRecommendedMovies,
     setToWatchMovies,
-  } = useUser(); // Usando os filmes do contexto
+  } = useUser();
   const { theme, toggleTheme } = useTheme();
   const themeName =
     theme.background === themes.dark.background ? "dark" : "light";
@@ -34,28 +34,15 @@ export default function TabTwoScreen() {
   const goalMoviesMonth = 30;
   const goalMoviesWeek = 7;
 
-  const [totalMoviesWatchedThisYear, setTotalMoviesWatchedThisYear] =
-    useState(0);
-  const [totalMoviesWatchedThisMonth, setTotalMoviesWatchedThisMonth] =
-    useState(0);
-  const [totalMoviesWatchedThisWeek, setTotalMoviesWatchedThisWeek] =
-    useState(0);
-  const [fadeIn] = useState(new Animated.Value(0));
+  const [totalMoviesWatchedThisYear, setTotalMoviesWatchedThisYear] = useState(0);
+  const [totalMoviesWatchedThisMonth, setTotalMoviesWatchedThisMonth] = useState(0);
+  const [totalMoviesWatchedThisWeek, setTotalMoviesWatchedThisWeek] = useState(0);
 
   useFocusEffect(
     React.useCallback(() => {
-      // Atualiza os contadores baseados nos filmes do contexto
       setTotalMoviesWatchedThisYear(getTotalMoviesWatchedThisYear(movies));
       setTotalMoviesWatchedThisWeek(getTotalMoviesWatchedThisWeek(movies));
       setTotalMoviesWatchedThisMonth(getTotalMoviesWatchedThisMonth(movies));
-
-      // Efeito de fade-in
-      Animated.timing(fadeIn, {
-        toValue: 1,
-        duration: 1000,
-        easing: Easing.ease,
-        useNativeDriver: true,
-      }).start();
     }, [movies])
   );
 
@@ -98,98 +85,106 @@ export default function TabTwoScreen() {
   );
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.background }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background}]}>
       <Image source={logo} style={styles.logo} />
-      <Animated.View style={[styles.content, { opacity: fadeIn }]}>
-        <Text style={[styles.title, { color: theme.text }]}>ESTATÍSTICAS</Text>
-        <Text style={[styles.subtitle, { color: theme.text }]}>
-          Total de filmes assistidos este ano: {totalMoviesWatchedThisYear}
-        </Text>
-        {/* Barra de progresso ANO */}
-        <View style={styles.progressBarContainer}>
-          <View
-            style={[
-              styles.progressBar,
-              {
-                width: `${completionPercentage}%`,
-                backgroundColor: theme.borderRed,
-              },
-            ]}
-          />
-        </View>
-        <Text style={[styles.progressBarMeta, { color: theme.text }]}>
-          {totalMoviesWatchedThisYear}/365
-        </Text>
-
-        <Text style={[styles.subtitle, { color: theme.text }]}>
-          Total de filmes assistidos este mês: {totalMoviesWatchedThisMonth}
-        </Text>
-        {/* Barra de progresso MÊS */}
-        <View style={styles.progressBarContainer}>
-          <View
-            style={[
-              styles.progressBar,
-              {
-                width: `${completionPercentageMonth}%`,
-                backgroundColor: theme.borderRed,
-              },
-            ]}
-          />
-        </View>
-        <Text style={[styles.progressBarMeta, { color: theme.text }]}>
-          {totalMoviesWatchedThisMonth}/30
-        </Text>
-
-        <Text style={[styles.subtitle, { color: theme.text }]}>
-          Total de filmes assistidos esta semana: {totalMoviesWatchedThisWeek}
-        </Text>
-        {/* Barra de progresso SEMANA */}
-        <View style={styles.progressBarContainer}>
-          <View
-            style={[
-              styles.progressBar,
-              {
-                width: `${completionPercentageWeek}%`,
-                backgroundColor: theme.borderRed,
-              },
-            ]}
-          />
-        </View>
-        <Text style={[styles.progressBarMeta, { color: theme.text }]}>
-          {totalMoviesWatchedThisWeek}/7
-        </Text>
-
-        <View style={styles.buttonsContainer}>
-          <TouchableOpacity
-            style={[styles.button, { backgroundColor: theme.borderRed }]}
-            onPress={handleResetMovies}
-          >
-            <Text style={{ color: theme.text, fontWeight: "bold" }}>
-              Redefinir Conta
-            </Text>
-          </TouchableOpacity>
-
-          <View style={styles.switchContainer}>
-            <Text
-              style={{ color: theme.text, fontWeight: "bold", marginRight: 10 }}
-            >
-              Tema Escuro:
-            </Text>
-            <Switch
-              trackColor={{
-                false: "red",
-                true: theme.modalBackgroundSecondary,
-              }}
-              thumbColor={
-                themeName === "dark" ? theme.borderRed : theme.borderRed
-              }
-              onValueChange={toggleTheme}
-              value={themeName === "dark"}
+      <ScrollView style={styles.contentScroll}>
+        <View style={styles.content}>
+          <Text style={[styles.title, { color: theme.text }]}>
+            ESTATÍSTICAS
+          </Text>
+          <Text style={[styles.subtitle, { color: theme.text }]}>
+            Total de filmes assistidos este ano: {totalMoviesWatchedThisYear}
+          </Text>
+          {/* Barra de progresso ANO */}
+          <View style={styles.progressBarContainer}>
+            <View
+              style={[
+                styles.progressBar,
+                {
+                  width: `${completionPercentage}%`,
+                  backgroundColor: theme.borderRed,
+                },
+              ]}
             />
           </View>
+          <Text style={[styles.progressBarMeta, { color: theme.text }]}>
+            {totalMoviesWatchedThisYear}/365
+          </Text>
+
+          <Text style={[styles.subtitle, { color: theme.text }]}>
+            Total de filmes assistidos este mês: {totalMoviesWatchedThisMonth}
+          </Text>
+          {/* Barra de progresso MÊS */}
+          <View style={styles.progressBarContainer}>
+            <View
+              style={[
+                styles.progressBar,
+                {
+                  width: `${completionPercentageMonth}%`,
+                  backgroundColor: theme.borderRed,
+                },
+              ]}
+            />
+          </View>
+          <Text style={[styles.progressBarMeta, { color: theme.text }]}>
+            {totalMoviesWatchedThisMonth}/30
+          </Text>
+
+          <Text style={[styles.subtitle, { color: theme.text }]}>
+            Total de filmes assistidos esta semana: {totalMoviesWatchedThisWeek}
+          </Text>
+          {/* Barra de progresso SEMANA */}
+          <View style={styles.progressBarContainer}>
+            <View
+              style={[
+                styles.progressBar,
+                {
+                  width: `${completionPercentageWeek}%`,
+                  backgroundColor: theme.borderRed,
+                },
+              ]}
+            />
+          </View>
+          <Text style={[styles.progressBarMeta, { color: theme.text }]}>
+            {totalMoviesWatchedThisWeek}/7
+          </Text>
+
+          <View style={styles.buttonsContainer}>
+            <TouchableOpacity
+              style={[styles.button, { backgroundColor: theme.borderRed }]}
+              onPress={handleResetMovies}
+            >
+              <Text style={{ color: theme.text, fontWeight: "bold" }}>
+                Redefinir Conta
+              </Text>
+            </TouchableOpacity>
+
+            <View style={styles.switchContainer}>
+              <Text
+                style={{
+                  color: theme.text,
+                  fontWeight: "bold",
+                  marginRight: 10,
+                }}
+              >
+                Tema Escuro:
+              </Text>
+              <Switch
+                trackColor={{
+                  false: "red",
+                  true: theme.modalBackgroundSecondary,
+                }}
+                thumbColor={
+                  themeName === "dark" ? theme.borderRed : theme.borderRed
+                }
+                onValueChange={toggleTheme}
+                value={themeName === "dark"}
+              />
+            </View>
+          </View>
         </View>
-      </Animated.View>
-    </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
@@ -225,7 +220,7 @@ const styles = StyleSheet.create({
     display: "flex",
     flexDirection: "row",
     justifyContent: "space-evenly",
-    paddingVertical: 60
+    paddingVertical: 60,
   },
   switchContainer: {
     flexDirection: "row",
@@ -235,20 +230,22 @@ const styles = StyleSheet.create({
   },
 
   container: {
-    flex: 1,
-    paddingTop: 56,
   },
   content: {
-    flex: 1,
     paddingTop: 30,
     alignItems: "center",
+    alignContent: "center",
+    justifyContent: "center",
+    display: "flex",
+  },
+  contentScroll: {
   },
   logo: {
+    marginBottom: 30,
     alignSelf: "center",
-    marginVertical: 16,
+    marginVertical: 10,
     width: 80,
     height: 80,
-    marginBottom: 16,
     resizeMode: "contain",
   },
   title: {
@@ -278,7 +275,6 @@ const styles = StyleSheet.create({
     height: "100%",
     borderRadius: 10,
   },
-
   button: {
     padding: 10,
     borderRadius: 30,

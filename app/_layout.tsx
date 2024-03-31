@@ -1,22 +1,22 @@
-import React, { useEffect } from 'react';
-import { View } from 'react-native';
-import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { useFonts } from 'expo-font';
-import { SplashScreen, Stack } from 'expo-router'; 
-import { UserProvider } from '../contexts/UserContext';
-import { ThemeProvider } from '../constants/temas/ThemeContext';
+import React, { useEffect } from "react";
+import { Platform, StatusBar, View } from "react-native";
+import FontAwesome from "@expo/vector-icons/FontAwesome";
+import { useFonts } from "expo-font";
+import { SplashScreen, Stack } from "expo-router";
+import { UserProvider } from "../contexts/UserContext";
+import { ThemeProvider } from "../constants/temas/ThemeContext";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
-export {
-  ErrorBoundary,
-} from 'expo-router';
+export { ErrorBoundary } from "expo-router";
 
 export const unstable_settings = {
-  initialRouteName: '(tabs)',
+  initialRouteName: "(tabs)",
 };
 
 export default function RootLayout() {
+  
   const [fontsLoaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
+    SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
     ...FontAwesome.font,
   });
 
@@ -38,13 +38,13 @@ export default function RootLayout() {
 
   // Depois que as fontes são carregadas e a splash screen é escondida, renderiza o conteúdo do app.
   return (
-    <View style={{ flex: 1 }}>
+    <SafeAreaProvider >
       <UserProvider>
         <ThemeProvider>
           <RootLayoutNav />
         </ThemeProvider>
       </UserProvider>
-    </View>
+    </SafeAreaProvider>
   );
 }
 
@@ -52,7 +52,7 @@ function RootLayoutNav() {
   return (
     <Stack>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+      <Stack.Screen name="modal" options={{ presentation: "modal" }} />
     </Stack>
   );
 }

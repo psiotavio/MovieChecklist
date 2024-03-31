@@ -5,6 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 type ThemeContextType = {
   theme: Theme;
   toggleTheme: () => void;
+  themeName: 'light' | 'dark';
 };
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -34,7 +35,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   const theme = themes[themeName];
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+    <ThemeContext.Provider value={{ theme, toggleTheme, themeName}}>
       {children}
     </ThemeContext.Provider>
   );

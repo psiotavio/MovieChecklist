@@ -14,6 +14,7 @@ import {
 import { useUser } from "../../contexts/UserContext";
 import logo from "../../assets/images/logo.png";
 import { useTheme } from "../../constants/temas/ThemeContext";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 interface Movie {
   rank?: React.JSX.Element;
@@ -25,7 +26,12 @@ interface Movie {
 }
 
 export default function TabThreeScreen() {
-  const { recommendedMovies, recommendedByGenre, addToWatchList, removeFromRecommendedMovies } = useUser(); // Supondo que `addToWatchList` é o método do contexto
+  const {
+    recommendedMovies,
+    recommendedByGenre,
+    addToWatchList,
+    removeFromRecommendedMovies,
+  } = useUser(); // Supondo que `addToWatchList` é o método do contexto
   const [selectedGenre, setSelectedGenre] = useState("Recomendado para você");
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -57,17 +63,15 @@ export default function TabThreeScreen() {
 
   const handleAddToList = () => {
     if (selectedMovie) {
-
-
       const toWatch: Movie = {
         id: selectedMovie.id,
-        title: selectedMovie.title, 
-        date: new Date().toLocaleDateString(), 
+        title: selectedMovie.title,
+        date: new Date().toLocaleDateString(),
         rating: 0,
         imageUrl: selectedMovie.imageUrl,
-        rank: selectedMovie.rank
+        rank: selectedMovie.rank,
       };
-       removeFromRecommendedMovies(selectedMovie.id);
+      removeFromRecommendedMovies(selectedMovie.id);
       addToWatchList(toWatch);
       closeModal();
       setSelectedMovie(null);
@@ -78,10 +82,10 @@ export default function TabThreeScreen() {
     setShowModal(false);
   };
 
- 
-
   return (
-    <View style={[styles.container, { backgroundColor: theme.background }]}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: theme.background}]}
+    >
       <Image source={logo} style={styles.logo} />
       <TouchableOpacity
         style={[styles.dropdownButton, { borderColor: theme.borderRed }]}
@@ -113,7 +117,7 @@ export default function TabThreeScreen() {
               },
             ]}
           >
-            <ScrollView>
+            <ScrollView >
               {genres.map((genre) => (
                 <TouchableOpacity
                   key={genre}
@@ -158,7 +162,7 @@ export default function TabThreeScreen() {
           showsVerticalScrollIndicator={false}
           renderItem={({ item }) => (
             <View style={styles.movieItem}>
-             <TouchableOpacity onPress={() => openModal(item as Movie)}>
+              <TouchableOpacity onPress={() => openModal(item as Movie)}>
                 <View
                   style={[
                     styles.shadowContainer,
@@ -221,7 +225,7 @@ export default function TabThreeScreen() {
           </View>
         </View>
       </Modal>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -240,17 +244,19 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   container: {
-    flex: 1,
-    paddingTop: 56,
     alignItems: "center",
     justifyContent: "flex-start",
   },
   logo: {
     width: 80,
     height: 80,
-    marginVertical: 16,
+    marginVertical: 10,
     marginBottom: 40,
     resizeMode: "contain",
+  },
+  listRecommend: {
+
+    backgroundColor: "red",
   },
   dropdownButton: {
     width: "90%",
@@ -329,7 +335,6 @@ const styles = StyleSheet.create({
   modalText: {
     fontSize: 18,
     marginBottom: 20,
-    
   },
   modalButtonsContainer: {
     flexDirection: "row",

@@ -8,37 +8,35 @@ import TabThreeScreen from "./three";
 import TabFourScreen from "./four";
 import TabTwoScreen from "./two";
 import TabFiveScreen from "./five";
-
-
+import { StatusBar } from "expo-status-bar";
 
 export default function TabLayout() {
-  const { theme } = useTheme();
+  const { theme, themeName } = useTheme(); 
   const [index, setIndex] = React.useState(0);
   const [routes] = React.useState([
     {
-      key: 'home',
-      title: 'Início',
-      focusedIcon: 'home',
-      unfocusedIcon: 'home-outline',
+      key: "home",
+      title: "Início",
+      focusedIcon: "home",
+      unfocusedIcon: "home-outline",
     },
     {
-      
-      key: 'recommendations',
-      title: 'Recomendados',
-      focusedIcon: 'movie',
-      unfocusedIcon: 'movie-outline',
+      key: "recommendations",
+      title: "Recomendados",
+      focusedIcon: "movie",
+      unfocusedIcon: "movie-outline",
     },
     {
-      key: 'lists',
-      title: 'Listas',
-      focusedIcon: 'format-list-bulleted',
-      unfocusedIcon: 'format-list-bulleted-square',
+      key: "lists",
+      title: "Listas",
+      focusedIcon: "format-list-bulleted",
+      unfocusedIcon: "format-list-bulleted-square",
     },
     {
-      key: 'profile',
-      title: 'Perfil',
-      focusedIcon: 'account',
-      unfocusedIcon: 'account-outline',
+      key: "profile",
+      title: "Perfil",
+      focusedIcon: "account",
+      unfocusedIcon: "account-outline",
     },
     // {
     //   key: 'cog',
@@ -47,7 +45,6 @@ export default function TabLayout() {
     //   unfocusedIcon: 'cog-outline',
     // },
   ]);
-  
 
   const renderScene = BottomNavigation.SceneMap({
     home: HomeScreen,
@@ -57,15 +54,22 @@ export default function TabLayout() {
     // cog: TabFiveScreen
   });
 
+  const statusBarStyle = themeName === 'dark' ? 'light' : 'dark';
+
+
+
   return (
-    <BottomNavigation
-      navigationState={{ index, routes }}
-      onIndexChange={setIndex}
-      renderScene={renderScene}
-      activeIndicatorStyle={{ backgroundColor: theme.borderRed }}
-      activeColor={theme.text}
-      inactiveColor={theme.text}
-      barStyle={{ backgroundColor: theme.modalBackground}}
-    />
+    <>
+      <StatusBar style={statusBarStyle} />
+      <BottomNavigation
+        navigationState={{ index, routes }}
+        onIndexChange={setIndex}
+        renderScene={renderScene}
+        activeIndicatorStyle={{ backgroundColor: theme.borderRed }}
+        activeColor={theme.text}
+        inactiveColor={theme.text}
+        barStyle={{ backgroundColor: theme.modalBackground }}
+      />
+    </>
   );
 }
