@@ -680,7 +680,7 @@ const styles = StyleSheet.create({
     width: 120,
     height: 185,
     marginBottom: 8,
-    borderRadius: 10, // Mantém as bordas arredondadas para a sombra
+    borderRadius: 10, 
     backgroundColor: "white", // A cor de fundo é necessária para a sombra aparecer
     shadowColor: "#000", // Cor da sombra
     shadowOffset: { width: 0, height: 2 }, // Deslocamento da sombra
