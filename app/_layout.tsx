@@ -38,7 +38,7 @@ export default function RootLayout() {
 
   // Depois que as fontes são carregadas e a splash screen é escondida, renderiza o conteúdo do app.
   return (
-    <SafeAreaProvider >
+    <SafeAreaProvider>
       <UserProvider>
         <ThemeProvider>
           <RootLayoutNav />

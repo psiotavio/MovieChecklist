@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   StyleSheet,
   FlatList,
@@ -14,6 +14,13 @@ import logo from "../../assets/images/logo.png";
 import { useTheme } from "../../constants/temas/ThemeContext";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { AdEventType, InterstitialAd, TestIds } from "react-native-google-mobile-ads";
+
+const anuncio = InterstitialAd.createForAdRequest(TestIds.INTERSTITIAL, {
+  requestNonPersonalizedAdsOnly: true,
+});
+
+
 interface Movie {
   rank?: React.JSX.Element;
   id: number;
@@ -24,6 +31,41 @@ interface Movie {
 }
 
 export default function TabFourScreen() {
+  // ANUNCIOS
+  const [interstitialLoaded, setInterstitialLoaded] = useState(false);
+
+  const loadInterstitial = () => {
+    const unscubscribeLoaded = anuncio.addAdEventListener(
+      AdEventType.LOADED,
+      () => {
+        console.log("Anúncio carregado.");
+        setInterstitialLoaded(true);
+      }
+    );
+
+    const unscubscribeClosed = anuncio.addAdEventListener(
+      AdEventType.CLOSED,
+      () => {
+        console.log("Anúncio fechado.");
+        setInterstitialLoaded(false);
+        anuncio.load();
+      }
+    );
+
+    anuncio.load();
+
+    return () => {
+      unscubscribeClosed();
+      unscubscribeLoaded();
+    };
+  };
+
+  useEffect(() => {
+    const unsubscribeInterstitialEvents = loadInterstitial();
+    return unsubscribeInterstitialEvents;
+  }, []);
+
+
   const [activeTab, setActiveTab] = useState("ratedMovies"); // 'ratedMovies' ou 'toWatchMovies'
   const { movies, toWatchMovies, removeFromWatchList, addMovieReview } =
     useUser(); // Adicione toWatchMovies aqui
@@ -54,6 +96,22 @@ export default function TabFourScreen() {
         imageUrl: selectedMovieId.imageUrl,
         rank: selectedMovieId.rank,
       };
+
+      setTimeout(() => {
+        if (interstitialLoaded) {
+          anuncio.show().then(() => {
+            console.log("Anúncio foi exibido.");
+            // Recarregar o anúncio para a próxima exibição
+            anuncio.load();
+          }).catch((error) => {
+            console.error("Erro ao tentar exibir o anúncio: ", error);
+          });
+          // Resetar o estado de carregamento do anúncio
+          setInterstitialLoaded(false);
+        }
+      }, 1000); // 2000 milissegundos = 1 segundos
+
+
       addMovieReview(movieReview);
 
       closeModal();
@@ -64,6 +122,7 @@ export default function TabFourScreen() {
 
   return (
     <SafeAreaView
+      edges={["top"]}
       style={[styles.container, { backgroundColor: theme.background }]}
     >
       <Image source={logo} style={styles.logo} />
@@ -109,7 +168,6 @@ export default function TabFourScreen() {
           </TouchableOpacity>
         </View>
 
-        <View style={[styles.containerSecondary]}>
           {activeTab === "ratedMovies" ? (
             moviesSortedByRating.length > 0 ? (
               <>
@@ -241,7 +299,6 @@ export default function TabFourScreen() {
             </View>
           </View>
         </Modal>
-      </View>
     </SafeAreaView>
   );
 }
@@ -303,21 +360,21 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   container: {
-    display: "flex",
+    height: "100%",
     alignItems: "center",
-    justifyContent: "center",
-    flex: 1,
+    justifyContent: "flex-start",
   },
   containerSecondary: {
-    display: 'flex',
+    display: "flex",
     alignItems: "center",
     width: "100%",
-    height: '100%'
+    height: "100%",
   },
   containerSecondaryy: {
     flex: 1,
     alignItems: "center",
     width: "100%",
+    height: "50%",
   },
   logo: {
     marginVertical: 10,
@@ -373,8 +430,8 @@ const styles = StyleSheet.create({
     marginHorizontal: 7,
   },
   toWatchmovieImage: {
-    width: 120,
-    height: 185,
+    width: 100,
+    height: 150,
     resizeMode: "cover",
     borderRadius: 10,
   },

@@ -16,6 +16,16 @@ import logo from "../../assets/images/logo.png";
 import { useTheme } from "../../constants/temas/ThemeContext";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import {
+  AdEventType,
+  InterstitialAd,
+  TestIds,
+} from "react-native-google-mobile-ads";
+
+const anuncio = InterstitialAd.createForAdRequest(TestIds.INTERSTITIAL, {
+  requestNonPersonalizedAdsOnly: true,
+});
+
 interface Movie {
   rank?: React.JSX.Element;
   id: number;
@@ -26,6 +36,41 @@ interface Movie {
 }
 
 export default function TabThreeScreen() {
+  // ANUNCIOS
+  const [interstitialLoaded, setInterstitialLoaded] = useState(false);
+  const [counter, setCounter] = useState(0);
+
+  const loadInterstitial = () => {
+    const unscubscribeLoaded = anuncio.addAdEventListener(
+      AdEventType.LOADED,
+      () => {
+        console.log("Anúncio carregado.");
+        setInterstitialLoaded(true);
+      }
+    );
+
+    const unscubscribeClosed = anuncio.addAdEventListener(
+      AdEventType.CLOSED,
+      () => {
+        console.log("Anúncio fechado.");
+        setInterstitialLoaded(false);
+        anuncio.load();
+      }
+    );
+
+    anuncio.load();
+
+    return () => {
+      unscubscribeClosed();
+      unscubscribeLoaded();
+    };
+  };
+
+  useEffect(() => {
+    const unsubscribeInterstitialEvents = loadInterstitial();
+    return unsubscribeInterstitialEvents;
+  }, []);
+
   const {
     recommendedMovies,
     recommendedByGenre,
@@ -71,8 +116,30 @@ export default function TabThreeScreen() {
         imageUrl: selectedMovie.imageUrl,
         rank: selectedMovie.rank,
       };
+
+      if (counter === 2) {
+        setTimeout(() => {
+          if (interstitialLoaded) {
+            anuncio
+              .show()
+              .then(() => {
+                console.log("Anúncio foi exibido.");
+                // Recarregar o anúncio para a próxima exibição
+                anuncio.load();
+              })
+              .catch((error) => {
+                console.error("Erro ao tentar exibir o anúncio: ", error);
+              });
+            // Resetar o estado de carregamento do anúncio
+            setInterstitialLoaded(false);
+            setCounter(0);
+          }
+        }, 2000); // 2000 milissegundos = 2 segundos
+      }
+
       removeFromRecommendedMovies(selectedMovie.id);
       addToWatchList(toWatch);
+      setCounter(counter + 1);
       closeModal();
       setSelectedMovie(null);
     }
@@ -84,7 +151,8 @@ export default function TabThreeScreen() {
 
   return (
     <SafeAreaView
-      style={[styles.container, { backgroundColor: theme.background}]}
+      edges={["top"]}
+      style={[styles.container, { backgroundColor: theme.background }]}
     >
       <Image source={logo} style={styles.logo} />
       <TouchableOpacity
@@ -117,7 +185,7 @@ export default function TabThreeScreen() {
               },
             ]}
           >
-            <ScrollView >
+            <ScrollView>
               {genres.map((genre) => (
                 <TouchableOpacity
                   key={genre}
@@ -244,6 +312,7 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   container: {
+    height: "100%",
     alignItems: "center",
     justifyContent: "flex-start",
   },
@@ -255,7 +324,6 @@ const styles = StyleSheet.create({
     resizeMode: "contain",
   },
   listRecommend: {
-
     backgroundColor: "red",
   },
   dropdownButton: {

@@ -1,13 +1,11 @@
 import React from "react";
 import { BottomNavigation } from "react-native-paper";
-import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useTheme } from "../../constants/temas/ThemeContext";
 
 import HomeScreen from ".";
 import TabThreeScreen from "./three";
 import TabFourScreen from "./four";
 import TabTwoScreen from "./two";
-import TabFiveScreen from "./five";
 import { StatusBar } from "expo-status-bar";
 
 export default function TabLayout() {
@@ -22,7 +20,7 @@ export default function TabLayout() {
     },
     {
       key: "recommendations",
-      title: "Recomendados",
+      title: "Para você",
       focusedIcon: "movie",
       unfocusedIcon: "movie-outline",
     },
@@ -38,12 +36,7 @@ export default function TabLayout() {
       focusedIcon: "account",
       unfocusedIcon: "account-outline",
     },
-    // {
-    //   key: 'cog',
-    //   title: 'Ajustes',
-    //   focusedIcon: 'cog',
-    //   unfocusedIcon: 'cog-outline',
-    // },
+ 
   ]);
 
   const renderScene = BottomNavigation.SceneMap({
@@ -51,7 +44,6 @@ export default function TabLayout() {
     recommendations: TabThreeScreen,
     lists: TabFourScreen,
     profile: TabTwoScreen,
-    // cog: TabFiveScreen
   });
 
   const statusBarStyle = themeName === 'dark' ? 'light' : 'dark';

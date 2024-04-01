@@ -18,12 +18,14 @@
     "ios": {
       "supportsTablet": true, 
       "bundleIdentifier": "com.psiotavio.MovieChecklist"
+ 
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
+    
       "package": "com.psiotavio.MovieChecklist"
     },
     "web": {
@@ -45,5 +47,9 @@
         "projectId": "fe3ee28e-f931-480d-b14d-b4d9f3da780f"
       }
     }
+  },
+  "react-native-google-mobile-ads": {
+    "android_app_id": "ca-app-pub-xxxxxxxxxxxxxxxx",
+    "ios_app_id": "ca-app-pub-1771446730721916~1018111111"
   }
 }

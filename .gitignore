@@ -3,6 +3,9 @@
 # dependencies
 node_modules/
 
+Watchfolio.app
+build-1711934847421.tar.gz
+
 # Expo
 .expo/
 dist/

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   StyleSheet,
   Image,
@@ -15,10 +15,55 @@ import logo from "../../assets/images/logo.png";
 import { isSameWeek, isSameYear, isSameMonth, parse } from "date-fns";
 import { useTheme } from "../../constants/temas/ThemeContext";
 import { themes } from "../../constants/temas/ThemeColors";
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView } from "react-native-safe-area-context";
 
+import {
+  AdEventType,
+  InterstitialAd,
+  TestIds,
+} from "react-native-google-mobile-ads";
+
+const anuncio = InterstitialAd.createForAdRequest(TestIds.INTERSTITIAL, {
+  requestNonPersonalizedAdsOnly: true,
+});
 
 export default function TabTwoScreen() {
+
+ // ANUNCIOS
+ const [interstitialLoaded, setInterstitialLoaded] = useState(false);
+
+ const loadInterstitial = () => {
+   const unscubscribeLoaded = anuncio.addAdEventListener(
+     AdEventType.LOADED,
+     () => {
+       console.log("Anúncio carregado.");
+       setInterstitialLoaded(true);
+     }
+   );
+
+   const unscubscribeClosed = anuncio.addAdEventListener(
+     AdEventType.CLOSED,
+     () => {
+       console.log("Anúncio fechado.");
+       setInterstitialLoaded(false);
+       anuncio.load();
+     }
+   );
+
+   anuncio.load();
+
+   return () => {
+     unscubscribeClosed();
+     unscubscribeLoaded();
+   };
+ };
+
+ useEffect(() => {
+   const unsubscribeInterstitialEvents = loadInterstitial();
+   return unsubscribeInterstitialEvents;
+ }, []);
+
+  
   const {
     movies,
     setMovies,
@@ -34,9 +79,12 @@ export default function TabTwoScreen() {
   const goalMoviesMonth = 30;
   const goalMoviesWeek = 7;
 
-  const [totalMoviesWatchedThisYear, setTotalMoviesWatchedThisYear] = useState(0);
-  const [totalMoviesWatchedThisMonth, setTotalMoviesWatchedThisMonth] = useState(0);
-  const [totalMoviesWatchedThisWeek, setTotalMoviesWatchedThisWeek] = useState(0);
+  const [totalMoviesWatchedThisYear, setTotalMoviesWatchedThisYear] =
+    useState(0);
+  const [totalMoviesWatchedThisMonth, setTotalMoviesWatchedThisMonth] =
+    useState(0);
+  const [totalMoviesWatchedThisWeek, setTotalMoviesWatchedThisWeek] =
+    useState(0);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -60,6 +108,21 @@ export default function TabTwoScreen() {
           text: "Sim",
           onPress: () => {
             // Aqui você chama as funções para redefinir a conta
+
+            setTimeout(() => {
+              if (interstitialLoaded) {
+                anuncio.show().then(() => {
+                  console.log("Anúncio foi exibido.");
+                  // Recarregar o anúncio para a próxima exibição
+                  anuncio.load();
+                }).catch((error) => {
+                  console.error("Erro ao tentar exibir o anúncio: ", error);
+                });
+                // Resetar o estado de carregamento do anúncio
+                setInterstitialLoaded(false);
+              }
+            }, 1000); // 2000 milissegundos = 2 segundos
+
             setRecommendedMovies([]);
             setMovies([]);
             setToWatchMovies([]);
@@ -85,101 +148,115 @@ export default function TabTwoScreen() {
   );
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.background}]}>
+    <SafeAreaView
+      edges={["top"]}
+      style={[styles.container, { backgroundColor: theme.background }]}
+    >
       <Image source={logo} style={styles.logo} />
+
+      <Text style={[styles.title, { color: theme.text }]}>ESTATÍSTICAS</Text>
       <ScrollView style={styles.contentScroll}>
-        <View style={styles.content}>
-          <Text style={[styles.title, { color: theme.text }]}>
-            ESTATÍSTICAS
-          </Text>
-          <Text style={[styles.subtitle, { color: theme.text }]}>
-            Total de filmes assistidos este ano: {totalMoviesWatchedThisYear}
-          </Text>
-          {/* Barra de progresso ANO */}
-          <View style={styles.progressBarContainer}>
-            <View
-              style={[
-                styles.progressBar,
-                {
-                  width: `${completionPercentage}%`,
-                  backgroundColor: theme.borderRed,
-                },
-              ]}
-            />
-          </View>
-          <Text style={[styles.progressBarMeta, { color: theme.text }]}>
-            {totalMoviesWatchedThisYear}/365
-          </Text>
+        <View style={styles.contentAligner}>
+          <View style={styles.content}>
+            <View style={styles.progessBars}>
+              <View style={styles.progessBarStyle}>
+                <Text style={[styles.subtitle, { color: theme.text }]}>
+                  Total de filmes assistidos este ano:{" "}
+                  {totalMoviesWatchedThisYear}
+                </Text>
+                <View style={styles.progressBarContainer}>
+                  <View
+                    style={[
+                      styles.progressBar,
+                      {
+                        width: `${completionPercentage}%`,
+                        backgroundColor: theme.borderRed,
+                      },
+                    ]}
+                  />
+                </View>
+                <Text style={[styles.progressBarMeta, { color: theme.text }]}>
+                  {totalMoviesWatchedThisYear}/365
+                </Text>
+              </View>
 
-          <Text style={[styles.subtitle, { color: theme.text }]}>
-            Total de filmes assistidos este mês: {totalMoviesWatchedThisMonth}
-          </Text>
-          {/* Barra de progresso MÊS */}
-          <View style={styles.progressBarContainer}>
-            <View
-              style={[
-                styles.progressBar,
-                {
-                  width: `${completionPercentageMonth}%`,
-                  backgroundColor: theme.borderRed,
-                },
-              ]}
-            />
-          </View>
-          <Text style={[styles.progressBarMeta, { color: theme.text }]}>
-            {totalMoviesWatchedThisMonth}/30
-          </Text>
+              <View style={styles.progessBarStyle}>
+                <Text style={[styles.subtitle, { color: theme.text }]}>
+                  Total de filmes assistidos este mês:{" "}
+                  {totalMoviesWatchedThisMonth}
+                </Text>
+                {/* Barra de progresso MÊS */}
+                <View style={styles.progressBarContainer}>
+                  <View
+                    style={[
+                      styles.progressBar,
+                      {
+                        width: `${completionPercentageMonth}%`,
+                        backgroundColor: theme.borderRed,
+                      },
+                    ]}
+                  />
+                </View>
+                <Text style={[styles.progressBarMeta, { color: theme.text }]}>
+                  {totalMoviesWatchedThisMonth}/30
+                </Text>
+              </View>
 
-          <Text style={[styles.subtitle, { color: theme.text }]}>
-            Total de filmes assistidos esta semana: {totalMoviesWatchedThisWeek}
-          </Text>
-          {/* Barra de progresso SEMANA */}
-          <View style={styles.progressBarContainer}>
-            <View
-              style={[
-                styles.progressBar,
-                {
-                  width: `${completionPercentageWeek}%`,
-                  backgroundColor: theme.borderRed,
-                },
-              ]}
-            />
-          </View>
-          <Text style={[styles.progressBarMeta, { color: theme.text }]}>
-            {totalMoviesWatchedThisWeek}/7
-          </Text>
+              <View style={styles.progessBarStyle}>
+                <Text style={[styles.subtitle, { color: theme.text }]}>
+                  Total de filmes assistidos esta semana:{" "}
+                  {totalMoviesWatchedThisWeek}
+                </Text>
+                {/* Barra de progresso SEMANA */}
+                <View style={styles.progressBarContainer}>
+                  <View
+                    style={[
+                      styles.progressBar,
+                      {
+                        width: `${completionPercentageWeek}%`,
+                        backgroundColor: theme.borderRed,
+                      },
+                    ]}
+                  />
+                </View>
+                <Text style={[styles.progressBarMeta, { color: theme.text }]}>
+                  {totalMoviesWatchedThisWeek}/7
+                </Text>
+              </View>
+            </View>
 
-          <View style={styles.buttonsContainer}>
-            <TouchableOpacity
-              style={[styles.button, { backgroundColor: theme.borderRed }]}
-              onPress={handleResetMovies}
-            >
-              <Text style={{ color: theme.text, fontWeight: "bold" }}>
-                Redefinir Conta
-              </Text>
-            </TouchableOpacity>
-
-            <View style={styles.switchContainer}>
-              <Text
-                style={{
-                  color: theme.text,
-                  fontWeight: "bold",
-                  marginRight: 10,
-                }}
+            <View style={styles.buttonsContainer}>
+              <TouchableOpacity
+                style={[styles.button, { backgroundColor: theme.borderRed }]}
+                onPress={handleResetMovies}
               >
-                Tema Escuro:
-              </Text>
-              <Switch
-                trackColor={{
-                  false: "red",
-                  true: theme.modalBackgroundSecondary,
-                }}
-                thumbColor={
-                  themeName === "dark" ? theme.borderRed : theme.borderRed
-                }
-                onValueChange={toggleTheme}
-                value={themeName === "dark"}
-              />
+                <Text style={{ color: theme.text, fontWeight: "bold" }}>
+                  Redefinir Conta
+                </Text>
+              </TouchableOpacity>
+
+              <View style={styles.switchContainer}>
+                <Text
+                  style={{
+                    color: theme.text,
+                    fontWeight: "bold",
+                    marginRight: 10,
+                  }}
+                >
+                  Tema Escuro:
+                </Text>
+                <Switch
+                  trackColor={{
+                    false: "red",
+                    true: theme.modalBackgroundSecondary,
+                  }}
+                  thumbColor={
+                    themeName === "dark" ? theme.borderRed : theme.borderRed
+                  }
+                  onValueChange={toggleTheme}
+                  value={themeName === "dark"}
+                />
+              </View>
             </View>
           </View>
         </View>
@@ -216,30 +293,41 @@ function getTotalMoviesWatchedThisMonth(movies: any[]) {
 
 const styles = StyleSheet.create({
   buttonsContainer: {
+    padding: 10,
     width: "100%",
     display: "flex",
     flexDirection: "row",
     justifyContent: "space-evenly",
-    paddingVertical: 60,
   },
   switchContainer: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 20,
   },
 
   container: {
+    height: "100%",
   },
+
+  contentAligner: {
+    flex: 1, // Isso permite que o View cresça para ocupar o espaço disponível
+    justifyContent: "center", // Centraliza os itens internos do content verticalmente se eles não ocuparem todo o espaço
+    alignItems: "center", // Isso centraliza o conteúdo horizontalmente
+    padding: 10, // Mantém um padding para o conteúdo não tocar nas bordas
+    minHeight: '100%'
+  },
+
   content: {
-    paddingTop: 30,
-    alignItems: "center",
-    alignContent: "center",
-    justifyContent: "center",
-    display: "flex",
+    padding: 20,
+    minHeight: '100%',
+    width: "100%", // Você pode ajustar essa largura conforme necessário
+    alignItems: "center", // Garante que o conteúdo interno esteja alinhado ao centro
+    justifyContent: "space-between", // Centraliza os itens internos do content verticalmente se eles não ocuparem todo o espaço
   },
+
   contentScroll: {
   },
+
   logo: {
     marginBottom: 30,
     alignSelf: "center",
@@ -249,14 +337,29 @@ const styles = StyleSheet.create({
     resizeMode: "contain",
   },
   title: {
+    textAlign: "center",
     fontSize: 24,
     fontWeight: "bold",
-    marginBottom: 16,
+    marginBottom: 10,
+  },
+  progessBarStyle: {
+    alignSelf: "center",
+    alignItems: "center",
+    width: "100%",
+  },
+  progessBars: {
+    padding: 10,
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+    alignSelf: "center",
+    alignItems: "center",
+    width: "100%",
+    minHeight: '70%',
   },
   subtitle: {
     fontSize: 14,
     fontWeight: "bold",
-    marginTop: 50,
   },
   progressBarContainer: {
     marginTop: 20,
@@ -279,6 +382,5 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 30,
     paddingHorizontal: 10,
-    marginTop: 20,
   },
 });

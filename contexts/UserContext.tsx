@@ -37,6 +37,7 @@ const getMoviesSortedByRating = (moviesArray: MovieReview[]) => {
 
 interface UserContextType {
   movies: MovieReview[];
+  removeFromList: (movieId: number) => void;
   recommendedByGenre: { [key: string]: Movie[] };
   addMovieReview: (newMovie: MovieReview) => void;
   updateMovieReview: (updatedMovie: MovieReview) => void;
@@ -53,6 +54,7 @@ interface UserContextType {
 
 const UserContext = createContext<UserContextType>({
   movies: [],
+  removeFromList: () => {},
   recommendedByGenre: {},
   addMovieReview: () => {},
   updateMovieReview: () => {},
@@ -130,8 +132,10 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     setRecommendedMovies((currentRecommendedMovies) => 
       currentRecommendedMovies.filter(movie => movie.id !== movieId));
   };
-  
-  
+
+  const removeFromList = (movieId: number) => {
+    setMovies((currentMovies) => currentMovies.filter(movie => movie.id !== movieId));
+  };
 
   useEffect(() => {
     const loadToWatchMovies = async () => {
@@ -171,6 +175,8 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       return updatedList;
     });
   };
+
+
   
 
 
@@ -386,6 +392,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     <UserContext.Provider
       value={{
         movies,
+        removeFromList,
         addMovieReview,
         updateMovieReview,
         setMovies,

@@ -23,6 +23,17 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
+import Icon from "react-native-vector-icons/FontAwesome";
+
+import {
+  AdEventType,
+  InterstitialAd,
+  TestIds,
+} from "react-native-google-mobile-ads";
+
+const anuncio = InterstitialAd.createForAdRequest(TestIds.INTERSTITIAL, {
+  requestNonPersonalizedAdsOnly: true,
+});
 
 interface Movie {
   rank?: React.JSX.Element;
@@ -69,7 +80,42 @@ export function getAllWatchedMovies(movies: Movie[]): string[] {
 }
 
 export default function HomeScreen() {
-  const { movies, addMovieReview, recommendedMovies } = useUser(); // Use o contexto de usuário
+  // ANUNCIOS
+  const [interstitialLoaded, setInterstitialLoaded] = useState(false);
+
+  const loadInterstitial = () => {
+    const unscubscribeLoaded = anuncio.addAdEventListener(
+      AdEventType.LOADED,
+      () => {
+        console.log("Anúncio carregado.");
+        setInterstitialLoaded(true);
+      }
+    );
+
+    const unscubscribeClosed = anuncio.addAdEventListener(
+      AdEventType.CLOSED,
+      () => {
+        console.log("Anúncio fechado.");
+        setInterstitialLoaded(false);
+        anuncio.load();
+      }
+    );
+
+    anuncio.load();
+
+    return () => {
+      unscubscribeClosed();
+      unscubscribeLoaded();
+    };
+  };
+
+  useEffect(() => {
+    const unsubscribeInterstitialEvents = loadInterstitial();
+    return unsubscribeInterstitialEvents;
+  }, []);
+
+  const { movies, addMovieReview, recommendedMovies, removeFromList } =
+    useUser(); // Use o contexto de usuário
   const [movieInput, setMovieInput] = useState<string>("");
   const [searchResults, setSearchResults] = useState<Movie[]>([]);
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
@@ -126,20 +172,40 @@ export default function HomeScreen() {
 
   const handleAddMovie = () => {
     if (!selectedMovie) return;
-
     const alreadyAdded = movies.some((movie) => movie.id === selectedMovie.id);
     if (!alreadyAdded) {
       addMovieReview({
         ...selectedMovie,
         rating: rating,
       });
-    }
 
+      setTimeout(() => {
+        if (interstitialLoaded) {
+          anuncio
+            .show()
+            .then(() => {
+              console.log("Anúncio foi exibido.");
+              // Recarregar o anúncio para a próxima exibição
+              anuncio.load();
+            })
+            .catch((error) => {
+              console.error("Erro ao tentar exibir o anúncio: ", error);
+            });
+          // Resetar o estado de carregamento do anúncio
+          setInterstitialLoaded(false);
+        }
+      }, 2000); // 2000 milissegundos = 2 segundos
+    }
+    // Fechar o modal e limpar o estado, independentemente de o anúncio ser exibido
     setModalVisible(false);
     setSelectedMovie(null);
     setRating(0);
     setMovieInput("");
     setSearchResults([]);
+  };
+
+  const handleRemoveMovie = (movie: Movie) => {
+    removeFromList(movie.id);
   };
 
   const getMonthTitle = (dateString: string): string => {
@@ -255,6 +321,7 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView
+      edges={["top"]}
       style={[
         styles.container,
         { backgroundColor: theme.background, paddingVertical: 10 },
@@ -273,7 +340,6 @@ export default function HomeScreen() {
             alignItems: "center",
           }}
         >
-
           <View
             style={[
               styles.inputContainer,
@@ -444,83 +510,101 @@ export default function HomeScreen() {
               setModalVisible1(!modalVisible1);
             }}
           >
-            <View style={styles.modalContainer}>
-              <View
-                style={[
-                  styles.modalContent, // Estilos pré-definidos
-                  { backgroundColor: theme.background }, // Estilo dinâmico baseado no tema atual
-                ]}
-              >
-                <Text
-                  style={
-                    { color: theme.text, marginTop: 5 } // Estilo dinâmico baseado no tema atual
-                  }
-                >
-                  Avaliar o Filme:
-                </Text>
-                <Text
-                  style={
-                    {
-                      color: theme.text,
-                      fontWeight: "bold",
-                      fontSize: 18,
-                      marginTop: 10,
-                    } // Estilo dinâmico baseado no tema atual
-                  }
-                >
-                  {selectedMovieRating?.title}
-                </Text>
-                <View style={styles.ratingButtons}>
-                  <View style={styles.slider}>
-                    <Slider
-                      style={{ width: 200, height: 40 }}
-                      minimumValue={0}
-                      maximumValue={5}
-                      step={0.5}
-                      value={rating}
-                      onValueChange={setRating}
-                      minimumTrackTintColor={theme.borderRed}
-                      maximumTrackTintColor={theme.modalBackgroundSecondary}
-                      thumbTintColor={theme.text}
-                    />
-                    <Text style={{ color: theme.text, marginTop: 10 }}>
-                      Avaliação: {rating.toFixed(1)}
-                    </Text>
-                  </View>
-                </View>
-                <View style={styles.modalButtons}>
-                  <TouchableHighlight
-                    style={{
-                      ...styles.modalButton,
-                      backgroundColor: theme.modalBackgroundSecondary,
-                    }}
-                    onPress={() => {
-                      setModalVisible1(false);
-                    }}
+            <TouchableWithoutFeedback onPress={() => setModalVisible1(false)}>
+              <View style={styles.modalContainer}>
+                <TouchableWithoutFeedback>
+                  <View
+                    style={[
+                      styles.modalContent, // Estilos pré-definidos
+                     { backgroundColor: theme.background }, // Estilo dinâmico baseado no tema atual
+                    ]}
                   >
-                    <Text style={styles.textStyle}>Cancelar</Text>
-                  </TouchableHighlight>
-                  <TouchableHighlight
-                    style={{
-                      ...styles.modalButton,
-                      backgroundColor: theme.borderRed,
-                    }}
-                    onPress={() => {
-                      if (selectedMovieRating) {
-                        addMovieReview({
-                          ...selectedMovieRating,
-                          rating: rating,
-                        });
+                    <TouchableHighlight
+                      style={{
+                        ...styles.modalButtonIcon,
+                      }}
+                      onPress={() => {
+                        handleRemoveMovie(selectedMovieRating!);
                         setModalVisible1(false);
                         setRating(0);
+                      }}
+                    >
+                      <Icon name="trash" size={24} color={theme.errorColor} />
+                    </TouchableHighlight>
+
+                    <Text
+                      style={
+                        { color: theme.text, marginTop: 5 } // Estilo dinâmico baseado no tema atual
                       }
-                    }}
-                  >
-                    <Text style={styles.textStyle}>Confirmar</Text>
-                  </TouchableHighlight>
-                </View>
+                    >
+                      Avaliar o Filme:
+                    </Text>
+                    <Text
+                      style={
+                        {
+                          color: theme.text,
+                          fontWeight: "bold",
+                          fontSize: 18,
+                          marginTop: 10,
+                          textAlign: "center",
+                        } // Estilo dinâmico baseado no tema atual
+                      }
+                    >
+                      {selectedMovieRating?.title}
+                    </Text>
+                    <View style={styles.ratingButtons}>
+                      <View style={styles.slider}>
+                        <Slider
+                          style={{ width: 200, height: 40 }}
+                          minimumValue={0}
+                          maximumValue={5}
+                          step={0.5}
+                          value={rating}
+                          onValueChange={setRating}
+                          minimumTrackTintColor={theme.borderRed}
+                          maximumTrackTintColor={theme.modalBackgroundSecondary}
+                          thumbTintColor={theme.text}
+                        />
+                        <Text style={{ color: theme.text, marginTop: 10 }}>
+                          Avaliação: {rating.toFixed(1)}
+                        </Text>
+                      </View>
+                    </View>
+                    <View style={styles.modalButtons}>
+                      <TouchableHighlight
+                        style={{
+                          ...styles.modalButton,
+                          backgroundColor: theme.modalBackgroundSecondary,
+                        }}
+                        onPress={() => {
+                          setModalVisible1(false);
+                        }}
+                      >
+                        <Text style={styles.textStyle}>Cancelar</Text>
+                      </TouchableHighlight>
+                      <TouchableHighlight
+                        style={{
+                          ...styles.modalButton,
+                          backgroundColor: theme.borderRed,
+                        }}
+                        onPress={() => {
+                          if (selectedMovieRating) {
+                            addMovieReview({
+                              ...selectedMovieRating,
+                              rating: rating,
+                            });
+                            setModalVisible1(false);
+                            setRating(0);
+                          }
+                        }}
+                      >
+                        <Text style={styles.textStyle}>Confirmar</Text>
+                      </TouchableHighlight>
+                    </View>
+                  </View>
+                </TouchableWithoutFeedback>
               </View>
-            </View>
+            </TouchableWithoutFeedback>
           </Modal>
         </View>
       </TouchableWithoutFeedback>
@@ -530,6 +614,7 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     alignItems: "center",
     justifyContent: "flex-start",
   },
@@ -564,7 +649,7 @@ const styles = StyleSheet.create({
     maxHeight: 240,
     marginBottom: 16,
     position: "absolute",
-    top: 170,
+    top: 36,
     borderBottomRightRadius: 20,
     borderBottomLeftRadius: 20,
   },
@@ -630,7 +715,9 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     width: "85%",
-    padding: 22,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    paddingTop: 30,
     justifyContent: "center",
     alignItems: "center",
     borderRadius: 10,
@@ -644,6 +731,12 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     padding: 10,
     marginHorizontal: 8,
+  },
+  modalButtonIcon: {
+    padding: 5,
+    top: 10,
+    right: 18,
+    position: "absolute",
   },
   textStyle: {
     color: "white",
@@ -673,11 +766,9 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   moviesChekclist: {
+    marginBottom: 100,
     marginTop: 35,
     width: "100%",
-    height: "100%",
-    display: "flex",
-    flex: 1,
   },
   flatlist: {},
   logo: {
