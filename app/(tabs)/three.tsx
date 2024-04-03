@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   StyleSheet,
   Image,
@@ -9,22 +9,32 @@ import {
   ScrollView,
   Text,
   View,
-  Button, // Adicionando Button do React Native
+  Button,
 } from "react-native";
 import { useUser } from "../../contexts/UserContext";
 import logo from "../../assets/images/logo.png";
 import { useTheme } from "../../constants/temas/ThemeContext";
 import { SafeAreaView } from "react-native-safe-area-context";
+import LinearGradient from "react-native-linear-gradient";
 
 import {
   AdEventType,
   InterstitialAd,
   TestIds,
+  BannerAd,
 } from "react-native-google-mobile-ads";
 
 const anuncio = InterstitialAd.createForAdRequest(TestIds.INTERSTITIAL, {
   requestNonPersonalizedAdsOnly: true,
 });
+
+const adUnitId = __DEV__ ? TestIds.BANNER : "your-ad-unit-id-here";
+
+type Actor = {
+  id: number;
+  name: string;
+  profilePath?: string; // URL para a foto do perfil do ator, se disponível
+};
 
 interface Movie {
   rank?: React.JSX.Element;
@@ -33,7 +43,19 @@ interface Movie {
   rating: number;
   date: string;
   imageUrl?: string;
+  streamingPlatforms?: StreamingPlatform[]; // Adicionado aqui
+
+  genreId?: string;
+  alternateImageUrl?: string; // Nova propriedade para o banner do filme
+  description?: string; // Descrição do filme
+  actors?: Actor[]; // Novo
 }
+
+type StreamingPlatform = {
+  id: number;
+  name: string;
+  logoPath?: string;
+};
 
 export default function TabThreeScreen() {
   // ANUNCIOS
@@ -85,6 +107,47 @@ export default function TabThreeScreen() {
   const [genres, setGenres] = useState(["Recomendado para você"]);
   const { theme } = useTheme();
 
+  const [selectedPlatform, setSelectedPlatform] = useState("Todos");
+  const platforms = [
+    "Todos",
+    "Max",
+    "Amazon Prime Video",
+    "Netflix",
+    "Star Plus",
+    "Disney Plus",
+    "Globo Play",
+    "Paramount Plus",
+    "AppleTV",
+  ];
+
+  const getFilteredMovies = () => {
+    console.log(selectedPlatform);
+    let filteredMovies = [];
+
+    if (selectedGenre === "Recomendado para você") {
+      filteredMovies = recommendedMovies;
+    } else {
+      filteredMovies = recommendedByGenre[selectedGenre] || [];
+    }
+
+    if (selectedPlatform !== "Todos") {
+      filteredMovies = filteredMovies.filter((movie) =>
+        movie.streamingPlatforms?.some(
+          (platform) => platform.name === selectedPlatform
+        )
+      );
+    }
+
+    return filteredMovies;
+  };
+
+  const formatDate = (dateString: any) => {
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+
+    return `${year}`;
+  };
+
   useEffect(() => {
     console.log(recommendedByGenre);
     if (Object.keys(recommendedByGenre).length) {
@@ -115,6 +178,13 @@ export default function TabThreeScreen() {
         rating: 0,
         imageUrl: selectedMovie.imageUrl,
         rank: selectedMovie.rank,
+
+        streamingPlatforms: selectedMovie.streamingPlatforms, // Adicionado aqui
+
+        genreId: selectedMovie.genreId,
+        alternateImageUrl: selectedMovie.alternateImageUrl, // Nova propriedade para o banner do filme
+        description: selectedMovie.description, // Descrição do filme
+        actors: selectedMovie.actors, // Novo
       };
 
       if (counter === 2) {
@@ -149,6 +219,8 @@ export default function TabThreeScreen() {
     setShowModal(false);
   };
 
+  const [showPlatformDropdown, setShowPlatformDropdown] = useState(false);
+
   return (
     <SafeAreaView
       edges={["top"]}
@@ -163,6 +235,72 @@ export default function TabThreeScreen() {
           {selectedGenre}
         </Text>
       </TouchableOpacity>
+
+      <TouchableOpacity
+        style={[styles.dropdownButton, { borderColor: theme.borderRed }]}
+        onPress={() => setShowPlatformDropdown(true)} // Use um novo estado para controlar a visibilidade do dropdown de plataformas
+      >
+        <Text style={[styles.dropdownButtonText, { color: theme.text }]}>
+          {selectedPlatform === "Todos"
+            ? "Todas as Plataformas"
+            : selectedPlatform}
+        </Text>
+      </TouchableOpacity>
+
+      {/* Modal para Seleção de Plataforma */}
+      <Modal
+        visible={showPlatformDropdown} // Este é o novo estado para controle do dropdown de plataformas
+        transparent={true}
+        animationType="none"
+        onRequestClose={() => setShowPlatformDropdown(false)}
+      >
+        <TouchableOpacity
+          style={styles.dropdownOverlay}
+          activeOpacity={1}
+          onPressOut={() => setShowPlatformDropdown(false)}
+        >
+          <View
+            style={[
+              styles.dropdown,
+              {
+                backgroundColor: theme.modalBackground,
+                borderColor: theme.borderRed,
+              },
+            ]}
+          >
+            <ScrollView>
+              {platforms.map((platform) => (
+                <TouchableOpacity
+                  key={platform}
+                  style={[
+                    styles.dropdownItem,
+                    { backgroundColor: theme.modalBackground },
+                  ]}
+                  onPress={() => {
+                    if (platform === "Todos") {
+                      setSelectedPlatform("Todos");
+                    } else {
+                      // Aqui você precisaria encontrar o objeto de plataforma correspondente
+                      // Isso é apenas um exemplo e precisa ser adaptado com base em seus dados
+                      setSelectedPlatform(platform);
+                    }
+                    setShowPlatformDropdown(false); // Garanta que esta função está definida e muda o estado corretamente
+                  }}
+                >
+                  <Text
+                    style={[
+                      styles.dropdownItemText,
+                      { color: theme.text, borderBottomColor: theme.borderRed },
+                    ]}
+                  >
+                    {platform}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </TouchableOpacity>
+      </Modal>
 
       <Modal
         visible={showDropdown}
@@ -217,31 +355,20 @@ export default function TabThreeScreen() {
         {selectedGenre.toUpperCase()}
       </Text>
       {isLoading ? (
-        <ActivityIndicator size="large" color="#0000ff" />
+        <ActivityIndicator size="large" color={theme.borderRed} />
       ) : (
         <FlatList
-          data={
-            selectedGenre === "Recomendado para você"
-              ? recommendedMovies
-              : recommendedByGenre[selectedGenre]
-          }
+          data={getFilteredMovies()}
           keyExtractor={(item) => item.id.toString()}
           numColumns={3}
           showsVerticalScrollIndicator={false}
           renderItem={({ item }) => (
             <View style={styles.movieItem}>
-              <TouchableOpacity onPress={() => openModal(item as Movie)}>
-                <View
-                  style={[
-                    styles.shadowContainer,
-                    { backgroundColor: theme.background },
-                  ]}
-                >
-                  <Image
-                    style={styles.movieImage}
-                    source={{ uri: item.imageUrl }}
-                  />
-                </View>
+              <TouchableOpacity onPress={() => openModal(item)}>
+                <Image
+                  style={styles.movieImage}
+                  source={{ uri: item.imageUrl }}
+                />
               </TouchableOpacity>
             </View>
           )}
@@ -249,7 +376,7 @@ export default function TabThreeScreen() {
       )}
 
       <Modal
-        animationType="fade"
+        animationType="slide"
         transparent={true}
         visible={showModal}
         onRequestClose={closeModal}
@@ -261,35 +388,142 @@ export default function TabThreeScreen() {
               { backgroundColor: theme.modalBackground },
             ]}
           >
-            <Text style={[styles.modalText, { color: theme.text }]}>
-              Deseja adicionar este item à lista?
-            </Text>
-            <View style={styles.modalButtonsContainer}>
-              <View
+            <ScrollView
+              scrollEventThrottle={1}
+              style={{ flex: 1, backgroundColor: theme.modalBackground }}
+            >
+              <Image
                 style={[
-                  styles.buttonContainer,
-                  { backgroundColor: theme.borderRed },
+                  styles.movieImageBanner,
+                  { height: 250, marginBottom: 30 },
                 ]}
-              >
-                <Button
-                  title="Adicionar à lista"
-                  onPress={handleAddToList}
-                  color={theme.text}
-                />
+                source={{ uri: selectedMovie?.alternateImageUrl }}
+              />
+              <View style={styles.modalInfoContent}>
+                <View style={styles.modalMovieInfo}>
+                  <View style={styles.modalMovieTitle}>
+                    <Image
+                      style={styles.movieImage}
+                      source={{ uri: selectedMovie?.imageUrl }}
+                    />
+                    <View style={styles.titleAndDate}>
+                      <Text
+                        style={[
+                          styles.modalMovieTitleText,
+                          { color: theme.text },
+                        ]}
+                      >
+                        {selectedMovie?.title}
+                      </Text>
+                      <Text
+                        style={[styles.modalMovieDate, { color: theme.text }]}
+                      >
+                        {formatDate(selectedMovie?.date)}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <Text style={{ color: theme.text, marginTop: 30 }}>
+                    <Text style={{ fontWeight: "bold", fontSize: 16 }}>
+                      Descrição:{" "}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.modalText,
+                        { color: theme.text, marginBottom: 30 },
+                      ]}
+                    >
+                      {selectedMovie?.description}
+                    </Text>
+                  </Text>
+
+                  <Text style={{ color: theme.text, marginTop: 30 }}>
+                    <Text style={{ fontWeight: "bold", fontSize: 16 }}>
+                      Atores:{" "}
+                    </Text>
+                    <Text style={styles.modalMovieTitleTextActors}>
+                      {selectedMovie?.actors
+                        ?.map((actor) => actor.name)
+                        .join(", ")}
+                    </Text>
+                  </Text>
+
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      flexWrap: "wrap",
+                      marginTop: 30,
+                    }}
+                  >
+                    {selectedMovie?.streamingPlatforms
+                      ?.filter((streaming) => streaming.name !== "HBO Max") // Supondo que 'name' seja uma propriedade identificadora
+                      .map((streaming, index) => (
+                        <Image
+                          key={index}
+                          source={{ uri: streaming.logoPath }}
+                          style={{
+                            width: 50, // Defina a largura conforme necessário
+                            height: 50, // Defina a altura conforme necessário
+                            marginRight: 10, // Espaço à direita de cada imagem
+                            borderRadius: 30,
+                          }}
+                          resizeMode="contain"
+                        />
+                      ))}
+                  </View>
+                </View>
+
+                <View style={styles.modalButtonsContainerAll}>
+                  <Text style={[styles.modalText, { color: theme.text }]}>
+                    Deseja adicionar este item à lista?
+                  </Text>
+
+                  <View style={styles.modalButtonsContainer}>
+                    <View
+                      style={[
+                        styles.buttonContainer,
+                        { backgroundColor: theme.borderRed },
+                      ]}
+                    >
+                      <Button
+                        title="Adicionar à lista"
+                        onPress={handleAddToList}
+                        color={theme.text}
+                      />
+                    </View>
+                    <View
+                      style={[
+                        styles.buttonContainer,
+                        { backgroundColor: theme.modalBackgroundSecondary },
+                      ]}
+                    >
+                      <Button
+                        title="Cancelar"
+                        onPress={closeModal}
+                        color={theme.text}
+                      />
+                    </View>
+                  </View>
+                </View>
+
+                <View style={{justifyContent: "center", alignContent:"center", alignItems: "center", paddingVertical: 5, marginVertical: 5}}>
+                  <BannerAd
+                    unitId={adUnitId}
+                    size="BANNER"
+                    onAdLoaded={() => {
+                      console.log("Ad loaded");
+                    }}
+                    onAdFailedToLoad={(error) => {
+                      console.error("Ad failed to load", error);
+                    }}
+                    requestOptions={{
+                      requestNonPersonalizedAdsOnly: true,
+                    }}
+                  />
+                </View>
               </View>
-              <View
-                style={[
-                  styles.buttonContainer,
-                  { backgroundColor: theme.modalBackgroundSecondary },
-                ]}
-              >
-                <Button
-                  title="Cancelar"
-                  onPress={closeModal}
-                  color={theme.text}
-                />
-              </View>
-            </View>
+            </ScrollView>
           </View>
         </View>
       </Modal>
@@ -298,6 +532,21 @@ export default function TabThreeScreen() {
 }
 
 const styles = StyleSheet.create({
+  bannerContainer: {
+    height: 250,
+    width: "100%",
+    position: "relative",
+  },
+  gradient: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: "50%",
+    justifyContent: "flex-end",
+    paddingBottom: 10,
+  },
+
   buttonContainer: {
     padding: 5,
     paddingHorizontal: 15,
@@ -378,6 +627,11 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     resizeMode: "cover",
   },
+  movieImageBanner: {
+    width: "100%",
+    flex: 1,
+    resizeMode: "cover",
+  },
 
   // Estilos do modal
   modalContainer: {
@@ -387,11 +641,13 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0, 0, 0, 0.60)",
   },
   modalContent: {
+    justifyContent: "center",
+    height: "100%",
     backgroundColor: "#fff",
-    padding: 20,
     borderRadius: 10,
     alignItems: "center",
     shadowColor: "#000",
+    width: "100%",
     shadowOffset: {
       width: 0,
       height: 2,
@@ -400,13 +656,57 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5,
   },
+  modalScrollContent: {
+    paddingBottom: 20,
+  },
+  modalInfoContent: {
+    paddingHorizontal: 20,
+  },
+  modalMovieInfo: {},
+  modalMovieTitle: {
+    display: "flex",
+    flexDirection: "row",
+    gap: 10,
+  },
+  titleAndDate: {
+    display: "flex",
+    flexDirection: "column",
+    flex: 1,
+  },
+  modalMovieTitleText: {
+    flexWrap: "wrap",
+    fontWeight: "bold",
+    fontSize: 18,
+    flex: 1,
+    marginTop: 10,
+  },
+  modalMovieDate: {
+    flexWrap: "wrap",
+    fontSize: 14,
+    flex: 1,
+  },
+  modalMovieTitleTextActors: {
+    fontSize: 16,
+    textAlign: "left",
+    fontStyle: "italic",
+    flex: 1,
+  },
   modalText: {
     fontSize: 18,
-    marginBottom: 20,
+    textAlign: "justify",
   },
   modalButtonsContainer: {
+    justifyContent: "center",
     flexDirection: "row",
-    gap: 25,
+    gap: 10,
+    flexWrap: "wrap",
+    paddingBottom: 10,
     width: "100%",
+  },
+  modalButtonsContainerAll: {
+    flexDirection: "column",
+    gap: 10,
+    paddingVertical: 20,
+    alignItems: "center",
   },
 });

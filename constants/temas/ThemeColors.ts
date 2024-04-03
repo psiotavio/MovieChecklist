@@ -17,7 +17,7 @@ export type Theme = {
       modalBackground: '#F2F2F2',
       modalBackgroundSecondary: '#35383F',
       textButtons: '#383838',
-      errorColor: '#E21221'
+      errorColor: '#D14848'
     },
     dark: {
         background: '#181A20',
@@ -26,6 +26,6 @@ export type Theme = {
         modalBackground: '#1E2129',
         modalBackgroundSecondary: '#35383F',
         textButtons: '#FFFF',
-        errorColor: '#E21221'
+        errorColor: '#D14848'
       }
   };

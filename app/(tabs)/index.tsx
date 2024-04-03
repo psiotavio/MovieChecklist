@@ -456,48 +456,52 @@ export default function HomeScreen() {
                 setModalVisible(!modalVisible);
               }}
             >
-              <View style={styles.modalContainer}>
-                <View
-                  style={[
-                    styles.modalContent, // Estilos pré-definidos
-                    { backgroundColor: theme.background }, // Estilo dinâmico baseado no tema atual
-                  ]}
-                >
-                  <Text
-                    style={
-                      { color: theme.text } // Estilo dinâmico baseado no tema atual
-                    }
-                  >
-                    Adicionar o Filme {selectedMovie?.title}
-                  </Text>
-                  <View
-                    style={{
-                      ...styles.modalButtons,
-                    }}
-                  >
-                    <TouchableHighlight
-                      style={{
-                        ...styles.modalButton,
-                        backgroundColor: theme.modalBackgroundSecondary,
-                      }}
-                      onPress={() => {
-                        setModalVisible(false);
-                      }}
+              <TouchableWithoutFeedback onPress={() => setModalVisible(false)}>
+                <View style={styles.modalContainer}>
+                  <TouchableWithoutFeedback>
+                    <View
+                      style={[
+                        styles.modalContent, // Estilos pré-definidos
+                        { backgroundColor: theme.background }, // Estilo dinâmico baseado no tema atual
+                      ]}
                     >
-                      <Text style={styles.textStyle}>Cancelar</Text>
-                    </TouchableHighlight>
-                    <TouchableHighlight
-                      style={{
-                        ...styles.modalButton,
-                        backgroundColor: theme.borderRed,
-                      }}
-                      onPress={handleAddMovie}
-                    >
-                      <Text style={styles.textStyle}>Adicionar</Text>
-                    </TouchableHighlight>
-                  </View>
+                      <Text
+                        style={
+                          { color: theme.text } // Estilo dinâmico baseado no tema atual
+                        }
+                      >
+                        Adicionar o Filme {selectedMovie?.title}
+                      </Text>
+                      <View
+                        style={{
+                          ...styles.modalButtons,
+                        }}
+                      >
+                        <TouchableHighlight
+                          style={{
+                            ...styles.modalButton,
+                            backgroundColor: theme.modalBackgroundSecondary,
+                          }}
+                          onPress={() => {
+                            setModalVisible(false);
+                          }}
+                        >
+                          <Text style={styles.textStyle}>Cancelar</Text>
+                        </TouchableHighlight>
+                        <TouchableHighlight
+                          style={{
+                            ...styles.modalButton,
+                            backgroundColor: theme.borderRed,
+                          }}
+                          onPress={handleAddMovie}
+                        >
+                          <Text style={styles.textStyle}>Adicionar</Text>
+                        </TouchableHighlight>
+                      </View>
+                    </View>
+                  </TouchableWithoutFeedback>
                 </View>
-              </View>
+              </TouchableWithoutFeedback>
             </Modal>
           </ScrollView>
 
@@ -516,7 +520,7 @@ export default function HomeScreen() {
                   <View
                     style={[
                       styles.modalContent, // Estilos pré-definidos
-                     { backgroundColor: theme.background }, // Estilo dinâmico baseado no tema atual
+                      { backgroundColor: theme.background }, // Estilo dinâmico baseado no tema atual
                     ]}
                   >
                     <TouchableHighlight
@@ -680,7 +684,7 @@ const styles = StyleSheet.create({
     width: 120,
     height: 185,
     marginBottom: 8,
-    borderRadius: 10, 
+    borderRadius: 10,
     backgroundColor: "white", // A cor de fundo é necessária para a sombra aparecer
     shadowColor: "#000", // Cor da sombra
     shadowOffset: { width: 0, height: 2 }, // Deslocamento da sombra
