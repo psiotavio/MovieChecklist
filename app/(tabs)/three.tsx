@@ -10,6 +10,7 @@ import {
   Text,
   View,
   Button,
+  Animated,
 } from "react-native";
 import { useUser } from "../../contexts/UserContext";
 import logo from "../../assets/images/logo.png";
@@ -17,18 +18,20 @@ import { useTheme } from "../../constants/temas/ThemeContext";
 import { SafeAreaView } from "react-native-safe-area-context";
 import LinearGradient from "react-native-linear-gradient";
 
-import {
-  AdEventType,
-  InterstitialAd,
-  TestIds,
-  BannerAd,
-} from "react-native-google-mobile-ads";
+// import {
+//   AdEventType,
+//   InterstitialAd,
+//   TestIds,
+//   BannerAd,
+// } from "react-native-google-mobile-ads";
 
-const anuncio = InterstitialAd.createForAdRequest(TestIds.INTERSTITIAL, {
-  requestNonPersonalizedAdsOnly: true,
-});
+const BANNER_H = 250;
 
-const adUnitId = __DEV__ ? TestIds.BANNER : "your-ad-unit-id-here";
+// const anuncio = InterstitialAd.createForAdRequest(TestIds.INTERSTITIAL, {
+//   requestNonPersonalizedAdsOnly: true,
+// });
+
+// const adUnitId = __DEV__ ? TestIds.BANNER : "your-ad-unit-id-here";
 
 type Actor = {
   id: number;
@@ -44,7 +47,6 @@ interface Movie {
   date: string;
   imageUrl?: string;
   streamingPlatforms?: StreamingPlatform[]; // Adicionado aqui
-
   genreId?: string;
   alternateImageUrl?: string; // Nova propriedade para o banner do filme
   description?: string; // Descrição do filme
@@ -58,54 +60,67 @@ type StreamingPlatform = {
 };
 
 export default function TabThreeScreen() {
-  // ANUNCIOS
-  const [interstitialLoaded, setInterstitialLoaded] = useState(false);
-  const [counter, setCounter] = useState(0);
 
-  const loadInterstitial = () => {
-    const unscubscribeLoaded = anuncio.addAdEventListener(
-      AdEventType.LOADED,
-      () => {
-        console.log("Anúncio carregado.");
-        setInterstitialLoaded(true);
-      }
-    );
+  // // ANUNCIOS
+  // const [interstitialLoaded, setInterstitialLoaded] = useState(false);
+  // const [counter, setCounter] = useState(0);
 
-    const unscubscribeClosed = anuncio.addAdEventListener(
-      AdEventType.CLOSED,
-      () => {
-        console.log("Anúncio fechado.");
-        setInterstitialLoaded(false);
-        anuncio.load();
-      }
-    );
+  // const loadInterstitial = () => {
+  //   const unscubscribeLoaded = anuncio.addAdEventListener(
+  //     AdEventType.LOADED,
+  //     () => {
+  //       setInterstitialLoaded(true);
+  //     }
+  //   );
 
-    anuncio.load();
+  //   const unscubscribeClosed = anuncio.addAdEventListener(
+  //     AdEventType.CLOSED,
+  //     () => {
+  //       setInterstitialLoaded(false);
+  //       anuncio.load();
+  //     }
+  //   );
 
-    return () => {
-      unscubscribeClosed();
-      unscubscribeLoaded();
-    };
-  };
+  //   anuncio.load();
 
-  useEffect(() => {
-    const unsubscribeInterstitialEvents = loadInterstitial();
-    return unsubscribeInterstitialEvents;
-  }, []);
+  //   return () => {
+  //     unscubscribeClosed();
+  //     unscubscribeLoaded();
+  //   };
+  // };
+
+  // useEffect(() => {
+  //   const unsubscribeInterstitialEvents = loadInterstitial();
+  //   return unsubscribeInterstitialEvents;
+  // }, []);
 
   const {
     recommendedMovies,
     recommendedByGenre,
     addToWatchList,
     removeFromRecommendedMovies,
+    fetchMovieDetails,
   } = useUser(); // Supondo que `addToWatchList` é o método do contexto
   const [selectedGenre, setSelectedGenre] = useState("Recomendado para você");
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isDetailsLoading, setIsDetailsLoading] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [showModal, setShowModal] = useState(false); // Estado para controlar a visibilidade do modal
   const [genres, setGenres] = useState(["Recomendado para você"]);
   const { theme } = useTheme();
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (!isDetailsLoading) {
+      fadeAnim.setValue(0);
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 1000,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [isDetailsLoading]);
 
   const [selectedPlatform, setSelectedPlatform] = useState("Todos");
   const platforms = [
@@ -115,32 +130,32 @@ export default function TabThreeScreen() {
     "Netflix",
     "Star Plus",
     "Disney Plus",
-    "Globo Play",
-    "Paramount Plus",
-    "AppleTV",
+    "Apple TV Plus",
   ];
 
   const getFilteredMovies = () => {
-    console.log(selectedPlatform);
-    let filteredMovies = [];
-
+    let allMovies = [];
+  
+    // Combine os filmes recomendados e os populares para o gênero selecionado
     if (selectedGenre === "Recomendado para você") {
-      filteredMovies = recommendedMovies;
+      allMovies = [...recommendedMovies];
     } else {
-      filteredMovies = recommendedByGenre[selectedGenre] || [];
+      allMovies = [...(recommendedByGenre[selectedGenre] || []), ...recommendedMovies];
     }
-
+  
+    // Remove duplicatas baseado no ID do filme
+    allMovies = Array.from(new Map(allMovies.map(movie => [movie.id, movie])).values());
+  
+    // Filtro por plataforma, se necessário
     if (selectedPlatform !== "Todos") {
-      filteredMovies = filteredMovies.filter((movie) =>
-        movie.streamingPlatforms?.some(
-          (platform) => platform.name === selectedPlatform
-        )
+      allMovies = allMovies.filter(movie =>
+        movie.streamingPlatforms?.some(platform => platform.name === selectedPlatform)
       );
     }
-
-    return filteredMovies;
+  
+    return allMovies;
   };
-
+  
   const formatDate = (dateString: any) => {
     const date = new Date(dateString);
     const year = date.getFullYear();
@@ -149,10 +164,8 @@ export default function TabThreeScreen() {
   };
 
   useEffect(() => {
-    console.log(recommendedByGenre);
     if (Object.keys(recommendedByGenre).length) {
       setGenres(["Recomendado para você", ...Object.keys(recommendedByGenre)]);
-      console.log(genres);
     }
   }, [recommendedByGenre]);
 
@@ -164,10 +177,20 @@ export default function TabThreeScreen() {
     setIsLoading(!moviesToCheck || moviesToCheck.length === 0);
   }, [recommendedMovies, selectedGenre]);
 
-  const openModal = (movie: Movie) => {
-    setSelectedMovie(movie);
-    setShowModal(true);
+  const openModal = (movieId: number) => {
+    setSelectedMovie(null); // Reseta o filme selecionado
+    setIsDetailsLoading(true); // Inicia o loading
+    setShowModal(true); // Abre o modal
+  
+    // Chamada para fetchMovieDetails sem a verificação de showModal
+    fetchMovieDetails(movieId, 0, (movieDetails) => {
+      setSelectedMovie(movieDetails);
+      setIsDetailsLoading(false);
+    });
   };
+  
+
+  useEffect(() => {}, [selectedMovie]);
 
   const handleAddToList = () => {
     if (selectedMovie) {
@@ -187,39 +210,41 @@ export default function TabThreeScreen() {
         actors: selectedMovie.actors, // Novo
       };
 
-      if (counter === 2) {
-        setTimeout(() => {
-          if (interstitialLoaded) {
-            anuncio
-              .show()
-              .then(() => {
-                console.log("Anúncio foi exibido.");
-                // Recarregar o anúncio para a próxima exibição
-                anuncio.load();
-              })
-              .catch((error) => {
-                console.error("Erro ao tentar exibir o anúncio: ", error);
-              });
-            // Resetar o estado de carregamento do anúncio
-            setInterstitialLoaded(false);
-            setCounter(0);
-          }
-        }, 2000); // 2000 milissegundos = 2 segundos
-      }
+      // if (counter === 2) {
+      //   setTimeout(() => {
+      //     if (interstitialLoaded) {
+      //       anuncio
+      //         .show()
+      //         .then(() => {
+      //           // Recarregar o anúncio para a próxima exibição
+      //           anuncio.load();
+      //         })
+      //         .catch((error) => {
+      //           console.error("Erro ao tentar exibir o anúncio: ", error);
+      //         });
+      //       // Resetar o estado de carregamento do anúncio
+      //       setInterstitialLoaded(false);
+      //       setCounter(0);
+      //     }
+      //   }, 2000); // 2000 milissegundos = 2 segundos
+      // }
 
       removeFromRecommendedMovies(selectedMovie.id);
       addToWatchList(toWatch);
-      setCounter(counter + 1);
+      // setCounter(counter + 1);
       closeModal();
       setSelectedMovie(null);
     }
   };
 
   const closeModal = () => {
+    setSelectedMovie(null);
     setShowModal(false);
   };
 
   const [showPlatformDropdown, setShowPlatformDropdown] = useState(false);
+
+  const scrollY = useRef(new Animated.Value(0)).current;
 
   return (
     <SafeAreaView
@@ -356,7 +381,7 @@ export default function TabThreeScreen() {
       </Text>
       {isLoading ? (
         <ActivityIndicator size="large" color={theme.borderRed} />
-      ) : (
+      ) : getFilteredMovies().length > 0 ? (
         <FlatList
           data={getFilteredMovies()}
           keyExtractor={(item) => item.id.toString()}
@@ -364,15 +389,30 @@ export default function TabThreeScreen() {
           showsVerticalScrollIndicator={false}
           renderItem={({ item }) => (
             <View style={styles.movieItem}>
-              <TouchableOpacity onPress={() => openModal(item)}>
-                <Image
-                  style={styles.movieImage}
-                  source={{ uri: item.imageUrl }}
-                />
+              <TouchableOpacity onPress={() => openModal(item.id)}>
+                <View
+                  style={[
+                    styles.imageShadowContainer,
+                    { backgroundColor: theme.modalBackground },
+                  ]}
+                >
+                  <View style={styles.imageContainer}>
+                    <Image
+                      style={styles.movieImageRecommend}
+                      source={{ uri: item.imageUrl }}
+                    />
+                  </View>
+                </View>
               </TouchableOpacity>
             </View>
           )}
         />
+      ) : (
+        <Text
+          style={[styles.movieListTitle, { color: theme.text, marginTop: 50 }]}
+        >
+          Não há nenhuma recomendação no momento...
+        </Text>
       )}
 
       <Modal
@@ -382,149 +422,274 @@ export default function TabThreeScreen() {
         onRequestClose={closeModal}
       >
         <View style={styles.modalContainer}>
-          <View
-            style={[
-              styles.modalContent,
-              { backgroundColor: theme.modalBackground },
-            ]}
-          >
-            <ScrollView
-              scrollEventThrottle={1}
-              style={{ flex: 1, backgroundColor: theme.modalBackground }}
+          {isDetailsLoading ? (
+            <View
+              style={[
+                styles.modalContent,
+                { backgroundColor: theme.modalBackground },
+              ]}
             >
-              <Image
-                style={[
-                  styles.movieImageBanner,
-                  { height: 250, marginBottom: 30 },
-                ]}
-                source={{ uri: selectedMovie?.alternateImageUrl }}
+              <ActivityIndicator
+                size="large"
+                color={theme.borderRed}
+                style={{ alignSelf: "center" }}
               />
-              <View style={styles.modalInfoContent}>
-                <View style={styles.modalMovieInfo}>
-                  <View style={styles.modalMovieTitle}>
-                    <Image
-                      style={styles.movieImage}
-                      source={{ uri: selectedMovie?.imageUrl }}
-                    />
-                    <View style={styles.titleAndDate}>
+            </View>
+          ) : (
+            <View
+              style={[
+                styles.modalContent,
+                { backgroundColor: theme.modalThemeMode },
+              ]}
+            >
+              <Animated.ScrollView
+                style={{
+                  flex: 1,
+                  width: "100%",
+                  backgroundColor: theme.modalBackground,
+                  opacity: fadeAnim,
+                }}
+                onScroll={Animated.event(
+                  [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+                  { useNativeDriver: true }
+                )}
+                scrollEventThrottle={16} // Defina a frequência de eventos de rolagem
+              >
+                <View
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    height: BANNER_H + 150,
+                  }}
+                >
+                  <Animated.View
+                    style={{
+                      backgroundColor: theme.modalThemeMode,
+                      height: 50,
+                      width: "200%",
+                      alignSelf: "center",
+                      shadowColor: theme.modalThemeMode,
+                      shadowOffset: { width: 0, height: 45 },
+                      shadowOpacity: 1,
+                      shadowRadius: 5,
+                      zIndex: 9999,
+                      transform: [
+                        {
+                          translateY: scrollY.interpolate({
+                            inputRange: [-50, 0, 50],
+                            outputRange: [-100 / 2, 0, 0], // Previne movimento para cima
+                          }),
+                        },
+                        {
+                          scale: scrollY.interpolate({
+                            inputRange: [-50, 0],
+                            outputRange: [2, 1], // Permite expansão ao puxar para baixo
+                            extrapolateRight: "clamp", // Previne que a escala se ajuste além do especificado
+                          }),
+                        },
+                      ],
+                    }}
+                  >
+                    <Animated.View
+                      style={{
+                        backgroundColor: theme.modalThemeMode,
+                        height: 30,
+                        width: "200%",
+                        alignSelf: "center",
+                        shadowColor: theme.modalThemeMode,
+                        shadowOffset: { width: 0, height: 40 },
+                        shadowOpacity: 1,
+                        shadowRadius: 10,
+                        zIndex: 9999,
+                      }}
+                    ></Animated.View>
+                  </Animated.View>
+
+                  <Animated.View
+                    style={{
+                      backgroundColor: theme.modalThemeMode,
+                      height: 10,
+                      width: "200%",
+                      alignSelf: "center",
+                      shadowColor: theme.modalThemeMode,
+                      shadowOffset: { width: 0, height: 10 },
+                      shadowOpacity: 1,
+                      shadowRadius: 20,
+                      zIndex: 9999,
+                    }}
+                  ></Animated.View>
+
+                  <Animated.Image
+                    style={[
+                      styles.movieImageBanner,
+                      {
+                        width: "100%",
+                        flex: 1,
+                        height: BANNER_H,
+                        transform: [
+                          {
+                            translateY: scrollY.interpolate({
+                              inputRange: [-BANNER_H, 0, BANNER_H],
+                              outputRange: [-BANNER_H / 2, 0, 0], // Previne movimento para cima
+                            }),
+                          },
+                          {
+                            scale: scrollY.interpolate({
+                              inputRange: [-BANNER_H, 0],
+                              outputRange: [2, 1], // Permite expansão ao puxar para baixo
+                              extrapolateRight: "clamp", // Previne que a escala se ajuste além do especificado
+                            }),
+                          },
+                        ],
+                      },
+                    ]}
+                    source={{ uri: selectedMovie?.alternateImageUrl }}
+                  />
+                </View>
+
+                <View style={styles.modalInfoContent}>
+                  <View style={styles.modalMovieInfo}>
+                    <View style={styles.modalMovieTitle}>
+                      <Image
+                        style={styles.movieImage}
+                        source={{ uri: selectedMovie?.imageUrl }}
+                      />
+                      <View style={styles.titleAndDate}>
+                        <Text
+                          style={[
+                            styles.modalMovieTitleText,
+                            { color: theme.text },
+                          ]}
+                        >
+                          {selectedMovie?.title}
+                        </Text>
+                        <Text
+                          style={[styles.modalMovieDate, { color: theme.text }]}
+                        >
+                          {formatDate(selectedMovie?.date)}
+                        </Text>
+                      </View>
+                    </View>
+
+                    <Text
+                      style={{
+                        color: theme.text,
+                        marginTop: 30,
+                        textAlign: "justify",
+                      }}
+                    >
+                      <Text style={{ fontWeight: "bold", fontSize: 16 }}>
+                        Descrição:{" "}
+                      </Text>
                       <Text
                         style={[
-                          styles.modalMovieTitleText,
-                          { color: theme.text },
+                          styles.modalText,
+                          {
+                            color: theme.text,
+                            marginBottom: 30,
+                            textAlign: "justify",
+                          },
                         ]}
                       >
-                        {selectedMovie?.title}
+                        {selectedMovie?.description}
                       </Text>
-                      <Text
-                        style={[styles.modalMovieDate, { color: theme.text }]}
-                      >
-                        {formatDate(selectedMovie?.date)}
+                    </Text>
+
+                    <Text style={{ color: theme.text, marginTop: 30 }}>
+                      <Text style={{ fontWeight: "bold", fontSize: 16 }}>
+                        Atores:{" "}
                       </Text>
+                      <Text style={styles.modalMovieTitleTextActors}>
+                        {selectedMovie?.actors
+                          ?.map((actor) => actor.name)
+                          .join(", ")}
+                      </Text>
+                    </Text>
+
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        flexWrap: "wrap",
+                        marginTop: 30,
+                      }}
+                    >
+                      {selectedMovie?.streamingPlatforms
+                        ?.filter((streaming) => streaming.name !== "HBO Max") // Supondo que 'name' seja uma propriedade identificadora
+                        .map((streaming, index) => (
+                          <Image
+                            key={index}
+                            source={{ uri: streaming.logoPath }}
+                            style={{
+                              width: 50, // Defina a largura conforme necessário
+                              height: 50, // Defina a altura conforme necessário
+                              marginRight: 10, // Espaço à direita de cada imagem
+                              borderRadius: 30,
+                            }}
+                            resizeMode="contain"
+                          />
+                        ))}
                     </View>
                   </View>
 
-                  <Text style={{ color: theme.text, marginTop: 30 }}>
-                    <Text style={{ fontWeight: "bold", fontSize: 16 }}>
-                      Descrição:{" "}
+                  <View style={styles.modalButtonsContainerAll}>
+                    <Text style={[styles.modalText, { color: theme.text }]}>
+                      Deseja adicionar este item à lista?
                     </Text>
-                    <Text
-                      style={[
-                        styles.modalText,
-                        { color: theme.text, marginBottom: 30 },
-                      ]}
-                    >
-                      {selectedMovie?.description}
-                    </Text>
-                  </Text>
 
-                  <Text style={{ color: theme.text, marginTop: 30 }}>
-                    <Text style={{ fontWeight: "bold", fontSize: 16 }}>
-                      Atores:{" "}
-                    </Text>
-                    <Text style={styles.modalMovieTitleTextActors}>
-                      {selectedMovie?.actors
-                        ?.map((actor) => actor.name)
-                        .join(", ")}
-                    </Text>
-                  </Text>
+                    <View style={styles.modalButtonsContainer}>
+                      <View
+                        style={[
+                          styles.buttonContainer,
+                          { backgroundColor: theme.borderRed },
+                        ]}
+                      >
+                        <Button
+                          title="Adicionar à lista"
+                          onPress={handleAddToList}
+                          color={theme.text}
+                        />
+                      </View>
+                      <View
+                        style={[
+                          styles.buttonContainer,
+                          { backgroundColor: theme.modalBackgroundSecondary },
+                        ]}
+                      >
+                        <Button
+                          title="Cancelar"
+                          onPress={closeModal}
+                          color={theme.textButtons}
+                        />
+                      </View>
+                    </View>
+                  </View>
 
                   <View
                     style={{
-                      flexDirection: "row",
+                      justifyContent: "center",
+                      alignContent: "center",
                       alignItems: "center",
-                      flexWrap: "wrap",
-                      marginTop: 30,
+                      paddingVertical: 5,
+                      marginVertical: 5,
                     }}
                   >
-                    {selectedMovie?.streamingPlatforms
-                      ?.filter((streaming) => streaming.name !== "HBO Max") // Supondo que 'name' seja uma propriedade identificadora
-                      .map((streaming, index) => (
-                        <Image
-                          key={index}
-                          source={{ uri: streaming.logoPath }}
-                          style={{
-                            width: 50, // Defina a largura conforme necessário
-                            height: 50, // Defina a altura conforme necessário
-                            marginRight: 10, // Espaço à direita de cada imagem
-                            borderRadius: 30,
-                          }}
-                          resizeMode="contain"
-                        />
-                      ))}
+                    {/* <BannerAd
+                      unitId={adUnitId}
+                      size="BANNER"
+                      onAdLoaded={() => {}}
+                      onAdFailedToLoad={(error) => {
+                        console.error("Ad failed to load", error);
+                      }}
+                      requestOptions={{
+                        requestNonPersonalizedAdsOnly: true,
+                      }}
+                    /> */}
                   </View>
                 </View>
-
-                <View style={styles.modalButtonsContainerAll}>
-                  <Text style={[styles.modalText, { color: theme.text }]}>
-                    Deseja adicionar este item à lista?
-                  </Text>
-
-                  <View style={styles.modalButtonsContainer}>
-                    <View
-                      style={[
-                        styles.buttonContainer,
-                        { backgroundColor: theme.borderRed },
-                      ]}
-                    >
-                      <Button
-                        title="Adicionar à lista"
-                        onPress={handleAddToList}
-                        color={theme.text}
-                      />
-                    </View>
-                    <View
-                      style={[
-                        styles.buttonContainer,
-                        { backgroundColor: theme.modalBackgroundSecondary },
-                      ]}
-                    >
-                      <Button
-                        title="Cancelar"
-                        onPress={closeModal}
-                        color={theme.text}
-                      />
-                    </View>
-                  </View>
-                </View>
-
-                <View style={{justifyContent: "center", alignContent:"center", alignItems: "center", paddingVertical: 5, marginVertical: 5}}>
-                  <BannerAd
-                    unitId={adUnitId}
-                    size="BANNER"
-                    onAdLoaded={() => {
-                      console.log("Ad loaded");
-                    }}
-                    onAdFailedToLoad={(error) => {
-                      console.error("Ad failed to load", error);
-                    }}
-                    requestOptions={{
-                      requestNonPersonalizedAdsOnly: true,
-                    }}
-                  />
-                </View>
-              </View>
-            </ScrollView>
-          </View>
+              </Animated.ScrollView>
+            </View>
+          )}
         </View>
       </Modal>
     </SafeAreaView>
@@ -627,10 +792,36 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     resizeMode: "cover",
   },
+  movieImageRecommend: {
+    width: "100%", // Usa 100% do contêiner de sombra
+    height: "100%", // Usa 100% do contêiner de sombra
+    borderRadius: 10,
+    resizeMode: "cover",
+  },
+  imageShadowContainer: {
+    width: 100,
+    height: 150,
+    marginBottom: 5,
+    borderRadius: 10,
+    shadowColor: "#000", // Cor da sombra
+    shadowOffset: { width: 0, height: 2 }, // Deslocamento da sombra
+    shadowOpacity: 1, // Opacidade da sombra
+    shadowRadius: 3, // Raio da sombra
+    elevation: 5, // Adiciona sombra no Android
+  },
+
+  imageContainer: {
+    width: "100%", // Usa 100% do contêiner de sombra
+    height: "100%", // Usa 100% do contêiner de sombra
+    borderRadius: 10, // Arredonda as bordas da imagem
+    overflow: "hidden", // Mantém a imagem dentro do contorno arredondado
+  },
+
   movieImageBanner: {
     width: "100%",
     flex: 1,
     resizeMode: "cover",
+    marginBottom: 30,
   },
 
   // Estilos do modal

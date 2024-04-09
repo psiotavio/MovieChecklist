@@ -22,8 +22,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/images/Adaptive-Icon-foreground.png",
+        "backgroundColor": "./assets/images/Adaptive-Icon-background.png"
       },
     
       "package": "com.psiotavio.MovieChecklist"

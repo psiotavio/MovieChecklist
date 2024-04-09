@@ -24,16 +24,17 @@ import {
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
 import Icon from "react-native-vector-icons/FontAwesome";
+import FastImage from 'react-native-fast-image';
 
-import {
-  AdEventType,
-  InterstitialAd,
-  TestIds,
-} from "react-native-google-mobile-ads";
+// import {
+//   AdEventType,
+//   InterstitialAd,
+//   TestIds,
+// } from "react-native-google-mobile-ads";
 
-const anuncio = InterstitialAd.createForAdRequest(TestIds.INTERSTITIAL, {
-  requestNonPersonalizedAdsOnly: true,
-});
+// const anuncio = InterstitialAd.createForAdRequest(TestIds.INTERSTITIAL, {
+//   requestNonPersonalizedAdsOnly: true,
+// });
 
 interface Movie {
   rank?: React.JSX.Element;
@@ -80,39 +81,38 @@ export function getAllWatchedMovies(movies: Movie[]): string[] {
 }
 
 export default function HomeScreen() {
-  // ANUNCIOS
-  const [interstitialLoaded, setInterstitialLoaded] = useState(false);
+ 
+  // // ANUNCIOS
+  // const [interstitialLoaded, setInterstitialLoaded] = useState(false);
 
-  const loadInterstitial = () => {
-    const unscubscribeLoaded = anuncio.addAdEventListener(
-      AdEventType.LOADED,
-      () => {
-        console.log("Anúncio carregado.");
-        setInterstitialLoaded(true);
-      }
-    );
+  // const loadInterstitial = () => {
+  //   const unscubscribeLoaded = anuncio.addAdEventListener(
+  //     AdEventType.LOADED,
+  //     () => {
+  //       setInterstitialLoaded(true);
+  //     }
+  //   );
 
-    const unscubscribeClosed = anuncio.addAdEventListener(
-      AdEventType.CLOSED,
-      () => {
-        console.log("Anúncio fechado.");
-        setInterstitialLoaded(false);
-        anuncio.load();
-      }
-    );
+  //   const unscubscribeClosed = anuncio.addAdEventListener(
+  //     AdEventType.CLOSED,
+  //     () => {
+  //       setInterstitialLoaded(false);
+  //       anuncio.load();
+  //     }
+  //   );
 
-    anuncio.load();
+  //   anuncio.load();
 
-    return () => {
-      unscubscribeClosed();
-      unscubscribeLoaded();
-    };
-  };
+  //   return () => {
+  //     unscubscribeClosed();
+  //     unscubscribeLoaded();
+  //   };
+  // };
 
-  useEffect(() => {
-    const unsubscribeInterstitialEvents = loadInterstitial();
-    return unsubscribeInterstitialEvents;
-  }, []);
+  // useEffect(() => {
+  //   const unsubscribeInterstitialEvents = loadInterstitial();
+  //   return unsubscribeInterstitialEvents;
+  // }, []);
 
   const { movies, addMovieReview, recommendedMovies, removeFromList } =
     useUser(); // Use o contexto de usuário
@@ -145,11 +145,9 @@ export default function HomeScreen() {
         const results = response.data.results.map((movieData: any) => ({
           id: movieData.id,
           title: movieData.title,
-          rating: 0,
           date: new Date().toLocaleDateString(),
           imageUrl: `https://image.tmdb.org/t/p/w500${movieData.poster_path}`,
         }));
-
         setSearchResults(results);
       } else {
         setSearchResults([]);
@@ -179,22 +177,22 @@ export default function HomeScreen() {
         rating: rating,
       });
 
-      setTimeout(() => {
-        if (interstitialLoaded) {
-          anuncio
-            .show()
-            .then(() => {
-              console.log("Anúncio foi exibido.");
-              // Recarregar o anúncio para a próxima exibição
-              anuncio.load();
-            })
-            .catch((error) => {
-              console.error("Erro ao tentar exibir o anúncio: ", error);
-            });
-          // Resetar o estado de carregamento do anúncio
-          setInterstitialLoaded(false);
-        }
-      }, 2000); // 2000 milissegundos = 2 segundos
+      // setTimeout(() => {
+      //   if (interstitialLoaded) {
+      //     anuncio
+      //       .show()
+      //       .then(() => {
+      //         // Recarregar o anúncio para a próxima exibição
+      //         anuncio.load();
+      //       })
+      //       .catch((error) => {
+      //         console.error("Erro ao tentar exibir o anúncio: ", error);
+      //       });
+      //     // Resetar o estado de carregamento do anúncio
+      //     setInterstitialLoaded(false);
+      //   }
+      // }, 2000); // 2000 milissegundos = 2 segundos
+
     }
     // Fechar o modal e limpar o estado, independentemente de o anúncio ser exibido
     setModalVisible(false);
@@ -379,10 +377,19 @@ export default function HomeScreen() {
                       { backgroundColor: theme.modalBackground }, // Estilo dinâmico baseado no tema
                     ]}
                   >
-                    <Image
-                      style={styles.suggestionImage}
-                      source={{ uri: item.imageUrl }}
-                    />
+                    <View
+                      style={[
+                        styles.shadowSuggestionContainer,
+                        { backgroundColor: theme.modalBackground },
+                      ]}
+                    >
+                      <View style={styles.imageSuggestionContainer}>
+                        <Image
+                          style={styles.suggestionImage}
+                          source={{ uri: item.imageUrl }}
+                        />
+                      </View>
+                    </View>
                     <Text
                       style={{
                         color: theme.text,
@@ -426,7 +433,12 @@ export default function HomeScreen() {
                             setModalVisible1(true);
                           }}
                         >
-                          <View style={styles.shadowContainer}>
+                          <View
+                            style={[
+                              styles.shadowContainer,
+                              { backgroundColor: theme.modalBackground },
+                            ]}
+                          >
                             <View style={styles.imageContainer}>
                               <Image
                                 style={styles.movieImage}
@@ -665,12 +677,12 @@ const styles = StyleSheet.create({
     borderBottomColor: "#ccc",
   },
   suggestionImage: {
-    borderRadius: 5,
-    width: 50,
-    height: 75,
-    resizeMode: "cover",
-    marginRight: 15,
-    marginLeft: 10,
+
+    width: "100%", // Preenche o contêiner da imagem
+    height: "100%", // Preenche o contêiner da imagem
+    resizeMode: "cover", // Ajusta a imagem para cobrir o contêiner
+
+  
   },
   suggestionText: {
     flexShrink: 1,
@@ -685,7 +697,6 @@ const styles = StyleSheet.create({
     height: 185,
     marginBottom: 8,
     borderRadius: 10,
-    backgroundColor: "white", // A cor de fundo é necessária para a sombra aparecer
     shadowColor: "#000", // Cor da sombra
     shadowOffset: { width: 0, height: 2 }, // Deslocamento da sombra
     shadowOpacity: 1, // Opacidade da sombra
@@ -694,6 +705,26 @@ const styles = StyleSheet.create({
   },
 
   imageContainer: {
+    width: "100%", // Usa 100% do contêiner de sombra
+    height: "100%", // Usa 100% do contêiner de sombra
+    borderRadius: 8, // Arredonda as bordas da imagem
+    overflow: "hidden", // Mantém a imagem dentro do contorno arredondado
+  },
+  shadowSuggestionContainer: {
+    width: 50,
+    height: 75,
+    marginBottom: 5,
+    borderRadius: 10,
+    shadowColor: "#000", // Cor da sombra
+    shadowOffset: { width: 0, height: 2 }, // Deslocamento da sombra
+    shadowOpacity: 1, // Opacidade da sombra
+    shadowRadius: 3, // Raio da sombra
+    elevation: 5, // Adiciona sombra no Android
+    marginRight: 15,
+    marginLeft: 10,
+  },
+
+  imageSuggestionContainer: {
     width: "100%", // Usa 100% do contêiner de sombra
     height: "100%", // Usa 100% do contêiner de sombra
     borderRadius: 8, // Arredonda as bordas da imagem

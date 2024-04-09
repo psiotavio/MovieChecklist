@@ -16,54 +16,51 @@ import { isSameWeek, isSameYear, isSameMonth, parse } from "date-fns";
 import { useTheme } from "../../constants/temas/ThemeContext";
 import { themes } from "../../constants/temas/ThemeColors";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { BackgroundImage } from "@rneui/base";
 
-import {
-  AdEventType,
-  InterstitialAd,
-  TestIds,
-} from "react-native-google-mobile-ads";
+// import {
+//   AdEventType,
+//   InterstitialAd,
+//   TestIds,
+// } from "react-native-google-mobile-ads";
 
-const anuncio = InterstitialAd.createForAdRequest(TestIds.INTERSTITIAL, {
-  requestNonPersonalizedAdsOnly: true,
-});
+// const anuncio = InterstitialAd.createForAdRequest(TestIds.INTERSTITIAL, {
+//   requestNonPersonalizedAdsOnly: true,
+// });
 
 export default function TabTwoScreen() {
+  //  // ANUNCIOS
+  //  const [interstitialLoaded, setInterstitialLoaded] = useState(false);
 
- // ANUNCIOS
- const [interstitialLoaded, setInterstitialLoaded] = useState(false);
+  //  const loadInterstitial = () => {
+  //    const unscubscribeLoaded = anuncio.addAdEventListener(
+  //      AdEventType.LOADED,
+  //      () => {
+  //        setInterstitialLoaded(true);
+  //      }
+  //    );
 
- const loadInterstitial = () => {
-   const unscubscribeLoaded = anuncio.addAdEventListener(
-     AdEventType.LOADED,
-     () => {
-       console.log("Anúncio carregado.");
-       setInterstitialLoaded(true);
-     }
-   );
+  //    const unscubscribeClosed = anuncio.addAdEventListener(
+  //      AdEventType.CLOSED,
+  //      () => {
+  //        setInterstitialLoaded(false);
+  //        anuncio.load();
+  //      }
+  //    );
 
-   const unscubscribeClosed = anuncio.addAdEventListener(
-     AdEventType.CLOSED,
-     () => {
-       console.log("Anúncio fechado.");
-       setInterstitialLoaded(false);
-       anuncio.load();
-     }
-   );
+  //    anuncio.load();
 
-   anuncio.load();
+  //    return () => {
+  //      unscubscribeClosed();
+  //      unscubscribeLoaded();
+  //    };
+  //  };
 
-   return () => {
-     unscubscribeClosed();
-     unscubscribeLoaded();
-   };
- };
+  //  useEffect(() => {
+  //    const unsubscribeInterstitialEvents = loadInterstitial();
+  //    return unsubscribeInterstitialEvents;
+  //  }, []);
 
- useEffect(() => {
-   const unsubscribeInterstitialEvents = loadInterstitial();
-   return unsubscribeInterstitialEvents;
- }, []);
-
-  
   const {
     movies,
     setMovies,
@@ -101,7 +98,6 @@ export default function TabTwoScreen() {
       [
         {
           text: "Cancelar",
-          onPress: () => console.log("Cancelado"), // Ação para o botão Cancelar
           style: "cancel",
         },
         {
@@ -109,24 +105,22 @@ export default function TabTwoScreen() {
           onPress: () => {
             // Aqui você chama as funções para redefinir a conta
 
-            setTimeout(() => {
-              if (interstitialLoaded) {
-                anuncio.show().then(() => {
-                  console.log("Anúncio foi exibido.");
-                  // Recarregar o anúncio para a próxima exibição
-                  anuncio.load();
-                }).catch((error) => {
-                  console.error("Erro ao tentar exibir o anúncio: ", error);
-                });
-                // Resetar o estado de carregamento do anúncio
-                setInterstitialLoaded(false);
-              }
-            }, 1000); // 2000 milissegundos = 2 segundos
+            // setTimeout(() => {
+            //   if (interstitialLoaded) {
+            //     anuncio.show().then(() => {
+            //       // Recarregar o anúncio para a próxima exibição
+            //       anuncio.load();
+            //     }).catch((error) => {
+            //       console.error("Erro ao tentar exibir o anúncio: ", error);
+            //     });
+            //     // Resetar o estado de carregamento do anúncio
+            //     setInterstitialLoaded(false);
+            //   }
+            // }, 1000); // 2000 milissegundos = 2 segundos
 
             setRecommendedMovies([]);
             setMovies([]);
             setToWatchMovies([]);
-            console.log("Conta redefinida");
           },
         },
       ],
@@ -153,114 +147,115 @@ export default function TabTwoScreen() {
       style={[styles.container, { backgroundColor: theme.background }]}
     >
       <Image source={logo} style={styles.logo} />
-
       <Text style={[styles.title, { color: theme.text }]}>ESTATÍSTICAS</Text>
-      <ScrollView style={styles.contentScroll}>
-        <View style={styles.contentAligner}>
-          <View style={styles.content}>
-            <View style={styles.progessBars}>
-              <View style={styles.progessBarStyle}>
-                <Text style={[styles.subtitle, { color: theme.text }]}>
-                  Total de filmes assistidos este ano:{" "}
-                  {totalMoviesWatchedThisYear}
-                </Text>
-                <View style={styles.progressBarContainer}>
-                  <View
-                    style={[
-                      styles.progressBar,
-                      {
-                        width: `${completionPercentage}%`,
-                        backgroundColor: theme.borderRed,
-                      },
-                    ]}
-                  />
+      <View  style={styles.fullcontainer}>
+        <ScrollView style={styles.contentScroll}>
+          <View style={styles.contentAligner}>
+            <View style={styles.content}>
+              <View style={styles.progessBars}>
+                <View style={styles.progessBarStyle}>
+                  <Text style={[styles.subtitle, { color: theme.text }]}>
+                    Total de filmes assistidos este ano:{" "}
+                    {totalMoviesWatchedThisYear}
+                  </Text>
+                  <View style={styles.progressBarContainer}>
+                    <View
+                      style={[
+                        styles.progressBar,
+                        {
+                          width: `${completionPercentage}%`,
+                          backgroundColor: theme.borderRed,
+                        },
+                      ]}
+                    />
+                  </View>
+                  <Text style={[styles.progressBarMeta, { color: theme.text }]}>
+                    {totalMoviesWatchedThisYear}/365
+                  </Text>
                 </View>
-                <Text style={[styles.progressBarMeta, { color: theme.text }]}>
-                  {totalMoviesWatchedThisYear}/365
-                </Text>
+
+                <View style={styles.progessBarStyle}>
+                  <Text style={[styles.subtitle, { color: theme.text }]}>
+                    Total de filmes assistidos este mês:{" "}
+                    {totalMoviesWatchedThisMonth}
+                  </Text>
+                  {/* Barra de progresso MÊS */}
+                  <View style={styles.progressBarContainer}>
+                    <View
+                      style={[
+                        styles.progressBar,
+                        {
+                          width: `${completionPercentageMonth}%`,
+                          backgroundColor: theme.borderRed,
+                        },
+                      ]}
+                    />
+                  </View>
+                  <Text style={[styles.progressBarMeta, { color: theme.text }]}>
+                    {totalMoviesWatchedThisMonth}/30
+                  </Text>
+                </View>
+
+                <View style={styles.progessBarStyle}>
+                  <Text style={[styles.subtitle, { color: theme.text }]}>
+                    Total de filmes assistidos esta semana:{" "}
+                    {totalMoviesWatchedThisWeek}
+                  </Text>
+                  {/* Barra de progresso SEMANA */}
+                  <View style={styles.progressBarContainer}>
+                    <View
+                      style={[
+                        styles.progressBar,
+                        {
+                          width: `${completionPercentageWeek}%`,
+                          backgroundColor: theme.borderRed,
+                        },
+                      ]}
+                    />
+                  </View>
+                  <Text style={[styles.progressBarMeta, { color: theme.text }]}>
+                    {totalMoviesWatchedThisWeek}/7
+                  </Text>
+                </View>
               </View>
 
-              <View style={styles.progessBarStyle}>
-                <Text style={[styles.subtitle, { color: theme.text }]}>
-                  Total de filmes assistidos este mês:{" "}
-                  {totalMoviesWatchedThisMonth}
-                </Text>
-                {/* Barra de progresso MÊS */}
-                <View style={styles.progressBarContainer}>
-                  <View
-                    style={[
-                      styles.progressBar,
-                      {
-                        width: `${completionPercentageMonth}%`,
-                        backgroundColor: theme.borderRed,
-                      },
-                    ]}
-                  />
-                </View>
-                <Text style={[styles.progressBarMeta, { color: theme.text }]}>
-                  {totalMoviesWatchedThisMonth}/30
-                </Text>
-              </View>
-
-              <View style={styles.progessBarStyle}>
-                <Text style={[styles.subtitle, { color: theme.text }]}>
-                  Total de filmes assistidos esta semana:{" "}
-                  {totalMoviesWatchedThisWeek}
-                </Text>
-                {/* Barra de progresso SEMANA */}
-                <View style={styles.progressBarContainer}>
-                  <View
-                    style={[
-                      styles.progressBar,
-                      {
-                        width: `${completionPercentageWeek}%`,
-                        backgroundColor: theme.borderRed,
-                      },
-                    ]}
-                  />
-                </View>
-                <Text style={[styles.progressBarMeta, { color: theme.text }]}>
-                  {totalMoviesWatchedThisWeek}/7
-                </Text>
-              </View>
-            </View>
-
-            <View style={styles.buttonsContainer}>
-              <TouchableOpacity
-                style={[styles.button, { backgroundColor: theme.borderRed }]}
-                onPress={handleResetMovies}
-              >
-                <Text style={{ color: theme.text, fontWeight: "bold" }}>
-                  Redefinir Conta
-                </Text>
-              </TouchableOpacity>
-
-              <View style={styles.switchContainer}>
-                <Text
-                  style={{
-                    color: theme.text,
-                    fontWeight: "bold",
-                    marginRight: 10,
-                  }}
+              <View style={styles.buttonsContainer}>
+                <TouchableOpacity
+                  style={[styles.button, { backgroundColor: theme.borderRed }]}
+                  onPress={handleResetMovies}
                 >
-                  Tema Escuro:
-                </Text>
-                <Switch
-                  trackColor={{
-                    false: "red",
-                    true: theme.modalBackgroundSecondary,
-                  }}
-                  thumbColor={
-                    themeName === "dark" ? theme.borderRed : theme.borderRed
-                  }
-                  onValueChange={toggleTheme}
-                  value={themeName === "dark"}
-                />
+                  <Text style={{ color: theme.text, fontWeight: "bold" }}>
+                    Redefinir Conta
+                  </Text>
+                </TouchableOpacity>
+
+                <View style={styles.switchContainer}>
+                  <Text
+                    style={{
+                      color: theme.text,
+                      fontWeight: "bold",
+                      marginRight: 10,
+                    }}
+                  >
+                    Tema Escuro:
+                  </Text>
+                  <Switch
+                    trackColor={{
+                      false: "red",
+                      true: theme.modalBackgroundSecondary,
+                    }}
+                    thumbColor={
+                      themeName === "dark" ? theme.borderRed : theme.borderRed
+                    }
+                    onValueChange={toggleTheme}
+                    value={themeName === "dark"}
+                  />
+                </View>
               </View>
             </View>
           </View>
-        </View>
-      </ScrollView>
+        </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }
@@ -307,25 +302,31 @@ const styles = StyleSheet.create({
 
   container: {
     height: "100%",
+    alignItems: "center",
+    justifyContent: "flex-start",
   },
 
   contentAligner: {
-    flex: 1, // Isso permite que o View cresça para ocupar o espaço disponível
     justifyContent: "center", // Centraliza os itens internos do content verticalmente se eles não ocuparem todo o espaço
     alignItems: "center", // Isso centraliza o conteúdo horizontalmente
     padding: 10, // Mantém um padding para o conteúdo não tocar nas bordas
-    minHeight: '100%'
+    minHeight: "80%",
   },
 
   content: {
     padding: 20,
-    minHeight: '100%',
+    minHeight: "100%",
     width: "100%", // Você pode ajustar essa largura conforme necessário
     alignItems: "center", // Garante que o conteúdo interno esteja alinhado ao centro
     justifyContent: "space-between", // Centraliza os itens internos do content verticalmente se eles não ocuparem todo o espaço
   },
 
   contentScroll: {
+    height: '100%',
+  },
+  
+  fullcontainer: {
+    height: '90%',
   },
 
   logo: {
@@ -349,13 +350,13 @@ const styles = StyleSheet.create({
   },
   progessBars: {
     padding: 10,
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'space-between',
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "space-between",
     alignSelf: "center",
     alignItems: "center",
     width: "100%",
-    minHeight: '70%',
+    minHeight: "70%",
   },
   subtitle: {
     fontSize: 14,

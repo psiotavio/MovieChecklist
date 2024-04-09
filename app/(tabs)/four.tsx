@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { Skeleton } from "@rneui/base";
 import {
   StyleSheet,
   FlatList,
@@ -9,23 +10,36 @@ import {
   Modal,
   TouchableWithoutFeedback,
   TouchableHighlight,
+  Animated,
+  Button,
 } from "react-native";
 import { useUser } from "../../contexts/UserContext"; // Certifique-se de que esta é a importação correta
 import StarRating from "../../components/starComponent/starComponent";
 import logo from "../../assets/images/logo.png";
 import { useTheme } from "../../constants/temas/ThemeContext";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { ActivityIndicator } from "react-native-paper";
 
-import {
-  AdEventType,
-  InterstitialAd,
-  TestIds,
-} from "react-native-google-mobile-ads";
-import Icon from "react-native-vector-icons/FontAwesome";
+// import {
+//   AdEventType,
+//   BannerAd,
+//   InterstitialAd,
+//   TestIds,
+// } from "react-native-google-mobile-ads";
 
-const anuncio = InterstitialAd.createForAdRequest(TestIds.INTERSTITIAL, {
-  requestNonPersonalizedAdsOnly: true,
-});
+const BANNER_H = 250;
+
+// const adUnitId = __DEV__ ? TestIds.BANNER : "your-ad-unit-id-here";
+
+// const anuncio = InterstitialAd.createForAdRequest(TestIds.INTERSTITIAL, {
+//   requestNonPersonalizedAdsOnly: true,
+// });
+
+type Actor = {
+  id: number;
+  name: string;
+  profilePath?: string; // URL para a foto do perfil do ator, se disponível
+};
 
 interface Movie {
   rank?: React.JSX.Element;
@@ -34,56 +48,91 @@ interface Movie {
   rating: number;
   date: string;
   imageUrl?: string;
+  streamingPlatforms?: StreamingPlatform[]; // Adicionado aqui
+  genreId?: string;
+  alternateImageUrl?: string; // Nova propriedade para o banner do filme
+  description?: string; // Descrição do filme
+  actors?: Actor[]; // Novo
 }
 
+type StreamingPlatform = {
+  id: number;
+  name: string;
+  logoPath?: string;
+};
+
 export default function TabFourScreen() {
-  // ANUNCIOS
-  const [interstitialLoaded, setInterstitialLoaded] = useState(false);
+  const [isDetailsLoading, setIsDetailsLoading] = useState(false);
 
-  const loadInterstitial = () => {
-    const unscubscribeLoaded = anuncio.addAdEventListener(
-      AdEventType.LOADED,
-      () => {
-        console.log("Anúncio carregado.");
-        setInterstitialLoaded(true);
-      }
-    );
+  // // ANUNCIOS
+  // const [interstitialLoaded, setInterstitialLoaded] = useState(false);
 
-    const unscubscribeClosed = anuncio.addAdEventListener(
-      AdEventType.CLOSED,
-      () => {
-        console.log("Anúncio fechado.");
-        setInterstitialLoaded(false);
-        anuncio.load();
-      }
-    );
+  // const loadInterstitial = () => {
+  //   const unscubscribeLoaded = anuncio.addAdEventListener(
+  //     AdEventType.LOADED,
+  //     () => {
+  //       setInterstitialLoaded(true);
+  //     }
+  //   );
 
-    anuncio.load();
+  //   const unscubscribeClosed = anuncio.addAdEventListener(
+  //     AdEventType.CLOSED,
+  //     () => {
+  //       setInterstitialLoaded(false);
+  //       anuncio.load();
+  //     }
+  //   );
 
-    return () => {
-      unscubscribeClosed();
-      unscubscribeLoaded();
-    };
-  };
+  //   anuncio.load();
 
-  useEffect(() => {
-    const unsubscribeInterstitialEvents = loadInterstitial();
-    return unsubscribeInterstitialEvents;
-  }, []);
+  //   return () => {
+  //     unscubscribeClosed();
+  //     unscubscribeLoaded();
+  //   };
+  // };
+
+  // useEffect(() => {
+  //   const unsubscribeInterstitialEvents = loadInterstitial();
+  //   return unsubscribeInterstitialEvents;
+  // }, []);
 
   const [activeTab, setActiveTab] = useState("ratedMovies"); // 'ratedMovies' ou 'toWatchMovies'
-  const { movies, toWatchMovies, removeFromWatchList, addMovieReview, addMovieRecommend } =
-    useUser(); // Adicione toWatchMovies aqui
+  const {
+    movies,
+    toWatchMovies,
+    removeFromWatchList,
+    addMovieReview,
+    addMovieRecommend,
+    fetchMovieDetails,
+  } = useUser(); // Adicione toWatchMovies aqui
   const { theme } = useTheme();
 
   const [showModal, setShowModal] = useState(false);
+  const [showModalMovie, setShowModalMovie] = useState(false);
   const [selectedMovieId, setSelectedMovieId] = useState<Movie | null>(null);
+
+  // const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
 
   const openModal = (movie: Movie) => {
     setSelectedMovieId(movie);
     setShowModal(true);
   };
 
+  const openModalMovie = (movieId: number, selectedMovieId: Movie) => {
+    setSelectedMovieId(null); // Reseta o filme selecionado
+    setIsDetailsLoading(true); // Inicia o loading
+    setShowModalMovie(true); // Abre o modal
+    
+    fetchMovieDetails(movieId, selectedMovieId?.rating, (movieDetails) => {
+      setIsDetailsLoading(false); // Inicia o loading
+      setSelectedMovieId(movieDetails);
+    });
+  };
+
+  const closeModalMovie = () => {
+    setShowModalMovie(false);
+    setSelectedMovieId(null); // Limpa o filme selecionado ao fechar o modal
+  };
   const closeModal = () => {
     setShowModal(false);
     setSelectedMovieId(null); // Limpa o filme selecionado ao fechar o modal
@@ -102,22 +151,21 @@ export default function TabFourScreen() {
         rank: selectedMovieId.rank,
       };
 
-      setTimeout(() => {
-        if (interstitialLoaded) {
-          anuncio
-            .show()
-            .then(() => {
-              console.log("Anúncio foi exibido.");
-              // Recarregar o anúncio para a próxima exibição
-              anuncio.load();
-            })
-            .catch((error) => {
-              console.error("Erro ao tentar exibir o anúncio: ", error);
-            });
-          // Resetar o estado de carregamento do anúncio
-          setInterstitialLoaded(false);
-        }
-      }, 1000); // 2000 milissegundos = 1 segundos
+      // setTimeout(() => {
+      //   if (interstitialLoaded) {
+      //     anuncio
+      //       .show()
+      //       .then(() => {
+      //         // Recarregar o anúncio para a próxima exibição
+      //         anuncio.load();
+      //       })
+      //       .catch((error) => {
+      //         console.error("Erro ao tentar exibir o anúncio: ", error);
+      //       });
+      //     // Resetar o estado de carregamento do anúncio
+      //     setInterstitialLoaded(false);
+      //   }
+      // }, 1000); // 2000 milissegundos = 1 segundos
 
       addMovieReview(movieReview);
 
@@ -130,11 +178,18 @@ export default function TabFourScreen() {
       removeFromWatchList(selectedMovieId.id);
       closeModal();
       addMovieRecommend(selectedMovieId);
-      
     }
   };
 
+  const formatDate = (dateString: any) => {
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+
+    return `${year}`;
+  };
+
   const moviesSortedByRating = [...movies].sort((a, b) => b.rating - a.rating);
+  const scrollY = useRef(new Animated.Value(0)).current;
 
   return (
     <SafeAreaView
@@ -197,7 +252,10 @@ export default function TabFourScreen() {
                 showsVerticalScrollIndicator={false}
                 renderItem={({ item, index }) => (
                   <View style={styles.movieItem}>
-                    <TouchableOpacity style={styles.movieList}>
+                    <TouchableOpacity
+                      style={styles.movieList}
+                      onPress={() => openModalMovie(item.id, item)}
+                    >
                       <View style={styles.imageIndex}>
                         <Text style={[styles.itemIndex, { color: theme.text }]}>
                           {index + 1 + "º"}
@@ -327,6 +385,266 @@ export default function TabFourScreen() {
             </TouchableWithoutFeedback>
           </View>
         </TouchableWithoutFeedback>
+      </Modal>
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={showModalMovie}
+        onRequestClose={closeModalMovie}
+      >
+        <View style={styles.modalContainerMovie}>
+          {isDetailsLoading ? (
+            <View
+              style={[
+                styles.modalContentMovie,
+                { backgroundColor: theme.modalBackground },
+              ]}
+            >
+              <ActivityIndicator
+                size="large"
+                color={theme.borderRed}
+                style={{ alignSelf: "center" }}
+              />
+            </View>
+          ) : (
+            <View
+              style={[
+                styles.modalContentMovie,
+                { backgroundColor: theme.modalThemeMode },
+              ]}
+            >
+              <Animated.ScrollView
+                style={{
+                  flex: 1,
+                  width: "100%",
+                  backgroundColor: theme.modalBackground,
+                }}
+                onScroll={Animated.event(
+                  [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+                  { useNativeDriver: true }
+                )}
+                scrollEventThrottle={16} // Defina a frequência de eventos de rolagem
+              >
+                <View
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    height: BANNER_H + 150,
+                  }}
+                >
+                  <Animated.View
+                    style={{
+                      backgroundColor: theme.modalThemeMode,
+                      height: 50,
+                      width: "200%",
+                      alignSelf: "center",
+                      shadowColor: theme.modalThemeMode,
+                      shadowOffset: { width: 0, height: 45 },
+                      shadowOpacity: 1,
+                      shadowRadius: 5,
+                      zIndex: 9999,
+                      transform: [
+                        {
+                          translateY: scrollY.interpolate({
+                            inputRange: [-50, 0, 50],
+                            outputRange: [-100 / 2, 0, 0], // Previne movimento para cima
+                          }),
+                        },
+                        {
+                          scale: scrollY.interpolate({
+                            inputRange: [-50, 0],
+                            outputRange: [2, 1], // Permite expansão ao puxar para baixo
+                            extrapolateRight: "clamp", // Previne que a escala se ajuste além do especificado
+                          }),
+                        },
+                      ],
+                    }}
+                  >
+                    <Animated.View
+                      style={{
+                        backgroundColor: theme.modalThemeMode,
+                        height: 30,
+                        width: "200%",
+                        alignSelf: "center",
+                        shadowColor: theme.modalThemeMode,
+                        shadowOffset: { width: 0, height: 40 },
+                        shadowOpacity: 1,
+                        shadowRadius: 10,
+                        zIndex: 9999,
+                      }}
+                    ></Animated.View>
+                  </Animated.View>
+
+                  <Animated.View
+                    style={{
+                      backgroundColor: theme.modalThemeMode,
+                      height: 10,
+                      width: "200%",
+                      alignSelf: "center",
+                      shadowColor: theme.modalThemeMode,
+                      shadowOffset: { width: 0, height: 10 },
+                      shadowOpacity: 1,
+                      shadowRadius: 20,
+                      zIndex: 9999,
+                    }}
+                  ></Animated.View>
+
+                  <Animated.Image
+                    style={[
+                      styles.movieImageBanner,
+                      {
+                        width: "100%",
+                        flex: 1,
+                        height: BANNER_H,
+                        transform: [
+                          {
+                            translateY: scrollY.interpolate({
+                              inputRange: [-BANNER_H, 0, BANNER_H],
+                              outputRange: [-BANNER_H / 2, 0, 0], // Previne movimento para cima
+                            }),
+                          },
+                          {
+                            scale: scrollY.interpolate({
+                              inputRange: [-BANNER_H, 0],
+                              outputRange: [2, 1], // Permite expansão ao puxar para baixo
+                              extrapolateRight: "clamp", // Previne que a escala se ajuste além do especificado
+                            }),
+                          },
+                        ],
+                      },
+                    ]}
+                    source={{ uri: selectedMovieId?.alternateImageUrl }}
+                  />
+                </View>
+
+                <View style={styles.modalInfoContent}>
+                  <View style={styles.modalMovieInfo}>
+                    <View style={styles.modalMovieTitle}>
+                      <Image
+                        style={styles.movieImage}
+                        source={{ uri: selectedMovieId?.imageUrl }}
+                      />
+                      <View style={styles.titleAndDate}>
+                        <Text
+                          style={[
+                            styles.modalMovieTitleText,
+                            { color: theme.text },
+                          ]}
+                        >
+                          {selectedMovieId?.title}
+                        </Text>
+                        <StarRating
+                          rating={selectedMovieId?.rating}
+                        ></StarRating>
+                        <Text
+                          style={[styles.modalMovieDate, { color: theme.text }]}
+                        >
+                          {formatDate(selectedMovieId?.date)}
+                        </Text>
+                      </View>
+                    </View>
+
+                    <Text
+                      style={{
+                        color: theme.text,
+                        marginTop: 30,
+                        textAlign: "justify",
+                      }}
+                    >
+                      <Text style={{ fontWeight: "bold", fontSize: 16 }}>
+                        Descrição:{" "}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.modalText,
+                          { color: theme.text, marginBottom: 30 },
+                        ]}
+                      >
+                        {selectedMovieId?.description}
+                      </Text>
+                    </Text>
+
+                    <Text style={{ color: theme.text, marginTop: 30 }}>
+                      <Text style={{ fontWeight: "bold", fontSize: 16 }}>
+                        Atores:{" "}
+                      </Text>
+                      <Text style={styles.modalMovieTitleTextActors}>
+                        {selectedMovieId?.actors
+                          ?.map((actor) => actor.name)
+                          .join(", ")}
+                      </Text>
+                    </Text>
+
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        flexWrap: "wrap",
+                        marginTop: 30,
+                      }}
+                    >
+                      {selectedMovieId?.streamingPlatforms
+                        ?.filter((streaming) => streaming.name !== "HBO Max") // Supondo que 'name' seja uma propriedade identificadora
+                        .map((streaming, index) => (
+                          <Image
+                            key={index}
+                            source={{ uri: streaming.logoPath }}
+                            style={{
+                              width: 50, // Defina a largura conforme necessário
+                              height: 50, // Defina a altura conforme necessário
+                              marginRight: 10, // Espaço à direita de cada imagem
+                              borderRadius: 30,
+                            }}
+                            resizeMode="contain"
+                          />
+                        ))}
+                    </View>
+                  </View>
+
+                  <View style={styles.modalButtonsContainerAll}>
+                    <View style={styles.modalButtonsContainer}>
+                      <View
+                        style={[
+                          styles.buttonContainer,
+                          { backgroundColor: theme.borderRed },
+                        ]}
+                      >
+                        <Button
+                          title="Fechar"
+                          onPress={closeModalMovie}
+                          color={theme.textButtons}
+                        />
+                      </View>
+                    </View>
+                  </View>
+
+                  <View
+                    style={{
+                      justifyContent: "center",
+                      alignContent: "center",
+                      alignItems: "center",
+                      paddingVertical: 5,
+                      marginVertical: 5,
+                    }}
+                  >
+                    {/* <BannerAd
+                      unitId={adUnitId}
+                      size="BANNER"
+                      onAdLoaded={() => {}}
+                      onAdFailedToLoad={(error) => {
+                        console.error("Ad failed to load", error);
+                      }}
+                      requestOptions={{
+                        requestNonPersonalizedAdsOnly: true,
+                      }}
+                    /> */}
+                  </View>
+                </View>
+              </Animated.ScrollView>
+            </View>
+          )}
+        </View>
       </Modal>
     </SafeAreaView>
   );
@@ -508,5 +826,117 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     marginTop: 16,
     gap: 20,
+  },
+
+  bannerContainer: {
+    height: 250,
+    width: "100%",
+    position: "relative",
+  },
+  gradient: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: "50%",
+    justifyContent: "flex-end",
+    paddingBottom: 10,
+  },
+
+  buttonContainer: {
+    padding: 5,
+    paddingHorizontal: 15,
+    borderRadius: 30,
+  },
+  shadowContainer: {
+    borderRadius: 15,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 3,
+    elevation: 5,
+  },
+
+  // Estilos do modal
+  modalContainerMovie: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.60)",
+  },
+  modalContentMovie: {
+    justifyContent: "center",
+    height: "100%",
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    alignItems: "center",
+    shadowColor: "#000",
+    width: "100%",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  modalScrollContent: {
+    paddingBottom: 20,
+  },
+  modalInfoContent: {
+    paddingHorizontal: 20,
+  },
+  modalMovieInfo: {},
+  modalMovieTitle: {
+    display: "flex",
+    flexDirection: "row",
+    gap: 10,
+  },
+  titleAndDate: {
+    display: "flex",
+    flexDirection: "column",
+    flex: 1,
+  },
+  modalMovieTitleText: {
+    flexWrap: "wrap",
+    fontWeight: "bold",
+    fontSize: 18,
+    flex: 1,
+    marginTop: 10,
+  },
+  modalMovieDate: {
+    flexWrap: "wrap",
+    fontSize: 14,
+    flex: 1,
+  },
+  modalMovieTitleTextActors: {
+    fontSize: 16,
+    textAlign: "left",
+    fontStyle: "italic",
+    flex: 1,
+  },
+  modalText: {
+    fontSize: 18,
+    textAlign: "justify",
+  },
+  modalButtonsContainer: {
+    justifyContent: "center",
+    flexDirection: "row",
+    gap: 10,
+    flexWrap: "wrap",
+    paddingBottom: 10,
+    width: "100%",
+  },
+  modalButtonsContainerAll: {
+    flexDirection: "column",
+    gap: 10,
+    paddingVertical: 20,
+    alignItems: "center",
+  },
+  movieImageBanner: {
+    width: "100%",
+    flex: 1,
+    resizeMode: "cover",
+    marginBottom: 30,
   },
 });
