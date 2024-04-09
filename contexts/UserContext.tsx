@@ -572,7 +572,6 @@ useEffect(() => {
       const resetAndFetchMovies = async () => {
         try {
           await fetchRecommendedMovies();
-          await fetchGenreBasedRecommendations(); // Isso agora busca ambos, os filmes recomendados e os populares.
         } catch (error) {
           console.error("Erro ao buscar recomendações:", error);
         }

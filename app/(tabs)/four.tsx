@@ -115,14 +115,20 @@ export default function TabFourScreen() {
 
   const openModal = (movie: Movie) => {
     setSelectedMovieId(movie);
+    setIsDetailsLoading(true); // Inicia o loading
     setShowModal(true);
+
+    fetchMovieDetails(movie.id, 0, (movieDetails) => {
+      setIsDetailsLoading(false); // Inicia o loading
+      setSelectedMovieId(movieDetails);
+    });
   };
 
   const openModalMovie = (movieId: number, selectedMovieId: Movie) => {
     setSelectedMovieId(null); // Reseta o filme selecionado
     setIsDetailsLoading(true); // Inicia o loading
     setShowModalMovie(true); // Abre o modal
-    
+
     fetchMovieDetails(movieId, selectedMovieId?.rating, (movieDetails) => {
       setIsDetailsLoading(false); // Inicia o loading
       setSelectedMovieId(movieDetails);
@@ -334,58 +340,290 @@ export default function TabFourScreen() {
         )}
       </View>
 
+      {/* MODAL DE PARA ASSISTIR MAIS TARDE  */}
+
+
       <Modal
-        animationType="fade"
+        animationType="slide"
         transparent={true}
         visible={showModal}
         onRequestClose={closeModal}
       >
-        <TouchableWithoutFeedback onPress={() => setShowModal(false)}>
-          <View style={styles.modalContainer}>
-            <TouchableWithoutFeedback>
-              <View
-                style={[
-                  styles.modalContent, // Estilos pré-definidos
-                  { backgroundColor: theme.background }, // Estilo dinâmico baseado no tema atual
-                ]}
+        <View style={styles.modalContainerMovie}>
+          {isDetailsLoading ? (
+            <View
+              style={[
+                styles.modalContentMovie,
+                { backgroundColor: theme.modalBackground },
+              ]}
+            >
+              <ActivityIndicator
+                size="large"
+                color={theme.borderRed}
+                style={{ alignSelf: "center" }}
+              />
+            </View>
+          ) : (
+            <View
+              style={[
+                styles.modalContentMovie,
+                { backgroundColor: theme.modalThemeMode },
+              ]}
+            >
+              <Animated.ScrollView
+                style={{
+                  flex: 1,
+                  width: "100%",
+                  backgroundColor: theme.modalBackground,
+                }}
+                onScroll={Animated.event(
+                  [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+                  { useNativeDriver: true }
+                )}
+                scrollEventThrottle={16} // Defina a frequência de eventos de rolagem
               >
-                <Text style={{ color: theme.text }}>
-                  Já assistiu esse filme?
-                </Text>
-                <View style={styles.modalButtons}>
-                  <TouchableOpacity
-                    style={[
-                      styles.modalButton,
-                      { backgroundColor: theme.borderRed },
-                    ]}
-                    onPress={confirmRemoveMovie}
-                  >
-                    <Text style={{ color: theme.text }}>Sim</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[
-                      styles.modalButton,
-                      { backgroundColor: theme.modalBackground },
-                    ]}
-                    onPress={closeModal}
-                  >
-                    <Text style={{ color: theme.text }}>Não</Text>
-                  </TouchableOpacity>
-                </View>
-                <TouchableOpacity
-                  style={[
-                    styles.modalButton,
-                    { backgroundColor: theme.errorColor },
-                  ]}
-                  onPress={confirmRemoveMovieList}
+                <View
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    height: BANNER_H + 150,
+                  }}
                 >
-                  <Text style={{ color: theme.text }}>Remover</Text>
-                </TouchableOpacity>
-              </View>
-            </TouchableWithoutFeedback>
-          </View>
-        </TouchableWithoutFeedback>
+                  <Animated.View
+                    style={{
+                      backgroundColor: theme.modalThemeMode,
+                      height: 50,
+                      width: "200%",
+                      alignSelf: "center",
+                      shadowColor: theme.modalThemeMode,
+                      shadowOffset: { width: 0, height: 45 },
+                      shadowOpacity: 1,
+                      shadowRadius: 5,
+                      zIndex: 9999,
+                      transform: [
+                        {
+                          translateY: scrollY.interpolate({
+                            inputRange: [-50, 0, 50],
+                            outputRange: [-100 / 2, 0, 0], // Previne movimento para cima
+                          }),
+                        },
+                        {
+                          scale: scrollY.interpolate({
+                            inputRange: [-50, 0],
+                            outputRange: [2, 1], // Permite expansão ao puxar para baixo
+                            extrapolateRight: "clamp", // Previne que a escala se ajuste além do especificado
+                          }),
+                        },
+                      ],
+                    }}
+                  >
+                    <Animated.View
+                      style={{
+                        backgroundColor: theme.modalThemeMode,
+                        height: 30,
+                        width: "200%",
+                        alignSelf: "center",
+                        shadowColor: theme.modalThemeMode,
+                        shadowOffset: { width: 0, height: 40 },
+                        shadowOpacity: 1,
+                        shadowRadius: 10,
+                        zIndex: 9999,
+                      }}
+                    ></Animated.View>
+                  </Animated.View>
+
+                  <Animated.View
+                    style={{
+                      backgroundColor: theme.modalThemeMode,
+                      height: 10,
+                      width: "200%",
+                      alignSelf: "center",
+                      shadowColor: theme.modalThemeMode,
+                      shadowOffset: { width: 0, height: 10 },
+                      shadowOpacity: 1,
+                      shadowRadius: 20,
+                      zIndex: 9999,
+                    }}
+                  ></Animated.View>
+
+                  <Animated.Image
+                    style={[
+                      styles.movieImageBanner,
+                      {
+                        width: "100%",
+                        flex: 1,
+                        height: BANNER_H,
+                        transform: [
+                          {
+                            translateY: scrollY.interpolate({
+                              inputRange: [-BANNER_H, 0, BANNER_H],
+                              outputRange: [-BANNER_H / 2, 0, 0], // Previne movimento para cima
+                            }),
+                          },
+                          {
+                            scale: scrollY.interpolate({
+                              inputRange: [-BANNER_H, 0],
+                              outputRange: [2, 1], // Permite expansão ao puxar para baixo
+                              extrapolateRight: "clamp", // Previne que a escala se ajuste além do especificado
+                            }),
+                          },
+                        ],
+                      },
+                    ]}
+                    source={{ uri: selectedMovieId?.alternateImageUrl }}
+                  />
+                </View>
+
+                <View style={styles.modalInfoContent}>
+                  <View style={styles.modalMovieInfo}>
+                    <View style={styles.modalMovieTitle}>
+                      <Image
+                        style={styles.movieImage}
+                        source={{ uri: selectedMovieId?.imageUrl }}
+                      />
+                      <View style={styles.titleAndDate}>
+                        <Text
+                          style={[
+                            styles.modalMovieTitleText,
+                            { color: theme.text },
+                          ]}
+                        >
+                          {selectedMovieId?.title}
+                        </Text>
+                        <Text
+                          style={[styles.modalMovieDate, { color: theme.text }]}
+                        >
+                          {formatDate(selectedMovieId?.date)}
+                        </Text>
+
+                        <TouchableOpacity
+                      style={[
+                        styles.modalButton,
+                        { backgroundColor: theme.errorColor, },
+                      ]}
+                      onPress={confirmRemoveMovieList}
+                    >
+                      <Text style={{ color: theme.text, textAlign: "center" }}>Remover da lista</Text>
+                    </TouchableOpacity>
+                      </View>
+                    </View>
+
+                    <Text
+                      style={{
+                        color: theme.text,
+                        marginTop: 30,
+                        textAlign: "justify",
+                      }}
+                    >
+                      <Text style={{ fontWeight: "bold", fontSize: 16 }}>
+                        Descrição:{" "}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.modalText,
+                          { color: theme.text, marginBottom: 30 },
+                        ]}
+                      >
+                        {selectedMovieId?.description}
+                      </Text>
+                    </Text>
+
+                    <Text style={{ color: theme.text, marginTop: 30 }}>
+                      <Text style={{ fontWeight: "bold", fontSize: 16 }}>
+                        Atores:{" "}
+                      </Text>
+                      <Text style={styles.modalMovieTitleTextActors}>
+                        {selectedMovieId?.actors
+                          ?.map((actor) => actor.name)
+                          .join(", ")}
+                      </Text>
+                    </Text>
+
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        flexWrap: "wrap",
+                        marginTop: 30,
+                      }}
+                    >
+                      {selectedMovieId?.streamingPlatforms
+                        ?.filter((streaming) => streaming.name !== "HBO Max") // Supondo que 'name' seja uma propriedade identificadora
+                        .map((streaming, index) => (
+                          <Image
+                            key={index}
+                            source={{ uri: streaming.logoPath }}
+                            style={{
+                              width: 50, // Defina a largura conforme necessário
+                              height: 50, // Defina a altura conforme necessário
+                              marginRight: 10, // Espaço à direita de cada imagem
+                              borderRadius: 30,
+                            }}
+                            resizeMode="contain"
+                          />
+                        ))}
+                    </View>
+                  </View>
+
+
+                  <View
+                    style={{
+                      justifyContent: "center",
+                      alignContent: "center",
+                      alignItems: "center",
+                      paddingVertical: 5,
+                      marginVertical: 5,
+                    }}
+                  >
+                    <Text style={{ color: theme.text, fontSize: 18, fontWeight: "bold", paddingTop: 20 }}>
+                      Já assistiu esse filme?
+                    </Text>
+                    <View style={{marginBottom: 50}}>
+                    <View style={styles.modalButtons}>
+                      <TouchableOpacity
+                        style={[
+                          styles.modalButton,
+                          { backgroundColor: theme.borderRed },
+                        ]}
+                        onPress={confirmRemoveMovie}
+                      >
+                        <Text style={{ color: theme.text }}>Sim</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[
+                          styles.modalButton,
+                          { backgroundColor: theme.modalBackgroundSecondary },
+                        ]}
+                        onPress={closeModal}
+                      >
+                        <Text style={{ color: theme.text }}>Não</Text>
+                      </TouchableOpacity>
+                    </View>
+
+                    
+                    </View>
+
+
+                    {/* <BannerAd
+                      unitId={adUnitId}
+                      size="BANNER"
+                      onAdLoaded={() => {}}
+                      onAdFailedToLoad={(error) => {
+                        console.error("Ad failed to load", error);
+                      }}
+                      requestOptions={{
+                        requestNonPersonalizedAdsOnly: true,
+                      }}
+                    /> */}
+                  </View>
+                </View>
+              </Animated.ScrollView>
+            </View>
+          )}
+        </View>
       </Modal>
+
+
 
       <Modal
         animationType="slide"
@@ -534,9 +772,12 @@ export default function TabFourScreen() {
                         >
                           {selectedMovieId?.title}
                         </Text>
+                        <View style={{marginBottom: 10}}>
                         <StarRating
                           rating={selectedMovieId?.rating}
                         ></StarRating>
+                        </View>
+
                         <Text
                           style={[styles.modalMovieDate, { color: theme.text }]}
                         >
