@@ -155,6 +155,13 @@ export default function TabThreeScreen() {
     "878": "Ficção científica",
   };
 
+  useEffect(() => {
+    if (selectedGenre !== "Recomendado para você") {
+      const currentGenreId = Object.keys(generosFiltro).find(key => generosFiltro[key] === selectedGenre);
+        fetchMoviesByGenreAndPage(currentGenreId!, 1);
+    }
+  }, [selectedGenre]); // Dependências do useEffect
+
   const getFilteredMovies = () => {
     let allMovies = [];
 
@@ -162,7 +169,6 @@ export default function TabThreeScreen() {
       // Se for "Recomendado para você", usar a lista geral de recomendados
       allMovies = [...recommendedMovies];
     } else {
-      // Filmes recomendados que correspondem ao gênero selecionado
       const recommendedBySelectedGenre = recommendedMovies.filter((movie) =>
         movie.genreId?.split(",").some((genreId) => genreId === selectedGenre)
       );
@@ -211,8 +217,8 @@ export default function TabThreeScreen() {
       selectedGenre === "Recomendado para você"
         ? recommendedMovies
         : recommendedByGenre[selectedGenre];
-    setIsLoading(!moviesToCheck || moviesToCheck.length === 0);
-  }, [recommendedMovies, selectedGenre]);
+    setIsLoading(!moviesToCheck);
+  }, [recommendedMovies]);
 
   const openModal = (movieId: number) => {
     setSelectedMovie(null); // Reseta o filme selecionado

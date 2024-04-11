@@ -163,6 +163,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   const [recommendedByGenre, setRecommendedByGenre] =
     useState<GenreRecommendations>({});
   const [toWatchMovies, setToWatchMovies] = useState<Movie[]>([]);
+  
 
   // Constantes
   const TMDB_API_KEY = "172e0af0e176f9c169387e094fb67c75";
@@ -466,48 +467,48 @@ useEffect(() => {
 
 const [genresFetched, setGenresFetched] = useState<Record<string, boolean>>({});
 
-const fetchGenreBasedRecommendations = async () => {
-  const genreBasedRecommendations: GenreRecommendations = { ...recommendedByGenre };
+// const fetchGenreBasedRecommendations = async () => {
+//   const genreBasedRecommendations: GenreRecommendations = { ...recommendedByGenre };
 
-  for (const [genreId, genreName] of Object.entries(genres)) {
-    if (genresFetched[genreId]) continue; // Se já buscou, pula para o próximo gênero
+//   for (const [genreId, genreName] of Object.entries(genres)) {
+//     if (genresFetched[genreId]) continue; // Se já buscou, pula para o próximo gênero
 
-    const url = `https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_API_KEY}&language=pt-BR&sort_by=popularity.desc&with_genres=${genreId}`;
-    try {
-      const response = await axios.get(url);
-      const popularMovies = response.data.results.slice(0, 1);
+//     const url = `https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_API_KEY}&language=pt-BR&sort_by=popularity.desc&with_genres=${genreId}`;
+//     try {
+//       const response = await axios.get(url);
+//       const popularMovies = response.data.results.slice(0, 1);
 
-      const moviesWithPlatformsPromises = popularMovies.map(async (movieData: { id: number; title: any; vote_average: any; release_date: any; poster_path: any; genre_ids: any[]; }) => {
-        const platforms = await fetchMoviePlatforms(movieData.id);
-        return {
-          ...movieData,
-          streamingPlatforms: platforms,
-          id: movieData.id,
-          title: movieData.title,
-          rating: movieData.vote_average,
-          date: movieData.release_date,
-          imageUrl: `https://image.tmdb.org/t/p/w500${movieData.poster_path}`,
-          genreId: movieData.genre_ids.join(","),
-        };
-      });
+//       const moviesWithPlatformsPromises = popularMovies.map(async (movieData: { id: number; title: any; vote_average: any; release_date: any; poster_path: any; genre_ids: any[]; }) => {
+//         const platforms = await fetchMoviePlatforms(movieData.id);
+//         return {
+//           ...movieData,
+//           streamingPlatforms: platforms,
+//           id: movieData.id,
+//           title: movieData.title,
+//           rating: movieData.vote_average,
+//           date: movieData.release_date,
+//           imageUrl: `https://image.tmdb.org/t/p/w500${movieData.poster_path}`,
+//           genreId: movieData.genre_ids.join(","),
+//         };
+//       });
 
-      const moviesWithPlatforms = await Promise.all(moviesWithPlatformsPromises);
+//       const moviesWithPlatforms = await Promise.all(moviesWithPlatformsPromises);
 
-      if (!genreBasedRecommendations[genreName]) {
-        genreBasedRecommendations[genreName] = [];
-      }
+//       if (!genreBasedRecommendations[genreName]) {
+//         genreBasedRecommendations[genreName] = [];
+//       }
 
-      genreBasedRecommendations[genreName].push(...moviesWithPlatforms);
+//       genreBasedRecommendations[genreName].push(...moviesWithPlatforms);
 
-      // Atualiza o estado para indicar que os filmes populares deste gênero foram buscados
-      setGenresFetched((prev) => ({ ...prev, [genreId]: true }));
-    } catch (error) {
-      console.error(`Erro ao buscar filmes populares para o gênero ${genreName}:`, error);
-    }
-  }
+//       // Atualiza o estado para indicar que os filmes populares deste gênero foram buscados
+//       setGenresFetched((prev) => ({ ...prev, [genreId]: true }));
+//     } catch (error) {
+//       console.error(`Erro ao buscar filmes populares para o gênero ${genreName}:`, error);
+//     }
+//   }
 
-  setRecommendedByGenre(genreBasedRecommendations);
-};
+//   setRecommendedByGenre(genreBasedRecommendations);
+// };
 
 useEffect(() => {
   const saveGenresFetched = async () => {
@@ -643,16 +644,16 @@ useEffect(() => {
   }, [movies, isLoaded]); // Adiciona isLoaded às dependências
   
 
-  useEffect(() => {
-    const fetchGenreBasedRecommendationsOnly = async () => {
-      try {
-        await fetchGenreBasedRecommendations();
-      } catch (error) {
-        console.error("Erro ao buscar recomendações de filmes por gênero:", error);
-      }
-    };
-    fetchGenreBasedRecommendationsOnly();
-  }, []);
+  // useEffect(() => {
+  //   const fetchGenreBasedRecommendationsOnly = async () => {
+  //     try {
+  //       await fetchGenreBasedRecommendations();
+  //     } catch (error) {
+  //       console.error("Erro ao buscar recomendações de filmes por gênero:", error);
+  //     }
+  //   };
+  //   fetchGenreBasedRecommendationsOnly();
+  // }, []);
 
 
 
@@ -802,6 +803,7 @@ const fetchMoviesByGenreAndPage = async (genreId: string | number, page: number)
 
   return (
     <UserContext.Provider
+    
       value={{
         movies,
         removeFromList,
