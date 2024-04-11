@@ -11,12 +11,13 @@ import {
   View,
   Button,
   Animated,
+  Share,
 } from "react-native";
 import { useUser } from "../../contexts/UserContext";
 import logo from "../../assets/images/logo.png";
 import { useTheme } from "../../constants/temas/ThemeContext";
 import { SafeAreaView } from "react-native-safe-area-context";
-import LinearGradient from "react-native-linear-gradient";
+import * as Linking from "expo-linking";
 
 // import {
 //   AdEventType,
@@ -60,7 +61,6 @@ type StreamingPlatform = {
 };
 
 export default function TabThreeScreen() {
-
   // // ANUNCIOS
   // const [interstitialLoaded, setInterstitialLoaded] = useState(false);
   // const [counter, setCounter] = useState(0);
@@ -100,6 +100,9 @@ export default function TabThreeScreen() {
     addToWatchList,
     removeFromRecommendedMovies,
     fetchMovieDetails,
+
+    fetchMoviesByGenreAndPage, // Adicione isso
+    paginationState, // Adicione isso
   } = useUser(); // Supondo que `addToWatchList` é o método do contexto
   const [selectedGenre, setSelectedGenre] = useState("Recomendado para você");
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
@@ -133,29 +136,61 @@ export default function TabThreeScreen() {
     "Apple TV Plus",
   ];
 
+  interface GenreMappings {
+    [key: string]: string;
+  }
+
+  const generosFiltro: GenreMappings = {
+    "28": "Ação",
+    "12": "Aventura",
+    "16": "Animação",
+    "35": "Comédia",
+    "18": "Drama",
+    "10751": "Família",
+    "14": "Fantasia",
+    "27": "Terror",
+    "10402": "Música",
+    "9648": "Mistério",
+    "10749": "Romance",
+    "878": "Ficção científica",
+  };
+
   const getFilteredMovies = () => {
     let allMovies = [];
-  
-    // Combine os filmes recomendados e os populares para o gênero selecionado
+
     if (selectedGenre === "Recomendado para você") {
+      // Se for "Recomendado para você", usar a lista geral de recomendados
       allMovies = [...recommendedMovies];
     } else {
-      allMovies = [...(recommendedByGenre[selectedGenre] || []), ...recommendedMovies];
+      // Filmes recomendados que correspondem ao gênero selecionado
+      const recommendedBySelectedGenre = recommendedMovies.filter((movie) =>
+        movie.genreId?.split(",").some((genreId) => genreId === selectedGenre)
+      );
+
+      // Combina filmes recomendados do gênero selecionado com os filmes populares do mesmo gênero
+      allMovies = [
+        ...recommendedBySelectedGenre,
+        ...(recommendedByGenre[selectedGenre] || []),
+      ];
     }
-  
-    // Remove duplicatas baseado no ID do filme
-    allMovies = Array.from(new Map(allMovies.map(movie => [movie.id, movie])).values());
-  
-    // Filtro por plataforma, se necessário
+
+    // Remove duplicatas
+    allMovies = Array.from(
+      new Map(allMovies.map((movie) => [movie.id, movie])).values()
+    );
+
+    // Filtrar por plataforma, se necessário
     if (selectedPlatform !== "Todos") {
-      allMovies = allMovies.filter(movie =>
-        movie.streamingPlatforms?.some(platform => platform.name === selectedPlatform)
+      allMovies = allMovies.filter((movie) =>
+        movie.streamingPlatforms?.some(
+          (platform) => platform.name === selectedPlatform
+        )
       );
     }
-  
+
     return allMovies;
   };
-  
+
   const formatDate = (dateString: any) => {
     const date = new Date(dateString);
     const year = date.getFullYear();
@@ -164,10 +199,12 @@ export default function TabThreeScreen() {
   };
 
   useEffect(() => {
-    if (Object.keys(recommendedByGenre).length) {
-      setGenres(["Recomendado para você", ...Object.keys(recommendedByGenre)]);
-    }
-  }, [recommendedByGenre]);
+    // Converte o objeto generosFiltro para uma lista de nomes de gêneros
+    const genreNames = Object.values(generosFiltro);
+
+    // Inclui "Recomendado para você" como a primeira opção
+    setGenres(["Recomendado para você", ...genreNames]);
+  }, []); // Esse useEffect depende apenas de generosFiltro, que é estático, então ele roda uma vez
 
   useEffect(() => {
     const moviesToCheck =
@@ -181,14 +218,13 @@ export default function TabThreeScreen() {
     setSelectedMovie(null); // Reseta o filme selecionado
     setIsDetailsLoading(true); // Inicia o loading
     setShowModal(true); // Abre o modal
-  
+
     // Chamada para fetchMovieDetails sem a verificação de showModal
     fetchMovieDetails(movieId, 0, (movieDetails) => {
       setSelectedMovie(movieDetails);
       setIsDetailsLoading(false);
     });
   };
-  
 
   useEffect(() => {}, [selectedMovie]);
 
@@ -245,6 +281,60 @@ export default function TabThreeScreen() {
   const [showPlatformDropdown, setShowPlatformDropdown] = useState(false);
 
   const scrollY = useRef(new Animated.Value(0)).current;
+
+  // COMPARTILHAR FILME IMPLEMENATAR NA V2.0
+
+  // const handleShareMovie = async () => {
+  //   try {
+  //     // Substitua 'linkDoFilme' pelo link específico para o seu app que abre o modal do filme
+  //     const linkDoFilme = `com.psiotavio.MovieChecklist://filme/${selectedMovie?.id}`;
+  //     const mensagem = `Assista ${selectedMovie?.title}\n\n${selectedMovie?.description}\n\nAdicione esse filme na sua lista Watchfolio: ${linkDoFilme}`;
+
+  //     await Share.share({
+  //       message: mensagem,
+  //     });
+  //   } catch (error) {
+  //     console.error("Erro ao compartilhar o filme: ", error);
+  //   }
+  // };
+
+  // useEffect(() => {
+  //   const handleDeepLink = (event: { url: any; }) => {
+  //     const regex = /com.psiotavio.MovieChecklist:\/\/filme\/(\d+)/;
+  //     const match = event.url.match(regex);
+  //     if (match && match[1]) {
+  //       const filmeId = parseInt(match[1], 10);
+  //       openModal(filmeId);
+  //     }
+  //   };
+
+  //   // Escute pela URL inicial caso o app seja aberto por um deep link
+  //   Linking.getInitialURL().then((url) => {
+  //     if (url) handleDeepLink({ url });
+  //   });
+
+  //   // Adiciona um listener para novos deep links enquanto o app está em uso
+  //   const subscription = Linking.addEventListener('url', handleDeepLink);
+
+  //   // Remove o listener ao desmontar
+  //   return () => subscription.remove();
+  // }, []);
+
+  //TESTES
+  const handleLoadMore = async () => {
+
+    if (selectedGenre != "Recomendado para você"){
+
+    const currentGenreId = Object.keys(generosFiltro).find(key => generosFiltro[key] === selectedGenre) || ""; // Isso converte o nome do gênero de volta para seu ID correspondente
+    console.log(currentGenreId)
+    const currentPage = paginationState[currentGenreId]?.page || 0;
+    const hasMore = paginationState[currentGenreId]?.hasMore;
+    
+
+   await fetchMoviesByGenreAndPage(currentGenreId, currentPage + 1);
+    }
+};
+
 
   return (
     <SafeAreaView
@@ -387,6 +477,8 @@ export default function TabThreeScreen() {
           keyExtractor={(item) => item.id.toString()}
           numColumns={3}
           showsVerticalScrollIndicator={false}
+          onEndReached={handleLoadMore}
+          onEndReachedThreshold={0.5}
           renderItem={({ item }) => (
             <View style={styles.movieItem}>
               <TouchableOpacity onPress={() => openModal(item.id)}>

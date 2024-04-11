@@ -20,18 +20,6 @@ export default function RootLayout() {
     ...FontAwesome.font,
   });
 
-  useEffect(() => {
-    async function prepare() {
-      await SplashScreen.preventAutoHideAsync(); // Evita que a splash screen desapareça automaticamente.
-      if (fontsLoaded) {
-        setTimeout(async () => {
-          await SplashScreen.hideAsync(); // Esconde a splash screen após 2 segundos.
-        }, 2000); // Mantém a splash screen visível por 2 segundos após as fontes serem carregadas.
-      }
-    }
-    prepare();
-  }, [fontsLoaded]);
-
   if (!fontsLoaded) {
     return null; // Continua mostrando a splash screen nativa até que as fontes estejam carregadas.
   }
@@ -53,6 +41,7 @@ function RootLayoutNav() {
     <Stack>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="modal" options={{ presentation: "modal" }} />
+      <Stack.Screen name="[...missing]" options={{ presentation: "modal" }} />
     </Stack>
   );
 }

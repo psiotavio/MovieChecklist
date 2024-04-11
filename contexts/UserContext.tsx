@@ -73,6 +73,13 @@ interface ApiMovieData {
   genre_ids: number[];
 }
 
+interface PaginationState {
+  [genreId: string]: {
+    page: number;
+    hasMore: boolean;
+  };
+}
+
 interface UserContextType {
   movies: MovieReview[];
   removeFromList: (movieId: number) => void;
@@ -90,29 +97,34 @@ interface UserContextType {
   removeFromRecommendedMovies: (movieId: number) => void;
   addMovieRecommend: (movie: Movie) => void;
   fetchMovieDetails: (movieId: number, rating: number, callback: (movie: Movie) => void) => Promise<void>;
+  fetchMoviesByGenreAndPage: (genreId: string | number, page: number) => Promise<void>;
+  paginationState: PaginationState;
 }
 
 // Context
 const UserContext = createContext<UserContextType>({
   movies: [],
-  removeFromList: () => {},
+  removeFromList: () => { },
   recommendedByGenre: {},
-  addMovieReview: () => {},
-  updateMovieReview: () => {},
-  setMovies: () => {},
+  addMovieReview: () => { },
+  updateMovieReview: () => { },
+  setMovies: () => { },
   recommendedMovies: [],
-  setRecommendedMovies: () => {},
+  setRecommendedMovies: () => { },
   sortedMovies: [],
   toWatchMovies: [],
-  setToWatchMovies: () => {},
-  addToWatchList: () => {},
-  removeFromWatchList: () => {},
-  removeFromRecommendedMovies: () => {},
-  addMovieRecommend: () => {},
+  setToWatchMovies: () => { },
+  addToWatchList: () => { },
+  removeFromWatchList: () => { },
+  removeFromRecommendedMovies: () => { },
+  addMovieRecommend: () => { },
   fetchMovieDetails: async (movieId: number, rating: number, callback: (movie: Movie) => void) => {
     console.warn("fetchMovieDetails function not implemented");
-  }
-  
+  },
+   fetchMoviesByGenreAndPage: async () => {
+    console.warn("fetchMoviesByGenreAndPage function not implemented");
+  },
+  paginationState: {},
 });
 
 interface GenreMappings {
@@ -120,10 +132,18 @@ interface GenreMappings {
 }
 
 const genres: GenreMappings = {
-  "27": "Terror",
-  "35": "Comédia",
-  "10749": "Romance",
+  "28": "Ação",
   "12": "Aventura",
+  "16": "Animação",
+  "35": "Comédia",
+  "18": "Drama",
+  "10751": "Família",
+  "14": "Fantasia",
+  "27": "Terror",
+  "10402": "Música",
+  "9648": "Mistério",
+  "10749": "Romance",
+  "878": "Ficção científica",
 };
 
 interface UserProviderProps {
@@ -327,8 +347,10 @@ const fetchRecommendedMovies = async () => {
       !recommendedMovies.some(existingMovie => existingMovie.id === newMovie.id)
     );
 
-    const moviesWithPlatforms = await Promise.all(newRecommendedMovies.map(async (movie: { id: number; title: any; vote_average: any; release_date: any; poster_path: any; }) => {
+    const moviesWithPlatforms = await Promise.all(newRecommendedMovies.map(async (movie: { id: number; title: any; vote_average: any; release_date: any; poster_path: any; genre_ids: any[]}) => {
       const platforms = await fetchMoviePlatforms(movie.id);
+      const genreNames = movie.genre_ids.map(id => genres[id] || "Gênero Desconhecido").join(", ");
+      console.log(`Gêneros do filme ${movie.title}: ${genreNames}`);
       return {
         id: movie.id,
         title: movie.title,
@@ -336,8 +358,11 @@ const fetchRecommendedMovies = async () => {
         date: movie.release_date,
         imageUrl: `https://image.tmdb.org/t/p/w500${movie.poster_path}`,
         streamingPlatforms: platforms,
+        genreId: genreNames,
       };
+      
     }));
+
 
     // Concatena os novos filmes recomendados com os antigos, sem duplicar
     setRecommendedMovies(prevMovies => {
@@ -347,13 +372,50 @@ const fetchRecommendedMovies = async () => {
       AsyncStorage.setItem('recommendedMovies', JSON.stringify(updatedMovies))
         .then(() => console.log("Filmes recomendados salvos com sucesso."))
         .catch(error => console.error("Erro ao salvar filmes recomendados:", error));
-
+        updateGenreRecommendationsWithGeneralRecommendations(); 
       return updatedMovies;
     });
   } catch (error) {
     console.error("Erro ao buscar filmes recomendados:", error);
   }
 };
+
+const updateGenreRecommendationsWithGeneralRecommendations = () => {
+  let updatedRecommendationsByGenre = { ...recommendedByGenre };
+  recommendedMovies.forEach(movie => {
+    // Verifica se genreId está definido
+    if (movie.genreId) {
+      const movieGenres = movie.genreId.split(",");
+      console.log(movieGenres)
+      movieGenres.forEach(genreId => {
+        const genreName = genres[genreId];
+        if (genreName) {
+          if (!updatedRecommendationsByGenre[genreName]) {
+            updatedRecommendationsByGenre[genreName] = [];
+          }
+          // Evita adicionar duplicatas
+          if (!updatedRecommendationsByGenre[genreName].find(m => m.id === movie.id)) {
+            updatedRecommendationsByGenre[genreName].push(movie);
+          }
+        }
+      });
+    }
+  });
+
+  setRecommendedByGenre(updatedRecommendationsByGenre);
+
+  Object.entries(recommendedByGenre).forEach(([genreName, movies]) => {
+    // Aqui, 'genreName' é o nome do gênero e 'movies' é a lista de filmes desse gênero
+    movies.forEach(movie => {
+      // Aqui, você pode fazer operações com cada 'movie'
+      // Por exemplo, imprimir informações do filme:
+      console.log(`Gênero: ${genreName}, Filme: ${movie.title}`);
+    });
+  });
+
+
+};
+
 
 
 useEffect(() => {
@@ -413,7 +475,7 @@ const fetchGenreBasedRecommendations = async () => {
     const url = `https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_API_KEY}&language=pt-BR&sort_by=popularity.desc&with_genres=${genreId}`;
     try {
       const response = await axios.get(url);
-      const popularMovies = response.data.results.slice(0, 21);
+      const popularMovies = response.data.results.slice(0, 1);
 
       const moviesWithPlatformsPromises = popularMovies.map(async (movieData: { id: number; title: any; vote_average: any; release_date: any; poster_path: any; genre_ids: any[]; }) => {
         const platforms = await fetchMoviePlatforms(movieData.id);
@@ -680,6 +742,64 @@ useEffect(() => {
     }
   };
 
+// AREA DE TESTES
+
+
+const [paginationState, setPaginationState] = useState({});
+
+const fetchMoviesByGenreAndPage = async (genreId: string | number, page: number) => {
+  console.log('chamou aqui');
+  console.log(`Fetching genre ${genreId} page ${page}`);
+  const url = `https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_API_KEY}&language=pt-BR&sort_by=popularity.desc&with_genres=${genreId}&page=${page}`;
+
+  console.log(url);
+
+  try {
+    const response = await axios.get(url);
+    const { results, total_pages } = response.data;
+
+    // Encontra o nome do gênero correspondente ao genreId
+    const genreName = Object.entries(genres).find(([id, name]) => id.toString() === genreId.toString())?.[1];
+    if (!genreName) {
+      console.error(`Nome do gênero não encontrado para o ID ${genreId}`);
+      return;
+    }
+
+    // Transforma os resultados da API no formato esperado por recommendedByGenre
+    const movies = results.map((movie: { id: any; title: any; vote_average: any; release_date: any; poster_path: any; genre_ids: any[]; }) => ({
+      id: movie.id,
+      title: movie.title,
+      rating: movie.vote_average,
+      date: movie.release_date,
+      imageUrl: `https://image.tmdb.org/t/p/w500${movie.poster_path}`,
+      genreId: movie.genre_ids.join(","),
+    }));
+
+    console.log("Movies found:", movies);
+
+    // Atualiza recommendedByGenre com os novos filmes
+    setRecommendedByGenre(prevState => {
+      // Assegura que a lista de filmes para o gênero específico seja atualizada corretamente
+      const updatedMoviesForGenre = [...(prevState[genreName] || []), ...movies];
+      return { ...prevState, [genreName]: updatedMoviesForGenre };
+    });
+
+    // Atualiza o estado de paginação
+    setPaginationState(prevState => ({
+      ...prevState,
+      [genreId]: {
+        page,
+        hasMore: page < total_pages
+      }
+    }));
+  } catch (error) {
+    console.error(`Erro ao buscar filmes para o gênero ${genreId} na página ${page}:`, error);
+  }
+};
+
+
+
+
   return (
     <UserContext.Provider
       value={{
@@ -699,6 +819,10 @@ useEffect(() => {
         removeFromRecommendedMovies,
         addMovieRecommend,
         fetchMovieDetails,
+
+        fetchMoviesByGenreAndPage,
+        paginationState,
+
       }}
     >
       {children}

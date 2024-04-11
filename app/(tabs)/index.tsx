@@ -10,6 +10,7 @@ import {
   TouchableHighlight,
   Text,
   View,
+  Linking,
 } from "react-native";
 import { TouchableWithoutFeedback, Keyboard } from "react-native";
 import axios from "axios";
@@ -81,6 +82,7 @@ export function getAllWatchedMovies(movies: Movie[]): string[] {
 }
 
 export default function HomeScreen() {
+
  
   // // ANUNCIOS
   // const [interstitialLoaded, setInterstitialLoaded] = useState(false);
@@ -114,7 +116,7 @@ export default function HomeScreen() {
   //   return unsubscribeInterstitialEvents;
   // }, []);
 
-  const { movies, addMovieReview, recommendedMovies, removeFromList } =
+  const { movies, addMovieReview, recommendedMovies, removeFromList, fetchMovieDetails } =
     useUser(); // Use o contexto de usuário
   const [movieInput, setMovieInput] = useState<string>("");
   const [searchResults, setSearchResults] = useState<Movie[]>([]);
