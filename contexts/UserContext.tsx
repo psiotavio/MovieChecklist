@@ -769,22 +769,29 @@ const fetchMoviesByGenreAndPage = async (genreId: string | number, page: number)
       return;
     }
 
-    // Transforma os resultados da API no formato esperado por recommendedByGenre
-    const movies = results.map((movie: { id: any; title: any; vote_average: any; release_date: any; poster_path: any; genre_ids: any[]; }) => ({
-      id: movie.id,
-      title: movie.title,
-      rating: movie.vote_average,
-      date: movie.release_date,
-      imageUrl: `https://image.tmdb.org/t/p/original${movie.poster_path}`,
-      genreId: movie.genre_ids.join(","),
-    }));
+    // Para cada filme, busca as plataformas de streaming disponíveis
+    const moviesWithPlatformsPromises = results.map(async (movie: { id: number; title: any; vote_average: any; release_date: any; poster_path: any; genre_ids: any[]; }) => {
+      const platforms = await fetchMoviePlatforms(movie.id); // Assume que você já tem esta função implementada
+      return {
+        id: movie.id,
+        title: movie.title,
+        rating: movie.vote_average,
+        date: movie.release_date,
+        imageUrl: `https://image.tmdb.org/t/p/original${movie.poster_path}`,
+        genreId: movie.genre_ids.join(","),
+        streamingPlatforms: platforms, // Inclui plataformas de streaming encontradas
+      };
+    });
 
-    console.log("Movies found:", movies);
+    // Espera todas as promessas de busca das plataformas serem resolvidas
+    const moviesWithPlatforms = await Promise.all(moviesWithPlatformsPromises);
 
-    // Atualiza recommendedByGenre com os novos filmes
+    console.log("Movies with platforms found:", moviesWithPlatforms);
+
+    // Atualiza recommendedByGenre com os novos filmes, incluindo as plataformas
     setRecommendedByGenre(prevState => {
       // Assegura que a lista de filmes para o gênero específico seja atualizada corretamente
-      const updatedMoviesForGenre = [...(prevState[genreName] || []), ...movies];
+      const updatedMoviesForGenre = [...(prevState[genreName] || []), ...moviesWithPlatforms];
       return { ...prevState, [genreName]: updatedMoviesForGenre };
     });
 

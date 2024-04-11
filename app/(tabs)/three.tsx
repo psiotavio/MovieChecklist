@@ -18,6 +18,7 @@ import logo from "../../assets/images/logo.png";
 import { useTheme } from "../../constants/temas/ThemeContext";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as Linking from "expo-linking";
+import { set } from "date-fns";
 
 // import {
 //   AdEventType,
@@ -157,8 +158,10 @@ export default function TabThreeScreen() {
 
   useEffect(() => {
     if (selectedGenre !== "Recomendado para você") {
-      const currentGenreId = Object.keys(generosFiltro).find(key => generosFiltro[key] === selectedGenre);
-        fetchMoviesByGenreAndPage(currentGenreId!, 1);
+      const currentGenreId = Object.keys(generosFiltro).find(
+        (key) => generosFiltro[key] === selectedGenre
+      );
+      fetchMoviesByGenreAndPage(currentGenreId!, 1);
     }
   }, [selectedGenre]); // Dependências do useEffect
 
@@ -178,6 +181,8 @@ export default function TabThreeScreen() {
         ...recommendedBySelectedGenre,
         ...(recommendedByGenre[selectedGenre] || []),
       ];
+
+      allMovies.map((moviesS) => console.log(moviesS.title));
     }
 
     // Remove duplicatas
@@ -328,19 +333,30 @@ export default function TabThreeScreen() {
 
   //TESTES
   const handleLoadMore = async () => {
+    if (
+      selectedGenre != "Recomendado para você" &&
+      selectedPlatform == "Todos"
+    ) {
+      const currentGenreId =
+        Object.keys(generosFiltro).find(
+          (key) => generosFiltro[key] === selectedGenre
+        ) || ""; // Isso converte o nome do gênero de volta para seu ID correspondente
+      console.log(currentGenreId);
+      const currentPage = paginationState[currentGenreId]?.page || 0;
+      await fetchMoviesByGenreAndPage(currentGenreId, currentPage + 1);
+    } else if (selectedGenre != "Recomendado para você" && selectedPlatform != "Todos") {
+      const currentGenreId =
+        Object.keys(generosFiltro).find(
+          (key) => generosFiltro[key] === selectedGenre
+        ) || ""; // Isso converte o nome do gênero de volta para seu ID correspondente
+      console.log(currentGenreId);
+      const currentPage = paginationState[currentGenreId]?.page || 0;
 
-    if (selectedGenre != "Recomendado para você"){
-
-    const currentGenreId = Object.keys(generosFiltro).find(key => generosFiltro[key] === selectedGenre) || ""; // Isso converte o nome do gênero de volta para seu ID correspondente
-    console.log(currentGenreId)
-    const currentPage = paginationState[currentGenreId]?.page || 0;
-    const hasMore = paginationState[currentGenreId]?.hasMore;
-    
-
-   await fetchMoviesByGenreAndPage(currentGenreId, currentPage + 1);
+      setTimeout(() => {
+        fetchMoviesByGenreAndPage(currentGenreId, currentPage + 1);
+      }, 3000);
     }
-};
-
+  };
 
   return (
     <SafeAreaView
