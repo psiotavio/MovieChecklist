@@ -259,7 +259,7 @@ export default function TabFourScreen() {
                 renderItem={({ item, index }) => (
                   <View style={styles.movieItem}>
                     <TouchableOpacity
-                      style={styles.movieList}
+                      style={[styles.movieList, {borderBottomColor: theme.borderBottom}]}
                       onPress={() => openModalMovie(item.id, item)}
                     >
                       <View style={styles.imageIndex}>
@@ -916,6 +916,7 @@ const styles = StyleSheet.create({
   },
 
   flatlist: {
+    paddingVertical: 15,
     width: "100%",
   },
   itemIndex: {
@@ -936,7 +937,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 20,
     borderBottomWidth: 2,
-    borderBottomColor: "rgba(255,255,255,0.3)",
+    
   },
   scrollView: {
     width: "100%",

@@ -8,6 +8,7 @@ export type Theme = {
     textButtons: string;
     errorColor: string;
     modalThemeMode: string;
+    borderBottom: string;
   };
   
   export const themes: Record<'light' | 'dark', Theme> = {
@@ -19,7 +20,9 @@ export type Theme = {
       modalBackgroundSecondary: '#35383F',
       textButtons: '#FFFF',
       errorColor: '#D14848',
-      modalThemeMode: '#B3ABD4'
+      modalThemeMode: '#B3ABD4',
+
+      borderBottom: 'rgba(0,0,0,0.25)'
     },
     dark: {
         background: '#181A20',
@@ -29,6 +32,7 @@ export type Theme = {
         modalBackgroundSecondary: '#35383F',
         textButtons: '#FFFF',
         errorColor: '#D14848',
-        modalThemeMode: 'black'
+        modalThemeMode: 'black',
+        borderBottom: 'rgba(255,255,255,0.25)'
       }
   };
