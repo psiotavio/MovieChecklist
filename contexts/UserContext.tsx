@@ -252,7 +252,7 @@ const fetchMoviePlatforms = async (movieId: number) => {
     const streamingPlatforms = platformsInBrazil?.flatrate?.map((provider: { provider_id: any; provider_name: any; logo_path: any; }) => ({
       id: provider.provider_id,
       name: provider.provider_name,
-      logoPath: `https://image.tmdb.org/t/p/w500${provider.logo_path}`,
+      logoPath: `https://image.tmdb.org/t/p/w500${provider.logo_path}.svg`,
     })) || [];
 
     cache.moviePlatforms[movieId] = streamingPlatforms;
@@ -267,6 +267,7 @@ const fetchMoviePlatforms = async (movieId: number) => {
 
   const fetchMovieDetails = async (movieId: number, rating: number, callback: (movie: MovieReview) => void) => {
     const detailsUrl = `https://api.themoviedb.org/3/movie/${movieId}?api_key=${TMDB_API_KEY}&language=pt-BR`;
+    console.log(detailsUrl)
     const creditsUrl = `https://api.themoviedb.org/3/movie/${movieId}/credits?api_key=${TMDB_API_KEY}`;
     const platformsUrl = `https://api.themoviedb.org/3/movie/${movieId}/watch/providers?api_key=${TMDB_API_KEY}`;
     rating = rating;
@@ -284,6 +285,7 @@ const fetchMoviePlatforms = async (movieId: number) => {
       ]);
   
       const movieDetails = detailsResponse.data;
+      console.log('MOVIE DETAILS: ', movieDetails)
       const creditsDetails = creditsResponse.data;
       const platformsDetails = platformsResponse.data.results?.BR?.flatrate || [];
   
@@ -299,7 +301,7 @@ const fetchMoviePlatforms = async (movieId: number) => {
       const streamingPlatforms = platformsData.map((platform: { provider_id: any; provider_name: any; logo_path: any; }) => ({
           id: platform.provider_id,
           name: platform.provider_name,
-          logoPath: platform.logo_path ? `https://image.tmdb.org/t/p/w500${platform.logo_path}` : null,
+          logoPath: platform.logo_path ? `https://image.tmdb.org/t/p/original${platform.logo_path}.svg` : null,
       }));
 
       if (platformsDetails.length === 0) {
@@ -316,11 +318,12 @@ const fetchMoviePlatforms = async (movieId: number) => {
         rating,
         imageUrl: movieDetails.poster_path ? `https://image.tmdb.org/t/p/w500${movieDetails.poster_path}` : undefined,
         streamingPlatforms,
-        alternateImageUrl: movieDetails.backdrop_path ? `https://image.tmdb.org/t/p/w500${movieDetails.backdrop_path}` : undefined,
+        alternateImageUrl: movieDetails.backdrop_path ? `https://image.tmdb.org/t/p/original${movieDetails.backdrop_path}` : undefined,
         description: movieDetails.overview,
         actors,
         genreId: movieDetails.genres.map((genre : GenreMappings) => genre.id).join(","), 
       };
+      console.log(movieCompleteDetails.alternateImageUrl)
   
       // Usando callback para atualizar o estado no componente
       callback(movieCompleteDetails);
@@ -357,7 +360,7 @@ const fetchRecommendedMovies = async () => {
         title: movie.title,
         rating: movie.vote_average,
         date: movie.release_date,
-        imageUrl: `https://image.tmdb.org/t/p/w500${movie.poster_path}`,
+        imageUrl: `https://image.tmdb.org/t/p/original${movie.poster_path}`,
         streamingPlatforms: platforms,
         genreId: genreNames,
       };
@@ -772,7 +775,7 @@ const fetchMoviesByGenreAndPage = async (genreId: string | number, page: number)
       title: movie.title,
       rating: movie.vote_average,
       date: movie.release_date,
-      imageUrl: `https://image.tmdb.org/t/p/w500${movie.poster_path}`,
+      imageUrl: `https://image.tmdb.org/t/p/original${movie.poster_path}`,
       genreId: movie.genre_ids.join(","),
     }));
 
