@@ -531,9 +531,9 @@ export default function TabThreeScreen() {
 
       <Modal
         animationType="slide"
-        transparent={true}
         visible={showModal}
         onRequestClose={closeModal}
+        presentationStyle="pageSheet"
       >
         <View style={styles.modalContainer}>
           {isDetailsLoading ? (
@@ -573,65 +573,9 @@ export default function TabThreeScreen() {
                   style={{
                     display: "flex",
                     flexDirection: "column",
-                    height: BANNER_H + 150,
+                    height: BANNER_H + 50,
                   }}
                 >
-                  <Animated.View
-                    style={{
-                      backgroundColor: theme.modalThemeMode,
-                      height: 50,
-                      width: "200%",
-                      alignSelf: "center",
-                      shadowColor: theme.modalThemeMode,
-                      shadowOffset: { width: 0, height: 45 },
-                      shadowOpacity: 1,
-                      shadowRadius: 5,
-                      zIndex: 9999,
-                      transform: [
-                        {
-                          translateY: scrollY.interpolate({
-                            inputRange: [-50, 0, 50],
-                            outputRange: [-100 / 2, 0, 0], // Previne movimento para cima
-                          }),
-                        },
-                        {
-                          scale: scrollY.interpolate({
-                            inputRange: [-50, 0],
-                            outputRange: [2, 1], // Permite expansão ao puxar para baixo
-                            extrapolateRight: "clamp", // Previne que a escala se ajuste além do especificado
-                          }),
-                        },
-                      ],
-                    }}
-                  >
-                    <Animated.View
-                      style={{
-                        backgroundColor: theme.modalThemeMode,
-                        height: 30,
-                        width: "200%",
-                        alignSelf: "center",
-                        shadowColor: theme.modalThemeMode,
-                        shadowOffset: { width: 0, height: 40 },
-                        shadowOpacity: 1,
-                        shadowRadius: 10,
-                        zIndex: 9999,
-                      }}
-                    ></Animated.View>
-                  </Animated.View>
-
-                  <Animated.View
-                    style={{
-                      backgroundColor: theme.modalThemeMode,
-                      height: 10,
-                      width: "200%",
-                      alignSelf: "center",
-                      shadowColor: theme.modalThemeMode,
-                      shadowOffset: { width: 0, height: 10 },
-                      shadowOpacity: 1,
-                      shadowRadius: 20,
-                      zIndex: 9999,
-                    }}
-                  ></Animated.View>
 
                   <Animated.Image
                     style={[
