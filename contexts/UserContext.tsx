@@ -80,6 +80,11 @@ interface PaginationState {
   };
 }
 
+interface FetchRandomMovieOptions {
+  genres?: string[];
+  platforms?: string[];
+}
+
 interface UserContextType {
   movies: MovieReview[];
   removeFromList: (movieId: number) => void;
@@ -99,6 +104,7 @@ interface UserContextType {
   fetchMovieDetails: (movieId: number, rating: number, callback: (movie: Movie) => void) => Promise<void>;
   fetchMoviesByGenreAndPage: (genreId: string | number, page: number) => Promise<void>;
   paginationState: PaginationState;
+  fetchRandomMovie: (options: FetchRandomMovieOptions) => Promise<Movie | null>;
 }
 
 // Context
@@ -121,10 +127,14 @@ const UserContext = createContext<UserContextType>({
   fetchMovieDetails: async (movieId: number, rating: number, callback: (movie: Movie) => void) => {
     console.warn("fetchMovieDetails function not implemented");
   },
-   fetchMoviesByGenreAndPage: async () => {
+  fetchMoviesByGenreAndPage: async () => {
     console.warn("fetchMoviesByGenreAndPage function not implemented");
   },
   paginationState: {},
+  fetchRandomMovie: async (options: FetchRandomMovieOptions) => {
+    console.warn("fetchRandomMovie function not implemented yet");
+    return null; // Returns null by default if not implemented
+  },
 });
 
 interface GenreMappings {
@@ -267,9 +277,11 @@ const fetchMoviePlatforms = async (movieId: number) => {
 
   const fetchMovieDetails = async (movieId: number, rating: number, callback: (movie: MovieReview) => void) => {
     const detailsUrl = `https://api.themoviedb.org/3/movie/${movieId}?api_key=${TMDB_API_KEY}&language=pt-BR`;
-    console.log(detailsUrl)
+    console.log("DETALHES: ", detailsUrl)
     const creditsUrl = `https://api.themoviedb.org/3/movie/${movieId}/credits?api_key=${TMDB_API_KEY}`;
+    console.log("DETALHES CREDITOS: ", creditsUrl)
     const platformsUrl = `https://api.themoviedb.org/3/movie/${movieId}/watch/providers?api_key=${TMDB_API_KEY}`;
+    console.log("DETALHES PLATAFORMAS: ", platformsUrl)
     rating = rating;
 
     if (typeof callback !== 'function') {
@@ -811,6 +823,45 @@ const fetchMoviesByGenreAndPage = async (genreId: string | number, page: number)
 
 
 
+//TESTE RANDOM
+const fetchRandomMovie = async (options: FetchRandomMovieOptions): Promise<Movie | null> => {
+  try {
+      // Exemplo: URL construída baseada em opções fornecidas
+      const page = Math.floor(Math.random() * 3) + 1;
+      const url = `https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_API_KEY}&language=pt-BR&page=${page}&with_genres=${options.genres?.join(',')}&with_watch_providers=${options.platforms?.join(',')}&watch_region=BR`;
+      console.log(url)
+      const response = await axios.get(url);
+      if (response.data.results.length > 0) {
+          // Simulação de escolha aleatória de um filme da lista retornada
+          const randomIndex = Math.floor(Math.random() * response.data.results.length);
+          const movie = response.data.results[randomIndex];
+
+          // Assumindo que o filme seja transformado corretamente no formato Movie
+          return {
+              id: movie.id,
+              title: movie.title,
+              rating: movie.vote_average,  // Suposição de nome de campo
+              date: movie.release_date,    // Suposição de nome de campo
+              imageUrl: `https://image.tmdb.org/t/p/original${movie.poster_path}`,
+              description: movie.overview, // Suposição de nome de campo
+              genreId: options.genres?.join(','), // Exemplo simplificado
+              streamingPlatforms: [], // Isso precisaria de lógica adicional para preencher
+              actors: [], // Isso precisaria de lógica adicional para preencher
+              alternateImageUrl: `https://image.tmdb.org/t/p/original${movie.backdrop_path}`
+          } as Movie;
+      } else {
+          return null;
+      }
+  } catch (error) {
+      console.error('Error fetching random movie:', error);
+      return null;
+  }
+};
+
+
+
+
+
   return (
     <UserContext.Provider
     
@@ -834,6 +885,7 @@ const fetchMoviesByGenreAndPage = async (genreId: string | number, page: number)
 
         fetchMoviesByGenreAndPage,
         paginationState,
+        fetchRandomMovie,
 
       }}
     >

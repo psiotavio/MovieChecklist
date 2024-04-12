@@ -28,6 +28,7 @@ import {
 } from "react-native-safe-area-context";
 import Icon from "react-native-vector-icons/FontAwesome";
 import FastImage from 'react-native-fast-image';
+import FilterModal from "../../components/FilterModal/FilterModal";
 
 // import {
 //   AdEventType,
@@ -433,6 +434,7 @@ export default function HomeScreen() {
               { backgroundColor: theme.background },
             ]}
           >
+
             <TextInput
               style={[
                 styles.input, // Estilos pré-definidos do TextInput
@@ -447,6 +449,9 @@ export default function HomeScreen() {
               value={movieInput}
               onChangeText={handleInputChange}
             />
+          </View>
+          <View style={styles.filterModalButton}>
+          <FilterModal />
           </View>
           <View style={styles.moviesLists}>
             <ScrollView
@@ -1166,6 +1171,14 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
+  filterModalButton:{
+    position: 'absolute',
+    bottom: 90,
+    right: 0,
+    padding: 20,
+    zIndex: 99999,
+  },
+
 
     // Estilos do modal
     modalContainerMovie: {
