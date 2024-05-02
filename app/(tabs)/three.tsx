@@ -12,6 +12,7 @@ import {
   Button,
   Animated,
   Share,
+  Platform,
 } from "react-native";
 import { useUser } from "../../contexts/UserContext";
 import logo from "../../assets/images/logo.png";
@@ -20,12 +21,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import * as Linking from "expo-linking";
 import { set } from "date-fns";
 
-// import {
-//   AdEventType,
-//   InterstitialAd,
-//   TestIds,
-//   BannerAd,
-// } from "react-native-google-mobile-ads";
+import {
+  AdEventType,
+  InterstitialAd,
+  TestIds,
+  BannerAd,
+} from "react-native-google-mobile-ads";
 
 const BANNER_H = 250;
 
@@ -33,7 +34,13 @@ const BANNER_H = 250;
 //   requestNonPersonalizedAdsOnly: true,
 // });
 
-// const adUnitId = __DEV__ ? TestIds.BANNER : "your-ad-unit-id-here";
+let adUnitId: string;
+
+if (Platform.OS === 'ios') {
+    adUnitId = "ca-app-pub-1771446730721916/1536500762"; // Coloque o ID do iOS aqui
+} else if (Platform.OS === 'android') {
+    adUnitId = "ca-app-pub-1771446730721916/6230272284"; // Coloque o ID do Android aqui
+}
 
 type Actor = {
   id: number;
@@ -152,7 +159,6 @@ export default function TabThreeScreen() {
     "27": "Terror",
     "10402": "Música",
     "9648": "Mistério",
-    "10749": "Romance",
     "878": "Ficção científica",
   };
 
@@ -344,7 +350,10 @@ export default function TabThreeScreen() {
       console.log(currentGenreId);
       const currentPage = paginationState[currentGenreId]?.page || 0;
       await fetchMoviesByGenreAndPage(currentGenreId, currentPage + 1);
-    } else if (selectedGenre != "Recomendado para você" && selectedPlatform != "Todos") {
+    } else if (
+      selectedGenre != "Recomendado para você" &&
+      selectedPlatform != "Todos"
+    ) {
       const currentGenreId =
         Object.keys(generosFiltro).find(
           (key) => generosFiltro[key] === selectedGenre
@@ -570,13 +579,14 @@ export default function TabThreeScreen() {
                 scrollEventThrottle={16} // Defina a frequência de eventos de rolagem
               >
                 <View
-                  style={{
+                  style={[{
                     display: "flex",
                     flexDirection: "column",
-                    height: BANNER_H + 50,
-                  }}
+                    height: BANNER_H,
+                    backgroundColor: theme.modalBackground
+                  }, styles.imageShadowContainerBanner]}
                 >
-
+                  
                   <Animated.Image
                     style={[
                       styles.movieImageBanner,
@@ -608,10 +618,17 @@ export default function TabThreeScreen() {
                 <View style={styles.modalInfoContent}>
                   <View style={styles.modalMovieInfo}>
                     <View style={styles.modalMovieTitle}>
-                      <Image
-                        style={styles.movieImage}
-                        source={{ uri: selectedMovie?.imageUrl }}
-                      />
+                      <View
+                        style={[
+                          styles.imageShadowContainer,
+                          { backgroundColor: theme.modalBackground },
+                        ]}
+                      >
+                        <Image
+                          style={styles.movieImage}
+                          source={{ uri: selectedMovie?.imageUrl }}
+                        />
+                      </View>
                       <View style={styles.titleAndDate}>
                         <Text
                           style={[
@@ -653,16 +670,47 @@ export default function TabThreeScreen() {
                       </Text>
                     </Text>
 
-                    <Text style={{ color: theme.text, marginTop: 30 }}>
-                      <Text style={{ fontWeight: "bold", fontSize: 16 }}>
-                        Atores:{" "}
+                    <View style={{ marginTop: 30 }}>
+                      <Text
+                        style={{
+                          color: theme.text,
+                          fontWeight: "bold",
+                          fontSize: 16,
+                        }}
+                      >
+                        Atores:
                       </Text>
-                      <Text style={styles.modalMovieTitleTextActors}>
-                        {selectedMovie?.actors
-                          ?.map((actor) => actor.name)
-                          .join(", ")}
-                      </Text>
-                    </Text>
+                      <ScrollView
+                        horizontal={true}
+                        showsHorizontalScrollIndicator={false}
+                        style={styles.actorsContainer}
+                      >
+                        {selectedMovie?.actors?.map((actor, index) => (
+                          <View key={index} style={styles.actorCard}>
+                            <View
+                              style={[
+                                styles.imageShadowContainerActor,
+                                { backgroundColor: theme.modalBackground },
+                              ]}
+                            >
+                              <Image
+                                source={{ uri: actor.profilePath! }}
+                                style={styles.actorImage}
+                                resizeMode="cover"
+                              />
+                            </View>
+                            <Text
+                              style={[
+                                styles.modalMovieTitleTextActors,
+                                { color: theme.text },
+                              ]}
+                            >
+                              {actor.name}
+                            </Text>
+                          </View>
+                        ))}
+                      </ScrollView>
+                    </View>
 
                     <View
                       style={{
@@ -732,7 +780,7 @@ export default function TabThreeScreen() {
                       marginVertical: 5,
                     }}
                   >
-                    {/* <BannerAd
+                    <BannerAd
                       unitId={adUnitId}
                       size="BANNER"
                       onAdLoaded={() => {}}
@@ -742,7 +790,7 @@ export default function TabThreeScreen() {
                       requestOptions={{
                         requestNonPersonalizedAdsOnly: true,
                       }}
-                    /> */}
+                    />
                   </View>
                 </View>
               </Animated.ScrollView>
@@ -867,6 +915,25 @@ const styles = StyleSheet.create({
     shadowRadius: 3, // Raio da sombra
     elevation: 5, // Adiciona sombra no Android
   },
+  imageShadowContainerBanner: {
+    marginBottom: 30,
+    shadowColor: "#000", // Cor da sombra
+    shadowOffset: { width: 0, height: 2 }, // Deslocamento da sombra
+    shadowOpacity: 1, // Opacidade da sombra
+    shadowRadius: 3, // Raio da sombra
+    elevation: 5, // Adiciona sombra no Android
+  },
+  imageShadowContainerActor: {
+    width: 90,
+    height: 125,
+    marginBottom: 5,
+    borderRadius: 10,
+    shadowColor: "#000", // Cor da sombra
+    shadowOffset: { width: 0, height: 2 }, // Deslocamento da sombra
+    shadowOpacity: 1, // Opacidade da sombra
+    shadowRadius: 3, // Raio da sombra
+    elevation: 5, // Adiciona sombra no Android
+  },
 
   imageContainer: {
     width: "100%", // Usa 100% do contêiner de sombra
@@ -879,7 +946,6 @@ const styles = StyleSheet.create({
     width: "100%",
     flex: 1,
     resizeMode: "cover",
-    marginBottom: 30,
   },
 
   // Estilos do modal
@@ -957,5 +1023,20 @@ const styles = StyleSheet.create({
     gap: 10,
     paddingVertical: 20,
     alignItems: "center",
+  },
+
+  actorsContainer: {
+    width: "100%",
+  },
+  actorCard: {
+    padding: 10,
+    alignItems: "center",
+  },
+  actorImage: {
+    width: 90,
+    height: 125,
+    objectFit: "cover",
+    borderRadius: 10,
+    marginBottom: 10,
   },
 });

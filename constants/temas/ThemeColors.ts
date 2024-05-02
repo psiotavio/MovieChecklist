@@ -21,7 +21,6 @@ export type Theme = {
       textButtons: '#FFFF',
       errorColor: '#D14848',
       modalThemeMode: '#B3ABD4',
-
       borderBottom: 'rgba(0,0,0,0.25)'
     },
     dark: {

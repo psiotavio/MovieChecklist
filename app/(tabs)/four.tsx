@@ -12,6 +12,8 @@ import {
   TouchableHighlight,
   Animated,
   Button,
+  Platform,
+  ScrollView,
 } from "react-native";
 import { useUser } from "../../contexts/UserContext"; // Certifique-se de que esta é a importação correta
 import StarRating from "../../components/starComponent/starComponent";
@@ -20,16 +22,22 @@ import { useTheme } from "../../constants/temas/ThemeContext";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ActivityIndicator } from "react-native-paper";
 
-// import {
-//   AdEventType,
-//   BannerAd,
-//   InterstitialAd,
-//   TestIds,
-// } from "react-native-google-mobile-ads";
+import {
+  AdEventType,
+  BannerAd,
+  InterstitialAd,
+  TestIds,
+} from "react-native-google-mobile-ads";
 
 const BANNER_H = 250;
 
-// const adUnitId = __DEV__ ? TestIds.BANNER : "your-ad-unit-id-here";
+let adUnitId: string;
+
+if (Platform.OS === 'ios') {
+    adUnitId = "ca-app-pub-1771446730721916/1536500762"; // Coloque o ID do iOS aqui
+} else if (Platform.OS === 'android') {
+    adUnitId = "ca-app-pub-1771446730721916/6230272284"; // Coloque o ID do Android aqui
+}
 
 // const anuncio = InterstitialAd.createForAdRequest(TestIds.INTERSTITIAL, {
 //   requestNonPersonalizedAdsOnly: true,
@@ -383,11 +391,12 @@ export default function TabFourScreen() {
                 scrollEventThrottle={16} // Defina a frequência de eventos de rolagem
               >
                 <View
-                  style={{
+                  style={[{
                     display: "flex",
                     flexDirection: "column",
-                    height: BANNER_H + 50,
-                  }}
+                    height: BANNER_H,
+                    backgroundColor: theme.modalBackground
+                  }, styles.imageShadowContainerBanner]}
                 >
                  
 
@@ -422,10 +431,17 @@ export default function TabFourScreen() {
                 <View style={styles.modalInfoContent}>
                   <View style={styles.modalMovieInfo}>
                     <View style={styles.modalMovieTitle}>
-                      <Image
-                        style={styles.movieImage}
-                        source={{ uri: selectedMovieId?.imageUrl }}
-                      />
+                    <View
+                        style={[
+                          styles.imageShadowContainer,
+                          { backgroundColor: theme.modalBackground },
+                        ]}
+                      >
+                        <Image
+                          style={styles.movieImage}
+                          source={{ uri: selectedMovieId?.imageUrl }}
+                        />
+                      </View>
                       <View style={styles.titleAndDate}>
                         <Text
                           style={[
@@ -473,16 +489,47 @@ export default function TabFourScreen() {
                       </Text>
                     </Text>
 
-                    <Text style={{ color: theme.text, marginTop: 30 }}>
-                      <Text style={{ fontWeight: "bold", fontSize: 16 }}>
-                        Atores:{" "}
+                    <View style={{ marginTop: 30 }}>
+                      <Text
+                        style={{
+                          color: theme.text,
+                          fontWeight: "bold",
+                          fontSize: 16,
+                        }}
+                      >
+                        Atores:
                       </Text>
-                      <Text style={styles.modalMovieTitleTextActors}>
-                        {selectedMovieId?.actors
-                          ?.map((actor) => actor.name)
-                          .join(", ")}
-                      </Text>
-                    </Text>
+                      <ScrollView
+                        horizontal={true}
+                        showsHorizontalScrollIndicator={false}
+                        style={styles.actorsContainer}
+                      >
+                        {selectedMovieId?.actors?.map((actor, index) => (
+                          <View key={index} style={styles.actorCard}>
+                            <View
+                              style={[
+                                styles.imageShadowContainerActor,
+                                { backgroundColor: theme.modalBackground },
+                              ]}
+                            >
+                              <Image
+                                source={{ uri: actor.profilePath! }}
+                                style={styles.actorImage}
+                                resizeMode="cover"
+                              />
+                            </View>
+                            <Text
+                              style={[
+                                styles.modalMovieTitleTextActors,
+                                { color: theme.text },
+                              ]}
+                            >
+                              {actor.name}
+                            </Text>
+                          </View>
+                        ))}
+                      </ScrollView>
+                    </View>
 
                     <View
                       style={{
@@ -549,7 +596,7 @@ export default function TabFourScreen() {
                     </View>
 
 
-                    {/* <BannerAd
+                    <BannerAd
                       unitId={adUnitId}
                       size="BANNER"
                       onAdLoaded={() => {}}
@@ -559,7 +606,7 @@ export default function TabFourScreen() {
                       requestOptions={{
                         requestNonPersonalizedAdsOnly: true,
                       }}
-                    /> */}
+                    />
                   </View>
                 </View>
               </Animated.ScrollView>
@@ -610,11 +657,12 @@ export default function TabFourScreen() {
                 scrollEventThrottle={16} // Defina a frequência de eventos de rolagem
               >
                 <View
-                  style={{
+                  style={[{
                     display: "flex",
                     flexDirection: "column",
-                    height: BANNER_H + 50,
-                  }}
+                    height: BANNER_H,
+                    backgroundColor: theme.modalBackground
+                  }, styles.imageShadowContainerBanner]}
                 >
               
                   <Animated.Image
@@ -648,10 +696,17 @@ export default function TabFourScreen() {
                 <View style={styles.modalInfoContent}>
                   <View style={styles.modalMovieInfo}>
                     <View style={styles.modalMovieTitle}>
-                      <Image
-                        style={styles.movieImage}
-                        source={{ uri: selectedMovieId?.imageUrl }}
-                      />
+                    <View
+                        style={[
+                          styles.imageShadowContainer,
+                          { backgroundColor: theme.modalBackground },
+                        ]}
+                      >
+                        <Image
+                          style={styles.movieImage}
+                          source={{ uri: selectedMovieId?.imageUrl }}
+                        />
+                      </View>
                       <View style={styles.titleAndDate}>
                         <Text
                           style={[
@@ -695,16 +750,47 @@ export default function TabFourScreen() {
                       </Text>
                     </Text>
 
-                    <Text style={{ color: theme.text, marginTop: 30 }}>
-                      <Text style={{ fontWeight: "bold", fontSize: 16 }}>
-                        Atores:{" "}
+                    <View style={{ marginTop: 30 }}>
+                      <Text
+                        style={{
+                          color: theme.text,
+                          fontWeight: "bold",
+                          fontSize: 16,
+                        }}
+                      >
+                        Atores:
                       </Text>
-                      <Text style={styles.modalMovieTitleTextActors}>
-                        {selectedMovieId?.actors
-                          ?.map((actor) => actor.name)
-                          .join(", ")}
-                      </Text>
-                    </Text>
+                      <ScrollView
+                        horizontal={true}
+                        showsHorizontalScrollIndicator={false}
+                        style={styles.actorsContainer}
+                      >
+                        {selectedMovieId?.actors?.map((actor, index) => (
+                          <View key={index} style={styles.actorCard}>
+                            <View
+                              style={[
+                                styles.imageShadowContainerActor,
+                                { backgroundColor: theme.modalBackground },
+                              ]}
+                            >
+                              <Image
+                                source={{ uri: actor.profilePath! }}
+                                style={styles.actorImage}
+                                resizeMode="cover"
+                              />
+                            </View>
+                            <Text
+                              style={[
+                                styles.modalMovieTitleTextActors,
+                                { color: theme.text },
+                              ]}
+                            >
+                              {actor.name}
+                            </Text>
+                          </View>
+                        ))}
+                      </ScrollView>
+                    </View>
 
                     <View
                       style={{
@@ -758,7 +844,7 @@ export default function TabFourScreen() {
                       marginVertical: 5,
                     }}
                   >
-                    {/* <BannerAd
+                    <BannerAd
                       unitId={adUnitId}
                       size="BANNER"
                       onAdLoaded={() => {}}
@@ -768,7 +854,7 @@ export default function TabFourScreen() {
                       requestOptions={{
                         requestNonPersonalizedAdsOnly: true,
                       }}
-                    /> */}
+                    />
                   </View>
                 </View>
               </Animated.ScrollView>
@@ -874,8 +960,8 @@ const styles = StyleSheet.create({
     marginRight: 16,
   },
   movieImage: {
-    width: 85,
-    height: 130,
+    width: 100,
+    height: 150,
     resizeMode: "cover",
     borderRadius: 10,
   },
@@ -1068,6 +1154,53 @@ const styles = StyleSheet.create({
     width: "100%",
     flex: 1,
     resizeMode: "cover",
+  },
+
+  imageShadowContainer: {
+    width: 100,
+    height: 150,
+    marginBottom: 5,
+    borderRadius: 10,
+    shadowColor: "#000", // Cor da sombra
+    shadowOffset: { width: 0, height: 2 }, // Deslocamento da sombra
+    shadowOpacity: 1, // Opacidade da sombra
+    shadowRadius: 3, // Raio da sombra
+    elevation: 5, // Adiciona sombra no Android
+  },
+  
+  imageShadowContainerBanner: {
     marginBottom: 30,
+    shadowColor: "#000", // Cor da sombra
+    shadowOffset: { width: 0, height: 2 }, // Deslocamento da sombra
+    shadowOpacity: 1, // Opacidade da sombra
+    shadowRadius: 3, // Raio da sombra
+    elevation: 5, // Adiciona sombra no Android
+  },
+  imageShadowContainerActor: {
+    width: 90,
+    height: 125,
+    marginBottom: 5,
+    borderRadius: 10,
+    shadowColor: "#000", // Cor da sombra
+    shadowOffset: { width: 0, height: 2 }, // Deslocamento da sombra
+    shadowOpacity: 1, // Opacidade da sombra
+    shadowRadius: 3, // Raio da sombra
+    elevation: 5, // Adiciona sombra no Android
+  },
+
+
+  actorsContainer: {
+    width: "100%",
+  },
+  actorCard: {
+    padding: 10,
+    alignItems: "center",
+  },
+  actorImage: {
+    width: 90,
+    height: 125,
+    objectFit: "cover",
+    borderRadius: 10,
+    marginBottom: 10,
   },
 });

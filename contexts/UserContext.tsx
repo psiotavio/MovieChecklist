@@ -152,7 +152,6 @@ const genres: GenreMappings = {
   "27": "Terror",
   "10402": "Música",
   "9648": "Mistério",
-  "10749": "Romance",
   "878": "Ficção científica",
 };
 
@@ -300,13 +299,19 @@ const fetchMoviePlatforms = async (movieId: number) => {
       console.log('MOVIE DETAILS: ', movieDetails)
       const creditsDetails = creditsResponse.data;
       const platformsDetails = platformsResponse.data.results?.BR?.flatrate || [];
+
+      console.log(creditsResponse.data.cast);
+
+
   
       // Mapeando atores
-      const actors = creditsDetails.cast.slice(0, 10).map((actor : Actor) => ({
+      const actors = creditsResponse.data.cast.slice(0, 11).map((actor: any) => ({
         id: actor.id,
         name: actor.name,
-        profilePath: actor.profilePath ? `https://image.tmdb.org/t/p/w500${actor.profilePath}` : undefined,
+        profilePath: actor.profile_path ? `https://image.tmdb.org/t/p/w500${actor.profile_path}` : undefined,
       }));
+      console.log(actors);
+      
   
       // Mapeando plataformas de streaming
       const platformsData = platformsResponse.data.results?.BR?.flatrate || [];

@@ -13,6 +13,7 @@ import {
   Linking,
   Animated,
   ActivityIndicator,
+  Platform,
 } from "react-native";
 import { TouchableWithoutFeedback, Keyboard } from "react-native";
 import axios from "axios";
@@ -30,15 +31,21 @@ import Icon from "react-native-vector-icons/FontAwesome";
 import FastImage from 'react-native-fast-image';
 import FilterModal from "../../components/FilterModal/FilterModal";
 
-// import {
-//   AdEventType,
-//   InterstitialAd,
-//   TestIds,
-// } from "react-native-google-mobile-ads";
+import {
+  AdEventType,
+  InterstitialAd,
+  TestIds,
+  BannerAd,
+} from "react-native-google-mobile-ads";
 
-// const anuncio = InterstitialAd.createForAdRequest(TestIds.INTERSTITIAL, {
-//   requestNonPersonalizedAdsOnly: true,
-// });
+let adUnitId: string;
+
+if (Platform.OS === 'ios') {
+    adUnitId = "ca-app-pub-1771446730721916/1536500762"; // Coloque o ID do iOS aqui
+} else if (Platform.OS === 'android') {
+    adUnitId = "ca-app-pub-1771446730721916/6230272284"; // Coloque o ID do Android aqui
+}
+
 
 const BANNER_H = 250;
 
@@ -165,26 +172,45 @@ export default function HomeScreen() {
   const searchMovies = async (query: string) => {
     try {
       const response = await axios.get(
-        `https://api.themoviedb.org/3/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(
-          query
-        )}`
+        `https://api.themoviedb.org/3/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}`
       );
-
+  
       if (response.data.results) {
-        const results = response.data.results.map((movieData: any) => ({
+        const filteredResults = response.data.results.filter((movieData: any) => {
+          return movieData.overview && movieData.overview.trim().length > 0;
+        });
+  
+        // Ordenar os resultados com base no número de avaliações
+        const sortedResults = filteredResults.sort((a: any, b: any) => {
+          const voteCountA = a.vote_count || 0; // Atribui 0 se vote_count não estiver definido
+          const voteCountB = b.vote_count || 0;
+  
+          if (voteCountA < 150 && voteCountB >= 150) {
+            return 1; // Move A para o final se A tem menos de 150 avaliações e B tem 150 ou mais
+          } else if (voteCountB < 150 && voteCountA >= 150) {
+            return -1; // Move B para o final se B tem menos de 150 avaliações e A tem 150 ou mais
+          } else {
+            return voteCountB - voteCountA; // Ordena por maior número de avaliações se ambos têm mais de 150 avaliações
+          }
+        });
+  
+        const results = sortedResults.map((movieData: any) => ({
           id: movieData.id,
           title: movieData.title,
           date: new Date().toLocaleDateString(),
           imageUrl: `https://image.tmdb.org/t/p/w500${movieData.poster_path}`,
         }));
+  
         setSearchResults(results);
       } else {
         setSearchResults([]);
       }
     } catch (error) {
-      console.error("Erro ao buscar filmes:", error);
+      console.error("Error fetching movies:", error);
     }
   };
+  
+  
 
   const handleInputChange = (text: string) => {
     setMovieInput(text);
@@ -274,18 +300,20 @@ export default function HomeScreen() {
     arr2: { title: string; data: Movie[] }[]
   ): { title: string; data: Movie[] }[] => {
     const combinedArray: { title: string; data: Movie[] }[] = [];
-
-    for (let i = 0; i < Math.max(arr1.length, arr2.length); i++) {
-      if (i < arr1.length) {
-        combinedArray.push(arr1[i]);
+    const reversedArr1 = [...arr1].reverse(); // Faz uma cópia de arr1 e inverte a ordem dos elementos
+  
+    for (let i = 0; i < Math.max(reversedArr1.length, arr2.length); i++) {
+      if (i < reversedArr1.length) {
+        combinedArray.push(reversedArr1[i]);
       }
       if (i < arr2.length) {
         combinedArray.push(arr2[i]);
       }
     }
-
+  
     return combinedArray;
   };
+  
 
   const organizedMovies: OrganizedMovies = movies.reduce((acc, movie) => {
     const monthTitle = getMonthTitle(movie.date);
@@ -298,11 +326,12 @@ export default function HomeScreen() {
       acc[monthTitle] = { title: `Assistidos em ${monthTitle}`, data: [] };
     }
 
-    acc[monthTitle].data.push(movie);
+    acc[monthTitle].data.unshift(movie);
     return acc;
   }, {} as OrganizedMovies);
 
   const organizedMoviesArray = Object.values(organizedMovies);
+
   const bestMoviesArray: { title: string; data: Movie[] }[] =
     organizedMoviesArray.map((item) => {
       const bestMovies = item.data
@@ -656,12 +685,13 @@ export default function HomeScreen() {
                 )}
                 scrollEventThrottle={16} // Defina a frequência de eventos de rolagem
               >
-                <View
-                  style={{
+                 <View
+                  style={[{
                     display: "flex",
                     flexDirection: "column",
-                    height: BANNER_H + 50,
-                  }}
+                    height: BANNER_H,
+                    backgroundColor: theme.modalBackground
+                  }, styles.imageShadowContainerBanner]}
                 >
 
                   <Animated.Image
@@ -695,10 +725,19 @@ export default function HomeScreen() {
                 <View style={styles.modalInfoContent}>
                   <View style={styles.modalMovieInfo}>
                     <View style={styles.modalMovieTitle}>
-                      <Image
-                        style={styles.movieImageDetails}
-                        source={{ uri: selectedMovie?.imageUrl }}
-                      />
+
+                    <View
+                        style={[
+                          styles.imageShadowContainer,
+                          { backgroundColor: theme.modalBackground },
+                        ]}
+                      >
+                        <Image
+                          style={styles.movieImageDetails}
+                          source={{ uri: selectedMovie?.imageUrl }}
+                        />
+                      </View>
+                     
                       <View style={styles.titleAndDate}>
                         <Text
                           style={[
@@ -746,16 +785,47 @@ export default function HomeScreen() {
                       </Text>
                     </Text>
 
-                    <Text style={{ color: theme.text, marginTop: 30 }}>
-                      <Text style={{ fontWeight: "bold", fontSize: 16 }}>
-                        Atores:{" "}
+                    <View style={{ marginTop: 30 }}>
+                      <Text
+                        style={{
+                          color: theme.text,
+                          fontWeight: "bold",
+                          fontSize: 16,
+                        }}
+                      >
+                        Atores:
                       </Text>
-                      <Text style={styles.modalMovieTitleTextActors}>
-                        {selectedMovie?.actors
-                          ?.map((actor: { name: any; }) => actor.name)
-                          .join(", ")}
-                      </Text>
-                    </Text>
+                      <ScrollView
+                        horizontal={true}
+                        showsHorizontalScrollIndicator={false}
+                        style={styles.actorsContainer}
+                      >
+                        {selectedMovie?.actors?.map((actor, index) => (
+                          <View key={index} style={styles.actorCard}>
+                            <View
+                              style={[
+                                styles.imageShadowContainerActor,
+                                { backgroundColor: theme.modalBackground },
+                              ]}
+                            >
+                              <Image
+                                source={{ uri: actor.profilePath! }}
+                                style={styles.actorImage}
+                                resizeMode="cover"
+                              />
+                            </View>
+                            <Text
+                              style={[
+                                styles.modalMovieTitleTextActors,
+                                { color: theme.text },
+                              ]}
+                            >
+                              {actor.name}
+                            </Text>
+                          </View>
+                        ))}
+                      </ScrollView>
+                    </View>
 
                     <View
                       style={{
@@ -822,9 +892,7 @@ export default function HomeScreen() {
 
                     
                     </View>
-
-
-                    {/* <BannerAd
+                    <BannerAd
                       unitId={adUnitId}
                       size="BANNER"
                       onAdLoaded={() => {}}
@@ -834,7 +902,7 @@ export default function HomeScreen() {
                       requestOptions={{
                         requestNonPersonalizedAdsOnly: true,
                       }}
-                    /> */}
+                    />
                   </View>
                 </View>
               </Animated.ScrollView>
@@ -1069,8 +1137,8 @@ const styles = StyleSheet.create({
   },
 
   movieImageDetails: {
-    width: 85,
-    height: 130,
+    width: 100,
+    height: 150,
     resizeMode: "cover",
     borderRadius: 10,
   },
@@ -1260,6 +1328,51 @@ const styles = StyleSheet.create({
       width: "100%",
       flex: 1,
       resizeMode: "cover",
-      marginBottom: 30,
     },
+
+  imageShadowContainer: {
+    width: 100,
+    height: 150,
+    marginBottom: 5,
+    borderRadius: 10,
+    shadowColor: "#000", // Cor da sombra
+    shadowOffset: { width: 0, height: 2 }, // Deslocamento da sombra
+    shadowOpacity: 1, // Opacidade da sombra
+    shadowRadius: 3, // Raio da sombra
+    elevation: 5, // Adiciona sombra no Android
+  },
+  
+  imageShadowContainerBanner: {
+    marginBottom: 30,
+    shadowColor: "#000", // Cor da sombra
+    shadowOffset: { width: 0, height: 2 }, // Deslocamento da sombra
+    shadowOpacity: 1, // Opacidade da sombra
+    shadowRadius: 3, // Raio da sombra
+    elevation: 5, // Adiciona sombra no Android
+  },
+  imageShadowContainerActor: {
+    width: 90,
+    height: 125,
+    marginBottom: 5,
+    borderRadius: 10,
+    shadowColor: "#000", // Cor da sombra
+    shadowOffset: { width: 0, height: 2 }, // Deslocamento da sombra
+    shadowOpacity: 1, // Opacidade da sombra
+    shadowRadius: 3, // Raio da sombra
+    elevation: 5, // Adiciona sombra no Android
+  },
+  actorsContainer: {
+    width: "100%",
+  },
+  actorCard: {
+    padding: 10,
+    alignItems: "center",
+  },
+  actorImage: {
+    width: 90,
+    height: 125,
+    objectFit: "cover",
+    borderRadius: 10,
+    marginBottom: 10,
+  },
 });

@@ -90,6 +90,7 @@ export default function TabTwoScreen() {
       setTotalMoviesWatchedThisMonth(getTotalMoviesWatchedThisMonth(movies));
     }, [movies])
   );
+  
 
   const handleResetMovies = () => {
     Alert.alert(

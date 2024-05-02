@@ -9,12 +9,24 @@ import {
   StyleSheet,
   Animated,
   TouchableHighlight,
+  Platform,
 } from "react-native";
 import { Button, Chip } from "react-native-paper";
 import { useUser } from "../../contexts/UserContext";
 import { formatDate } from "date-fns";
 import { useTheme } from "../../constants/temas/ThemeContext";
-import Icon from "react-native-vector-icons/FontAwesome";
+import Icon from "react-native-vector-icons/FontAwesome6";
+import { FontAwesome } from "@expo/vector-icons";
+import { BannerAd } from "react-native-google-mobile-ads";
+
+let adUnitId: string;
+
+if (Platform.OS === 'ios') {
+    adUnitId = "ca-app-pub-1771446730721916/1536500762"; // Coloque o ID do iOS aqui
+} else if (Platform.OS === 'android') {
+    adUnitId = "ca-app-pub-1771446730721916/6230272284"; // Coloque o ID do Android aqui
+}
+
 
 const BANNER_H = 250;
 
@@ -63,6 +75,9 @@ const FilterModal = () => {
 
   const scrollY = useRef(new Animated.Value(0)).current;
 
+
+  const adUnitId = "ca-app-pub-1771446730721916/1536500762";
+
   // Exemplo de uso
   const platforms = {
     null: "Todos",
@@ -99,25 +114,36 @@ const FilterModal = () => {
   const handleFetchMovie = () => {
     setIsDetailsLoading(true);
 
+    // Escolhe aleatoriamente uma plataforma se houver plataformas selecionadas
+    const platformIds = selectedPlatforms.length > 0 
+        ? [selectedPlatforms[Math.floor(Math.random() * selectedPlatforms.length)]]
+        : []; // Retorna um array com um único elemento selecionado aleatoriamente
 
-    const platformIds = selectedPlatforms.length ? selectedPlatforms : []; // Map platform names to IDs if necessary
-
-    const genreIds = selectedGenres.length > 0 ? selectedGenres : [Object.keys(generosFiltro)[Math.floor(Math.random() * Object.keys(generosFiltro).length)]];
-
+    // Escolhe aleatoriamente um gênero se houver gêneros selecionados, ou um aleatório se não
+    const genreIds = selectedGenres.length > 0 
+        ? [selectedGenres[Math.floor(Math.random() * selectedGenres.length)]]
+        : [Object.keys(generosFiltro)[Math.floor(Math.random() * Object.keys(generosFiltro).length)]];
 
     fetchRandomMovie({ genres: genreIds, platforms: platformIds })
       .then((movie: Movie | null) => {
-        fetchMovieDetails(movie!.id, 0, (movieDetails) => {
-          setIsDetailsLoading(false); // Inicia o loading
-          setSelectedMovie(movieDetails);
-          console.log(selectedMovie?.actors);
-          setMovieDetails(false);
-        });
+        if (movie) {
+          fetchMovieDetails(movie.id, 0, (movieDetails) => {
+            setIsDetailsLoading(false); // Termina o loading
+            setSelectedMovie(movieDetails);
+            console.log(selectedMovie?.actors);
+            setMovieDetails(false);
+          });
+        } else {
+          setIsDetailsLoading(false); // Termina o loading se nenhum filme for encontrado
+        }
       })
       .catch((error) => {
         console.error("Error fetching movie:", error);
+        setIsDetailsLoading(false); // Termina o loading em caso de erro
       });
   };
+
+
 
   
 
@@ -170,7 +196,7 @@ const FilterModal = () => {
         onPress={() => setModalVisible(true)}
       >
         <View style={styles.fabTextAligner}>
-          <Icon name="plus" size={20} color="white" />
+          <Icon name="dice" size={26} color="white" />
         </View>
       </TouchableOpacity>
 
@@ -268,6 +294,33 @@ const FilterModal = () => {
                     Buscar Filme
                   </Text>
                 </TouchableOpacity>
+              </View>
+
+              <View>
+                 <BannerAd
+                      unitId={adUnitId}
+                      size="BANNER"
+                      onAdLoaded={() => {}}
+                      onAdFailedToLoad={(error) => {
+                        console.error("Ad failed to load", error);
+                      }}
+                      requestOptions={{
+                        requestNonPersonalizedAdsOnly: true,
+                      }}
+                    />
+              </View>
+              <View>
+                 <BannerAd
+                      unitId={adUnitId}
+                      size="BANNER"
+                      onAdLoaded={() => {}}
+                      onAdFailedToLoad={(error) => {
+                        console.error("Ad failed to load", error);
+                      }}
+                      requestOptions={{
+                        requestNonPersonalizedAdsOnly: true,
+                      }}
+                    />
               </View>
             </View>
           ) : (
@@ -462,7 +515,7 @@ const FilterModal = () => {
                       </View>
                     </View>
 
-                    {/* <BannerAd
+                    <BannerAd
                       unitId={adUnitId}
                       size="BANNER"
                       onAdLoaded={() => {}}
@@ -472,7 +525,7 @@ const FilterModal = () => {
                       requestOptions={{
                         requestNonPersonalizedAdsOnly: true,
                       }}
-                    /> */}
+                    />
                   </View>
                 </View>
               </Animated.ScrollView>

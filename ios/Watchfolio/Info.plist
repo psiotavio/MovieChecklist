@@ -3,7 +3,7 @@
 <plist version="1.0">
   <dict>
     <key>CADisableMinimumFrameDurationOnPhone</key>
-    <true/>
+    <true />
     <key>CFBundleDevelopmentRegion</key>
     <string>$(DEVELOPMENT_LANGUAGE)</string>
     <key>CFBundleDisplayName</key>
@@ -38,16 +38,40 @@
         </array>
       </dict>
     </array>
+    <key>NSPrivacyAccessedAPITypes</key>
+    <dict>
+      <key>NSPrivacyAccessedAPICategoryDiskSpace</key>
+      <array>
+        <string>85F4.1</string> 
+        <string>E174.1</string> 
+      </array>
+      <key>NSPrivacyAccessedAPICategoryFileTimestamp</key>
+      <array>
+        <string>DDA9.1</string> 
+        <string>C617.1</string> 
+      </array>
+      <key>NSPrivacyAccessedAPICategorySystemBootTime</key>
+      <array>
+        <string>35F9.1</string>
+        <string>8FFB.1</string> 
+      </array>
+      <key>NSPrivacyAccessedAPICategoryUserDefaults</key>
+      <array>
+        <string>CA92.1</string> 
+        <string>1C8F.1</string> 
+      </array>
+    </dict>
+    
     <key>CFBundleVersion</key>
     <string>1</string>
     <key>LSRequiresIPhoneOS</key>
-    <true/>
+    <true />
     <key>NSAppTransportSecurity</key>
     <dict>
       <key>NSAllowsArbitraryLoads</key>
-      <false/>
+      <false />
       <key>NSAllowsLocalNetworking</key>
-      <true/>
+      <true />
     </dict>
     <key>NSUserActivityTypes</key>
     <array>
@@ -60,7 +84,7 @@
       <string>armv7</string>
     </array>
     <key>UIRequiresFullScreen</key>
-    <false/>
+    <false />
     <key>UIStatusBarStyle</key>
     <string>UIStatusBarStyleDefault</string>
     <key>UISupportedInterfaceOrientations</key>
@@ -78,6 +102,6 @@
     <key>UIUserInterfaceStyle</key>
     <string>Automatic</string>
     <key>UIViewControllerBasedStatusBarAppearance</key>
-    <false/>
+    <false />
   </dict>
 </plist>
