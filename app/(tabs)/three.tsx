@@ -13,6 +13,7 @@ import {
   Animated,
   Share,
   Platform,
+  TouchableHighlight,
 } from "react-native";
 import { useUser } from "../../contexts/UserContext";
 import logo from "../../assets/images/logo.png";
@@ -21,12 +22,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import * as Linking from "expo-linking";
 import { set } from "date-fns";
 
-import {
-  AdEventType,
-  InterstitialAd,
-  TestIds,
-  BannerAd,
-} from "react-native-google-mobile-ads";
+// import {
+//   AdEventType,
+//   InterstitialAd,
+//   TestIds,
+//   BannerAd,
+// } from "react-native-google-mobile-ads";
 
 const BANNER_H = 250;
 
@@ -34,13 +35,13 @@ const BANNER_H = 250;
 //   requestNonPersonalizedAdsOnly: true,
 // });
 
-let adUnitId: string;
+// let adUnitId: string;
 
-if (Platform.OS === 'ios') {
-    adUnitId = "ca-app-pub-1771446730721916/1536500762"; // Coloque o ID do iOS aqui
-} else if (Platform.OS === 'android') {
-    adUnitId = "ca-app-pub-1771446730721916/6230272284"; // Coloque o ID do Android aqui
-}
+// if (Platform.OS === 'ios') {
+//     adUnitId = "ca-app-pub-1771446730721916/1536500762"; // Coloque o ID do iOS aqui
+// } else if (Platform.OS === 'android') {
+//     adUnitId = "ca-app-pub-1771446730721916/6230272284"; // Coloque o ID do Android aqui
+// }
 
 type Actor = {
   id: number;
@@ -244,6 +245,18 @@ export default function TabThreeScreen() {
   };
 
   useEffect(() => {}, [selectedMovie]);
+
+  const handleShare = () => {
+    if (!selectedMovie) return; // Certifique-se de que há um filme selecionado
+ 
+    const message = `> Recomendo esse filme:\n\n*${selectedMovie.title}* \n${selectedMovie.description}
+
+    \nLINK: watchfolio.com.br/movie/${selectedMovie.id}/?popup=true`;
+    Share.share({
+      message,
+   })
+   .catch((error) => console.error("Error sharing:", error));
+  };
 
   const handleAddToList = () => {
     if (selectedMovie) {
@@ -643,6 +656,17 @@ export default function TabThreeScreen() {
                         >
                           {formatDate(selectedMovie?.date)}
                         </Text>
+
+                        <TouchableHighlight
+                          style={{
+                            ...styles.modalButton,
+                            marginBottom: 10,
+                            backgroundColor: "#4caf50", // Cor verde para diferenciar
+                          }}
+                          onPress={handleShare}
+                        >
+                          <Text style={{ color: theme.textButtons, textAlign: "center" }}>Compartilhar</Text>
+                        </TouchableHighlight>
                       </View>
                     </View>
 
@@ -780,7 +804,7 @@ export default function TabThreeScreen() {
                       marginVertical: 5,
                     }}
                   >
-                    <BannerAd
+                    {/* <BannerAd
                       unitId={adUnitId}
                       size="BANNER"
                       onAdLoaded={() => {}}
@@ -790,7 +814,7 @@ export default function TabThreeScreen() {
                       requestOptions={{
                         requestNonPersonalizedAdsOnly: true,
                       }}
-                    />
+                    /> */}
                   </View>
                 </View>
               </Animated.ScrollView>
@@ -1038,5 +1062,12 @@ const styles = StyleSheet.create({
     objectFit: "cover",
     borderRadius: 10,
     marginBottom: 10,
+  },
+
+  modalButton: {
+    padding: 10,
+    marginVertical: 5,
+    borderRadius: 30,
+    paddingHorizontal: 35,
   },
 });

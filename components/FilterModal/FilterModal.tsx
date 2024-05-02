@@ -10,6 +10,7 @@ import {
   Animated,
   TouchableHighlight,
   Platform,
+  Share,
 } from "react-native";
 import { Button, Chip } from "react-native-paper";
 import { useUser } from "../../contexts/UserContext";
@@ -17,16 +18,16 @@ import { formatDate } from "date-fns";
 import { useTheme } from "../../constants/temas/ThemeContext";
 import Icon from "react-native-vector-icons/FontAwesome6";
 import { FontAwesome } from "@expo/vector-icons";
-import { BannerAd } from "react-native-google-mobile-ads";
+
+// import { BannerAd } from "react-native-google-mobile-ads";
 
 let adUnitId: string;
 
-if (Platform.OS === 'ios') {
-    adUnitId = "ca-app-pub-1771446730721916/1536500762"; // Coloque o ID do iOS aqui
-} else if (Platform.OS === 'android') {
-    adUnitId = "ca-app-pub-1771446730721916/6230272284"; // Coloque o ID do Android aqui
+if (Platform.OS === "ios") {
+  adUnitId = "ca-app-pub-1771446730721916/1536500762"; // Coloque o ID do iOS aqui
+} else if (Platform.OS === "android") {
+  adUnitId = "ca-app-pub-1771446730721916/6230272284"; // Coloque o ID do Android aqui
 }
-
 
 const BANNER_H = 250;
 
@@ -75,12 +76,10 @@ const FilterModal = () => {
 
   const scrollY = useRef(new Animated.Value(0)).current;
 
-
   const adUnitId = "ca-app-pub-1771446730721916/1536500762";
 
   // Exemplo de uso
   const platforms = {
-    null: "Todos",
     "384": "Max",
     "119": "Amazon Prime Video",
     "8": "Netflix",
@@ -111,18 +110,32 @@ const FilterModal = () => {
     return `${year}`;
   };
 
+  const availablePlatformIds = Object.keys(platforms).filter(
+    (id) => id !== "null"
+  );
+
   const handleFetchMovie = () => {
     setIsDetailsLoading(true);
 
     // Escolhe aleatoriamente uma plataforma se houver plataformas selecionadas
-    const platformIds = selectedPlatforms.length > 0 
-        ? [selectedPlatforms[Math.floor(Math.random() * selectedPlatforms.length)]]
+    const platformIds =
+      selectedPlatforms.length > 0
+        ? [
+            selectedPlatforms[
+              Math.floor(Math.random() * selectedPlatforms.length)
+            ],
+          ]
         : []; // Retorna um array com um único elemento selecionado aleatoriamente
 
     // Escolhe aleatoriamente um gênero se houver gêneros selecionados, ou um aleatório se não
-    const genreIds = selectedGenres.length > 0 
+    const genreIds =
+      selectedGenres.length > 0
         ? [selectedGenres[Math.floor(Math.random() * selectedGenres.length)]]
-        : [Object.keys(generosFiltro)[Math.floor(Math.random() * Object.keys(generosFiltro).length)]];
+        : [
+            Object.keys(generosFiltro)[
+              Math.floor(Math.random() * Object.keys(generosFiltro).length)
+            ],
+          ];
 
     fetchRandomMovie({ genres: genreIds, platforms: platformIds })
       .then((movie: Movie | null) => {
@@ -143,9 +156,18 @@ const FilterModal = () => {
       });
   };
 
+  const toggleAllPlatforms = () => {
+    const allPlatformsSelected =
+      selectedPlatforms.length === availablePlatformIds.length;
 
-
-  
+    if (allPlatformsSelected) {
+      // Se todas estiverem selecionadas, desmarque todas
+      setSelectedPlatforms([]);
+    } else {
+      // Caso contrário, selecione todas
+      setSelectedPlatforms(availablePlatformIds);
+    }
+  };
 
   const handleAddToList = () => {
     if (selectedMovie) {
@@ -187,6 +209,17 @@ const FilterModal = () => {
       setModalVisible(false);
       setSelectedMovie(null);
     }
+  };
+
+  const handleShare = () => {
+    if (!selectedMovie) return; // Certifique-se de que há um filme selecionado
+
+    const message = `> Recomendo esse filme:\n\n*${selectedMovie.title}* \n${selectedMovie.description}
+
+    \nLINK: watchfolio.com.br/movie/${selectedMovie.id}/?popup=true`;
+    Share.share({
+      message,
+    }).catch((error) => console.error("Error sharing:", error));
   };
 
   return (
@@ -278,9 +311,24 @@ const FilterModal = () => {
                     {name}
                   </Chip>
                 ))}
+                <Chip
+                  key="todos"
+                  style={
+                    selectedPlatforms.length === availablePlatformIds.length
+                      ? { backgroundColor: theme.borderRed }
+                      : undefined
+                  }
+                  rippleColor="rgba(0, 0, 0, 0.3)"
+                  selected={
+                    selectedPlatforms.length === availablePlatformIds.length
+                  }
+                  onPress={toggleAllPlatforms}
+                >
+                  Todos
+                </Chip>
               </View>
 
-              <View style={{marginVertical: 40}}>
+              <View style={{ marginVertical: 40 }}>
                 <TouchableOpacity
                   style={[
                     styles.modalButton,
@@ -296,8 +344,9 @@ const FilterModal = () => {
                 </TouchableOpacity>
               </View>
 
-              <View>
-                 <BannerAd
+              <View style={styles.ads}>
+                <View>
+                  {/* <BannerAd
                       unitId={adUnitId}
                       size="BANNER"
                       onAdLoaded={() => {}}
@@ -307,10 +356,10 @@ const FilterModal = () => {
                       requestOptions={{
                         requestNonPersonalizedAdsOnly: true,
                       }}
-                    />
-              </View>
-              <View>
-                 <BannerAd
+                    /> */}
+                </View>
+                <View>
+                  {/* <BannerAd
                       unitId={adUnitId}
                       size="BANNER"
                       onAdLoaded={() => {}}
@@ -320,7 +369,21 @@ const FilterModal = () => {
                       requestOptions={{
                         requestNonPersonalizedAdsOnly: true,
                       }}
-                    />
+                    /> */}
+                </View>
+                <View>
+                  {/* <BannerAd
+                      unitId={adUnitId}
+                      size="BANNER"
+                      onAdLoaded={() => {}}
+                      onAdFailedToLoad={(error) => {
+                        console.error("Ad failed to load", error);
+                      }}
+                      requestOptions={{
+                        requestNonPersonalizedAdsOnly: true,
+                      }}
+                    /> */}
+                </View>
               </View>
             </View>
           ) : (
@@ -338,11 +401,15 @@ const FilterModal = () => {
                 scrollEventThrottle={16} // Defina a frequência de eventos de rolagem
               >
                 <View
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    height: BANNER_H + 50,
-                  }}
+                  style={[
+                    {
+                      display: "flex",
+                      flexDirection: "column",
+                      height: BANNER_H,
+                      backgroundColor: theme.modalBackground,
+                    },
+                    styles.imageShadowContainerBanner,
+                  ]}
                 >
                   <Animated.Image
                     style={[
@@ -375,10 +442,17 @@ const FilterModal = () => {
                 <View style={styles.modalInfoContent}>
                   <View style={styles.modalMovieInfo}>
                     <View style={styles.modalMovieTitle}>
-                      <Image
-                        style={styles.movieImageDetails}
-                        source={{ uri: selectedMovie?.imageUrl }}
-                      />
+                      <View
+                        style={[
+                          styles.imageShadowContainer,
+                          { backgroundColor: theme.modalBackground },
+                        ]}
+                      >
+                        <Image
+                          style={styles.movieImage}
+                          source={{ uri: selectedMovie?.imageUrl }}
+                        />
+                      </View>
                       <View style={styles.titleAndDate}>
                         <Text
                           style={[
@@ -394,6 +468,16 @@ const FilterModal = () => {
                           {formatDate(selectedMovie?.date)}
                         </Text>
 
+                        <TouchableHighlight
+                          style={{
+                            ...styles.modalButton,
+                            marginBottom: 10,
+                            backgroundColor: "#4caf50", // Cor verde para diferenciar
+                          }}
+                          onPress={handleShare}
+                        >
+                          <Text style={styles.textStyle}>Compartilhar</Text>
+                        </TouchableHighlight>
                         <TouchableOpacity
                           style={[
                             styles.modalButton,
@@ -430,16 +514,47 @@ const FilterModal = () => {
                       </Text>
                     </Text>
 
-                    <Text style={{ color: theme.text, marginTop: 30 }}>
-                      <Text style={{ fontWeight: "bold", fontSize: 16 }}>
-                        Atores:{" "}
+                    <View style={{ marginTop: 30 }}>
+                      <Text
+                        style={{
+                          color: theme.text,
+                          fontWeight: "bold",
+                          fontSize: 16,
+                        }}
+                      >
+                        Atores:
                       </Text>
-                      <Text style={styles.modalMovieTitleTextActors}>
-                        {selectedMovie?.actors
-                          ?.map((actor: { name: any }) => actor.name)
-                          .join(", ")}
-                      </Text>
-                    </Text>
+                      <ScrollView
+                        horizontal={true}
+                        showsHorizontalScrollIndicator={false}
+                        style={styles.actorsContainer}
+                      >
+                        {selectedMovie?.actors?.map((actor, index) => (
+                          <View key={index} style={styles.actorCard}>
+                            <View
+                              style={[
+                                styles.imageShadowContainerActor,
+                                { backgroundColor: theme.modalBackground },
+                              ]}
+                            >
+                              <Image
+                                source={{ uri: actor.profilePath! }}
+                                style={styles.actorImage}
+                                resizeMode="cover"
+                              />
+                            </View>
+                            <Text
+                              style={[
+                                styles.modalMovieTitleTextActors,
+                                { color: theme.text },
+                              ]}
+                            >
+                              {actor.name}
+                            </Text>
+                          </View>
+                        ))}
+                      </ScrollView>
+                    </View>
 
                     <View
                       style={{
@@ -514,7 +629,7 @@ const FilterModal = () => {
                         </TouchableHighlight>
                       </View>
                     </View>
-
+                    {/* 
                     <BannerAd
                       unitId={adUnitId}
                       size="BANNER"
@@ -525,7 +640,7 @@ const FilterModal = () => {
                       requestOptions={{
                         requestNonPersonalizedAdsOnly: true,
                       }}
-                    />
+                    /> */}
                   </View>
                 </View>
               </Animated.ScrollView>
@@ -673,7 +788,6 @@ const styles = StyleSheet.create({
     width: "100%",
     flex: 1,
     resizeMode: "cover",
-    marginBottom: 30,
   },
   modalButton: {
     borderRadius: 30,
@@ -689,5 +803,68 @@ const styles = StyleSheet.create({
     color: "white",
     fontWeight: "bold",
     textAlign: "center",
+  },
+
+  movieImage: {
+    width: 100,
+    height: 150,
+    resizeMode: "cover",
+    borderRadius: 10,
+  },
+
+  actorsContainer: {
+    width: "100%",
+  },
+  actorCard: {
+    padding: 10,
+    alignItems: "center",
+  },
+  actorImage: {
+    width: 90,
+    height: 125,
+    objectFit: "cover",
+    borderRadius: 10,
+    marginBottom: 10,
+  },
+
+  imageShadowContainer: {
+    width: 100,
+    height: 150,
+    marginBottom: 5,
+    borderRadius: 10,
+    shadowColor: "#000", // Cor da sombra
+    shadowOffset: { width: 0, height: 2 }, // Deslocamento da sombra
+    shadowOpacity: 1, // Opacidade da sombra
+    shadowRadius: 3, // Raio da sombra
+    elevation: 5, // Adiciona sombra no Android
+  },
+
+  imageShadowContainerBanner: {
+    marginBottom: 30,
+    shadowColor: "#000", // Cor da sombra
+    shadowOffset: { width: 0, height: 2 }, // Deslocamento da sombra
+    shadowOpacity: 1, // Opacidade da sombra
+    shadowRadius: 3, // Raio da sombra
+    elevation: 5, // Adiciona sombra no Android
+  },
+  imageShadowContainerActor: {
+    width: 90,
+    height: 125,
+    marginBottom: 5,
+    borderRadius: 10,
+    shadowColor: "#000", // Cor da sombra
+    shadowOffset: { width: 0, height: 2 }, // Deslocamento da sombra
+    shadowOpacity: 1, // Opacidade da sombra
+    shadowRadius: 3, // Raio da sombra
+    elevation: 5, // Adiciona sombra no Android
+  },
+  ads: {
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "center",
+    alignItems: "center",
+    alignContent: "center",
+    marginVertical: 15,
+    gap: 5
   },
 });

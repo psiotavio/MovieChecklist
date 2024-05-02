@@ -14,6 +14,7 @@ import {
   Animated,
   ActivityIndicator,
   Platform,
+  Share,
 } from "react-native";
 import { TouchableWithoutFeedback, Keyboard } from "react-native";
 import axios from "axios";
@@ -31,20 +32,20 @@ import Icon from "react-native-vector-icons/FontAwesome";
 import FastImage from 'react-native-fast-image';
 import FilterModal from "../../components/FilterModal/FilterModal";
 
-import {
-  AdEventType,
-  InterstitialAd,
-  TestIds,
-  BannerAd,
-} from "react-native-google-mobile-ads";
+// import {
+//   AdEventType,
+//   InterstitialAd,
+//   TestIds,
+//   BannerAd,
+// } from "react-native-google-mobile-ads";
 
-let adUnitId: string;
+// let adUnitId: string;
 
-if (Platform.OS === 'ios') {
-    adUnitId = "ca-app-pub-1771446730721916/1536500762"; // Coloque o ID do iOS aqui
-} else if (Platform.OS === 'android') {
-    adUnitId = "ca-app-pub-1771446730721916/6230272284"; // Coloque o ID do Android aqui
-}
+// if (Platform.OS === 'ios') {
+//     adUnitId = "ca-app-pub-1771446730721916/1536500762"; // Coloque o ID do iOS aqui
+// } else if (Platform.OS === 'android') {
+//     adUnitId = "ca-app-pub-1771446730721916/6230272284"; // Coloque o ID do Android aqui
+// }
 
 
 const BANNER_H = 250;
@@ -210,7 +211,17 @@ export default function HomeScreen() {
     }
   };
   
-  
+  const handleShare = () => {
+    if (!selectedMovie) return; // Certifique-se de que há um filme selecionado
+ 
+    const message = `> Recomendo esse filme:\n\n*${selectedMovie.title}* \n${selectedMovie.description}
+
+    \nLINK: watchfolio.com.br/movie/${selectedMovie.id}/?popup=true`;
+    Share.share({
+      message,
+   })
+   .catch((error) => console.error("Error sharing:", error));
+  };
 
   const handleInputChange = (text: string) => {
     setMovieInput(text);
@@ -753,6 +764,17 @@ export default function HomeScreen() {
                           {formatDate(selectedMovie?.date)}
                         </Text>
 
+                        <TouchableHighlight
+                          style={{
+                            ...styles.modalButton,
+                            marginBottom: 10,
+                            backgroundColor: "#4caf50", // Cor verde para diferenciar
+                          }}
+                          onPress={handleShare}
+                        >
+                          <Text style={styles.textStyle}>Compartilhar</Text>
+                        </TouchableHighlight>
+
                         <TouchableOpacity
                       style={[
                         styles.modalButton,
@@ -892,7 +914,7 @@ export default function HomeScreen() {
 
                     
                     </View>
-                    <BannerAd
+                    {/* <BannerAd
                       unitId={adUnitId}
                       size="BANNER"
                       onAdLoaded={() => {}}
@@ -902,7 +924,7 @@ export default function HomeScreen() {
                       requestOptions={{
                         requestNonPersonalizedAdsOnly: true,
                       }}
-                    />
+                    /> */}
                   </View>
                 </View>
               </Animated.ScrollView>

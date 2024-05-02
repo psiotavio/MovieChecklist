@@ -14,6 +14,7 @@ import {
   Button,
   Platform,
   ScrollView,
+  Share
 } from "react-native";
 import { useUser } from "../../contexts/UserContext"; // Certifique-se de que esta é a importação correta
 import StarRating from "../../components/starComponent/starComponent";
@@ -22,22 +23,22 @@ import { useTheme } from "../../constants/temas/ThemeContext";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ActivityIndicator } from "react-native-paper";
 
-import {
-  AdEventType,
-  BannerAd,
-  InterstitialAd,
-  TestIds,
-} from "react-native-google-mobile-ads";
+// import {
+//   AdEventType,
+//   BannerAd,
+//   InterstitialAd,
+//   TestIds,
+// } from "react-native-google-mobile-ads"; 
 
 const BANNER_H = 250;
 
-let adUnitId: string;
+// let adUnitId: string;
 
-if (Platform.OS === 'ios') {
-    adUnitId = "ca-app-pub-1771446730721916/1536500762"; // Coloque o ID do iOS aqui
-} else if (Platform.OS === 'android') {
-    adUnitId = "ca-app-pub-1771446730721916/6230272284"; // Coloque o ID do Android aqui
-}
+// if (Platform.OS === 'ios') {
+//     adUnitId = "ca-app-pub-1771446730721916/1536500762"; // Coloque o ID do iOS aqui
+// } else if (Platform.OS === 'android') {
+//     adUnitId = "ca-app-pub-1771446730721916/6230272284"; // Coloque o ID do Android aqui
+// }
 
 // const anuncio = InterstitialAd.createForAdRequest(TestIds.INTERSTITIAL, {
 //   requestNonPersonalizedAdsOnly: true,
@@ -130,6 +131,18 @@ export default function TabFourScreen() {
       setIsDetailsLoading(false); // Inicia o loading
       setSelectedMovieId(movieDetails);
     });
+  };
+
+  const handleShare = () => {
+    if (!selectedMovieId) return; // Certifique-se de que há um filme selecionado
+ 
+    const message = `> Recomendo esse filme:\n\n*${selectedMovieId.title}* \n${selectedMovieId.description}
+
+    \nLINK: watchfolio.com.br/movie/${selectedMovieId.id}/?popup=true`;
+    Share.share({
+      message,
+   })
+   .catch((error) => console.error("Error sharing:", error));
   };
 
   const openModalMovie = (movieId: number, selectedMovieId: Movie) => {
@@ -457,6 +470,17 @@ export default function TabFourScreen() {
                           {formatDate(selectedMovieId?.date)}
                         </Text>
 
+                        <TouchableHighlight
+                          style={{
+                            ...styles.modalButton,
+                            marginBottom: 10,
+                            backgroundColor: "#4caf50", // Cor verde para diferenciar
+                          }}
+                          onPress={handleShare}
+                        >
+                          <Text style={{ color: theme.textButtons, textAlign: "center" }}>Compartilhar</Text>
+                        </TouchableHighlight>
+
                         <TouchableOpacity
                       style={[
                         styles.modalButton,
@@ -596,7 +620,7 @@ export default function TabFourScreen() {
                     </View>
 
 
-                    <BannerAd
+                    {/* <BannerAd
                       unitId={adUnitId}
                       size="BANNER"
                       onAdLoaded={() => {}}
@@ -606,7 +630,7 @@ export default function TabFourScreen() {
                       requestOptions={{
                         requestNonPersonalizedAdsOnly: true,
                       }}
-                    />
+                    /> */}
                   </View>
                 </View>
               </Animated.ScrollView>
@@ -727,6 +751,18 @@ export default function TabFourScreen() {
                         >
                           {formatDate(selectedMovieId?.date)}
                         </Text>
+
+                        <TouchableHighlight
+                          style={{
+                            ...styles.modalButton,
+                            marginBottom: 10,
+                            backgroundColor: "#4caf50", // Cor verde para diferenciar
+                          }}
+                          onPress={handleShare}
+                        >
+                          <Text style={{ color: theme.textButtons, textAlign: "center" }}>Compartilhar</Text>
+                        </TouchableHighlight>
+
                       </View>
                     </View>
 
@@ -844,7 +880,7 @@ export default function TabFourScreen() {
                       marginVertical: 5,
                     }}
                   >
-                    <BannerAd
+                    {/* <BannerAd
                       unitId={adUnitId}
                       size="BANNER"
                       onAdLoaded={() => {}}
@@ -854,7 +890,7 @@ export default function TabFourScreen() {
                       requestOptions={{
                         requestNonPersonalizedAdsOnly: true,
                       }}
-                    />
+                    /> */}
                   </View>
                 </View>
               </Animated.ScrollView>
