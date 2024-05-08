@@ -4,6 +4,7 @@ import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useFonts } from "expo-font";
 import { SplashScreen, Stack } from "expo-router";
 import { UserProvider } from "../contexts/UserContext";
+import { ConfigurationProvider } from "../contexts/ConfigurationContext";
 import { ThemeProvider } from "../constants/temas/ThemeContext";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
@@ -14,7 +15,6 @@ export const unstable_settings = {
 };
 
 export default function RootLayout() {
-  
   const [fontsLoaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
     ...FontAwesome.font,
@@ -27,11 +27,13 @@ export default function RootLayout() {
   // Depois que as fontes são carregadas e a splash screen é escondida, renderiza o conteúdo do app.
   return (
     <SafeAreaProvider>
-      <UserProvider>
-        <ThemeProvider>
-          <RootLayoutNav />
-        </ThemeProvider>
-      </UserProvider>
+      <ConfigurationProvider>
+        <UserProvider>
+          <ThemeProvider>
+            <RootLayoutNav />
+          </ThemeProvider>
+        </UserProvider>
+      </ConfigurationProvider>
     </SafeAreaProvider>
   );
 }

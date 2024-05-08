@@ -9,6 +9,7 @@ import React, {
 } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios, { AxiosError } from "axios";
+import { useConfiguration } from "./ConfigurationContext";
 
 // Tipos e Interfaces
 type StreamingPlatform = {
@@ -141,19 +142,116 @@ interface GenreMappings {
   [key: string]: string;
 }
 
-const genres: GenreMappings = {
-  "28": "Ação",
-  "12": "Aventura",
-  "16": "Animação",
-  "35": "Comédia",
-  "18": "Drama",
-  "10751": "Família",
-  "14": "Fantasia",
-  "27": "Terror",
-  "10402": "Música",
-  "9648": "Mistério",
-  "878": "Ficção científica",
+const translation = {
+  english: {
+    Action: "Action",
+    Adventure: "Adventure",
+    Animation: "Animation",
+    Comedy: "Comedy",
+    Drama: "Drama",
+    Family: "Family",
+    Fantasy: "Fantasy",
+    Horror: "Horror",
+    Music: "Music",
+    Mystery: "Mystery",
+    ScienceFiction: "Science Fiction",
+    All: "All",
+    RecommendedForYou: "Recommended for You",
+    Description: "Description",
+    Share: "Share",
+    Actors: "Actors",
+    AddPrompt: "Do you want to add this item to the list?",
+    AddToList: "Add to List",
+    Cancel: "Cancel"
+  },
+  portuguese: {
+    Action: "Ação",
+    Adventure: "Aventura",
+    Animation: "Animação",
+    Comedy: "Comédia",
+    Drama: "Drama",
+    Family: "Família",
+    Fantasy: "Fantasia",
+    Horror: "Terror",
+    Music: "Música",
+    Mystery: "Mistério",
+    ScienceFiction: "Ficção científica",
+    All: "Todos",
+    RecommendedForYou: "Recomendado para você",
+    Description: "Descrição",
+    Share: "Compartilhar",
+    Actors: "Atores",
+    AddPrompt: "Deseja adicionar este item à lista?",
+    AddToList: "Adicionar à lista",
+    Cancel: "Cancelar"
+  },
+  spanish: {
+    Action: "Acción",
+    Adventure: "Aventura",
+    Animation: "Animación",
+    Comedy: "Comedia",
+    Drama: "Drama",
+    Family: "Familia",
+    Fantasy: "Fantasía",
+    Horror: "Terror",
+    Music: "Música",
+    Mystery: "Misterio",
+    ScienceFiction: "Ciencia ficción",
+    All: "Todos",
+    RecommendedForYou: "Recomendado para ti",
+    Description: "Descripción",
+    Share: "Compartir",
+    Actors: "Actores",
+    AddPrompt: "¿Deseas agregar este artículo a la lista?",
+    AddToList: "Agregar a la lista",
+    Cancel: "Cancelar"
+  },
+  french: {
+    Action: "Action",
+    Adventure: "Aventure",
+    Animation: "Animation",
+    Comedy: "Comédie",
+    Drama: "Drame",
+    Family: "Famille",
+    Fantasy: "Fantaisie",
+    Horror: "Horreur",
+    Music: "Musique",
+    Mystery: "Mystère",
+    ScienceFiction: "Science-fiction",
+    All: "Tous",
+    RecommendedForYou: "Recommandé pour vous",
+    Description: "Description",
+    Share: "Partager",
+    Actors: "Acteurs",
+    AddPrompt: "Voulez-vous ajouter cet article à la liste?",
+    AddToList: "Ajouter à la liste",
+    Cancel: "Annuler"
+  },
+  german: {
+    Action: "Aktion",
+    Adventure: "Abenteuer",
+    Animation: "Animation",
+    Comedy: "Komödie",
+    Drama: "Drama",
+    Family: "Familie",
+    Fantasy: "Fantasie",
+    Horror: "Horror",
+    Music: "Musik",
+    Mystery: "Geheimnis",
+    ScienceFiction: "Wissenschaftsfiktion",
+    All: "Alle",
+    RecommendedForYou: "Für dich empfohlen",
+    Description: "Beschreibung",
+    Share: "Teilen",
+    Actors: "Schauspieler",
+    AddPrompt: "Möchten Sie diesen Artikel zur Liste hinzufügen?",
+    AddToList: "Zur Liste hinzufügen",
+    Cancel: "Abbrechen"
+  }
 };
+
+
+
 
 interface UserProviderProps {
   children: ReactNode;
@@ -166,6 +264,45 @@ const getMoviesSortedByRating = (moviesArray: MovieReview[]) => {
 
 // UserProvider Component
 export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
+
+  const { language } = useConfiguration();
+
+  const genres: GenreMappings = {
+    "28": translation[language].Action,
+      "12": translation[language].Adventure,
+      "16": translation[language].Animation,
+      "35": translation[language].Comedy,
+      "18": translation[language].Drama,
+      "10751": translation[language].Family,
+      "14": translation[language].Fantasy,
+      "27": translation[language].Horror,
+      "10402": translation[language].Music,
+      "9648": translation[language].Mystery,
+      "878": translation[language].ScienceFiction,
+  };
+
+  const languageMapping = {
+    english: "en-US",
+    portuguese: "pt-BR",
+    spanish: "es-ES",
+    french: "fr-FR",
+    german: "de-DE",
+  };
+
+  const regionMapping = {
+    english: "US",      // United States
+    portuguese: "BR",   // Brazil
+    spanish: "ES",      // Spain
+    french: "FR",       // France
+    german: "DE"        // Germany
+  };
+  
+
+  const tmdbLanguage = languageMapping[language]; // Obtém o código de idioma correto para a API
+  const tmdbRegion = regionMapping[language];
+
+  
+
   // States
   const [movies, setMovies] = useState<MovieReview[]>([]);
   const [recommendedMovies, setRecommendedMovies] = useState<MovieReview[]>([]);
@@ -256,7 +393,7 @@ const fetchMoviePlatforms = async (movieId: number) => {
   const url = `https://api.themoviedb.org/3/movie/${movieId}/watch/providers?api_key=${TMDB_API_KEY}`;
   try {
     const response = await makeApiRequestWithRetry(url);
-    const platformsInBrazil = response.results?.BR;
+    const platformsInBrazil = response.results?.tmdbRegion;
 
     const streamingPlatforms = platformsInBrazil?.flatrate?.map((provider: { provider_id: any; provider_name: any; logo_path: any; }) => ({
       id: provider.provider_id,
@@ -275,12 +412,10 @@ const fetchMoviePlatforms = async (movieId: number) => {
 
 
   const fetchMovieDetails = async (movieId: number, rating: number, callback: (movie: MovieReview) => void) => {
-    const detailsUrl = `https://api.themoviedb.org/3/movie/${movieId}?api_key=${TMDB_API_KEY}&language=pt-BR`;
-    console.log("DETALHES: ", detailsUrl)
-    const creditsUrl = `https://api.themoviedb.org/3/movie/${movieId}/credits?api_key=${TMDB_API_KEY}`;
-    console.log("DETALHES CREDITOS: ", creditsUrl)
+    const detailsUrl = `https://api.themoviedb.org/3/movie/${movieId}?api_key=${TMDB_API_KEY}&language=${tmdbLanguage}`;
+  //  console.log("\n\n\n\n\n\n" + detailsUrl + "\n" + tmdbLanguage + "\n" + tmdbRegion + "\n\n\n\n\n\n");
+    const creditsUrl = `https://api.themoviedb.org/3/movie/${movieId}/credits?api_key=${TMDB_API_KEY}&language=${tmdbLanguage}`;
     const platformsUrl = `https://api.themoviedb.org/3/movie/${movieId}/watch/providers?api_key=${TMDB_API_KEY}`;
-    console.log("DETALHES PLATAFORMAS: ", platformsUrl)
     rating = rating;
 
     if (typeof callback !== 'function') {
@@ -296,11 +431,11 @@ const fetchMoviePlatforms = async (movieId: number) => {
       ]);
   
       const movieDetails = detailsResponse.data;
-      console.log('MOVIE DETAILS: ', movieDetails)
+      //console.log('MOVIE DETAILS: ', movieDetails)
       const creditsDetails = creditsResponse.data;
-      const platformsDetails = platformsResponse.data.results?.BR?.flatrate || [];
+      const platformsDetails = platformsResponse.data.results?.flatrate || [];
 
-      console.log(creditsResponse.data.cast);
+    //  console.log(creditsResponse.data.cast);
 
 
   
@@ -310,7 +445,7 @@ const fetchMoviePlatforms = async (movieId: number) => {
         name: actor.name,
         profilePath: actor.profile_path ? `https://image.tmdb.org/t/p/w500${actor.profile_path}` : undefined,
       }));
-      console.log(actors);
+      //console.log(actors);
       
   
       // Mapeando plataformas de streaming
@@ -340,7 +475,7 @@ const fetchMoviePlatforms = async (movieId: number) => {
         actors,
         genreId: movieDetails.genres.map((genre : GenreMappings) => genre.id).join(","), 
       };
-      console.log(movieCompleteDetails.alternateImageUrl)
+     // console.log(movieCompleteDetails.alternateImageUrl)
   
       // Usando callback para atualizar o estado no componente
       callback(movieCompleteDetails);
@@ -350,7 +485,7 @@ const fetchMoviePlatforms = async (movieId: number) => {
 };
 
 const fetchRecommendedMovies = async () => {
-  console.log("usando fetch");
+//console.log("usando fetch");
   if (movies.length === 0) return;
 
   const lastMovieId = movies[movies.length - 1].id;
@@ -360,7 +495,7 @@ const fetchRecommendedMovies = async () => {
 
     await delay(5000); // Espera de 5 segundos.
 
-    const response = await makeApiRequestWithRetry(`https://api.themoviedb.org/3/movie/${lastMovieId}/recommendations?api_key=${TMDB_API_KEY}`);
+    const response = await makeApiRequestWithRetry(`https://api.themoviedb.org/3/movie/${lastMovieId}/recommendations?api_key=${TMDB_API_KEY}&language=${tmdbLanguage}`);
     let newRecommendedMovies = response.results;
 
     // Filtra filmes que já estão na lista de recomendados
@@ -371,7 +506,7 @@ const fetchRecommendedMovies = async () => {
     const moviesWithPlatforms = await Promise.all(newRecommendedMovies.map(async (movie: { id: number; title: any; vote_average: any; release_date: any; poster_path: any; genre_ids: any[]}) => {
       const platforms = await fetchMoviePlatforms(movie.id);
       const genreNames = movie.genre_ids.map(id => genres[id] || "Gênero Desconhecido").join(", ");
-      console.log(`Gêneros do filme ${movie.title}: ${genreNames}`);
+     // console.log(`Gêneros do filme ${movie.title}: ${genreNames}`);
       return {
         id: movie.id,
         title: movie.title,
@@ -387,7 +522,7 @@ const fetchRecommendedMovies = async () => {
 
     // Concatena os novos filmes recomendados com os antigos, sem duplicar
     setRecommendedMovies(prevMovies => {
-      const updatedMovies = [...new Set([...prevMovies, ...moviesWithPlatforms])];
+      const updatedMovies = [...new Set([...moviesWithPlatforms, ...prevMovies])];
       
       // Salva a lista atualizada de filmes recomendados no AsyncStorage
       AsyncStorage.setItem('recommendedMovies', JSON.stringify(updatedMovies))
@@ -407,7 +542,7 @@ const updateGenreRecommendationsWithGeneralRecommendations = () => {
     // Verifica se genreId está definido
     if (movie.genreId) {
       const movieGenres = movie.genreId.split(",");
-      console.log(movieGenres)
+      //console.log(movieGenres)
       movieGenres.forEach(genreId => {
         const genreName = genres[genreId];
         if (genreName) {
@@ -430,7 +565,7 @@ const updateGenreRecommendationsWithGeneralRecommendations = () => {
     movies.forEach(movie => {
       // Aqui, você pode fazer operações com cada 'movie'
       // Por exemplo, imprimir informações do filme:
-      console.log(`Gênero: ${genreName}, Filme: ${movie.title}`);
+    //  console.log(`Gênero: ${genreName}, Filme: ${movie.title}`);
     });
   });
 
@@ -445,7 +580,7 @@ useEffect(() => {
       const storedRecommendedMovies = await AsyncStorage.getItem('recommendedMovies');
       if (storedRecommendedMovies) {
         const recommendedMoviesData = JSON.parse(storedRecommendedMovies);
-        console.log("Filmes recomendados carregados do AsyncStorage:", recommendedMoviesData);
+      //  console.log("Filmes recomendados carregados do AsyncStorage:", recommendedMoviesData);
         setRecommendedMovies(recommendedMoviesData);
       }
     } catch (error) {
@@ -462,15 +597,15 @@ useEffect(() => {
   const saveRecommendedMovies = async () => {
     try {
       await AsyncStorage.setItem('recommendedMovies', JSON.stringify(recommendedMovies));
-      console.log("Filmes recomendados salvos com sucesso.");
+    //  console.log("Filmes recomendados salvos com sucesso.");
 
       // Logando os filmes recomendados após salvar
-      console.log("----=====----=====----=====----=====");
+    //  console.log("----=====----=====----=====----=====");
       recommendedMovies.forEach((movie, index) => {
-        console.log(`${index + 1} - ${movie.title}, ${movie}`);
+   //     console.log(`${index + 1} - ${movie.title}, ${movie}`);
       });
-      console.log("----=====----== TAMANHO DA LISTA ==----=====----=====");
-      console.log(recommendedMovies.length)
+   //   console.log("----=====----== TAMANHO DA LISTA ==----=====----=====");
+    //  console.log(recommendedMovies.length)
 
     } catch (error) {
       console.error('Erro ao salvar filmes recomendados:', error);
@@ -479,8 +614,8 @@ useEffect(() => {
   
 
   saveRecommendedMovies();
-  console.log("----=====----== TAMANHO DA LISTA ==----=====----=====");
-      console.log(recommendedMovies.length)
+ // console.log("----=====----== TAMANHO DA LISTA ==----=====----=====");
+ //     console.log(recommendedMovies.length)
 }, [recommendedMovies]); // Isso assegura que a lista completa seja salva após cada atualização
 
 
@@ -769,11 +904,11 @@ useEffect(() => {
 const [paginationState, setPaginationState] = useState({});
 
 const fetchMoviesByGenreAndPage = async (genreId: string | number, page: number) => {
-  console.log('chamou aqui');
-  console.log(`Fetching genre ${genreId} page ${page}`);
-  const url = `https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_API_KEY}&language=pt-BR&sort_by=popularity.desc&with_genres=${genreId}&page=${page}`;
+ // console.log('chamou aqui');
+//  console.log(`Fetching genre ${genreId} page ${page}`);
+  const url = `https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_API_KEY}&language=${tmdbLanguage}&sort_by=popularity.desc&with_genres=${genreId}&page=${page}`;
 
-  console.log(url);
+ // console.log(url);
 
   try {
     const response = await axios.get(url);
@@ -803,7 +938,7 @@ const fetchMoviesByGenreAndPage = async (genreId: string | number, page: number)
     // Espera todas as promessas de busca das plataformas serem resolvidas
     const moviesWithPlatforms = await Promise.all(moviesWithPlatformsPromises);
 
-    console.log("Movies with platforms found:", moviesWithPlatforms);
+   // console.log("Movies with platforms found:", moviesWithPlatforms);
 
     // Atualiza recommendedByGenre com os novos filmes, incluindo as plataformas
     setRecommendedByGenre(prevState => {
@@ -833,8 +968,8 @@ const fetchRandomMovie = async (options: FetchRandomMovieOptions): Promise<Movie
   try {
       // Exemplo: URL construída baseada em opções fornecidas
       const page = Math.floor(Math.random() * 3) + 1;
-      const url = `https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_API_KEY}&language=pt-BR&page=${page}&with_genres=${options.genres?.join(',')}&with_watch_providers=${options.platforms?.join(',')}&watch_region=BR`;
-      console.log(url)
+      const url = `https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_API_KEY}&language=${tmdbLanguage}&page=${page}&with_genres=${options.genres?.join(',')}&with_watch_providers=${options.platforms?.join(',')}&watch_region=${tmdbRegion}`;
+    //  console.log(url)
       const response = await axios.get(url);
       if (response.data.results.length > 0) {
           // Simulação de escolha aleatória de um filme da lista retornada

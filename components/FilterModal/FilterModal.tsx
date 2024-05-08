@@ -11,6 +11,7 @@ import {
   TouchableHighlight,
   Platform,
   Share,
+  Dimensions,
 } from "react-native";
 import { Button, Chip } from "react-native-paper";
 import { useUser } from "../../contexts/UserContext";
@@ -29,7 +30,11 @@ if (Platform.OS === "ios") {
   adUnitId = "ca-app-pub-1771446730721916/6230272284"; // Coloque o ID do Android aqui
 }
 
-const BANNER_H = 250;
+const { width, height } = Dimensions.get('window');
+
+const isTablet = width >= 768; // Um critério comum para tablets
+
+const BANNER_H = isTablet ? 400 : 250;
 
 type Actor = {
   id: number;
@@ -345,6 +350,19 @@ const FilterModal = () => {
               </View>
 
               <View style={styles.ads}>
+                <View>
+                  {/* <BannerAd
+                      unitId={adUnitId}
+                      size="BANNER"
+                      onAdLoaded={() => {}}
+                      onAdFailedToLoad={(error) => {
+                        console.error("Ad failed to load", error);
+                      }}
+                      requestOptions={{
+                        requestNonPersonalizedAdsOnly: true,
+                      }}
+                    /> */}
+                </View>
                 <View>
                   {/* <BannerAd
                       unitId={adUnitId}
@@ -806,8 +824,8 @@ const styles = StyleSheet.create({
   },
 
   movieImage: {
-    width: 100,
-    height: 150,
+    width: isTablet ? 150 : 100,
+    height: isTablet ? 230 : 150,
     resizeMode: "cover",
     borderRadius: 10,
   },
@@ -828,8 +846,8 @@ const styles = StyleSheet.create({
   },
 
   imageShadowContainer: {
-    width: 100,
-    height: 150,
+    width: isTablet ? 150 : 100,
+    height: isTablet ? 230 : 150,
     marginBottom: 5,
     borderRadius: 10,
     shadowColor: "#000", // Cor da sombra

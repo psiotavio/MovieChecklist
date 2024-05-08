@@ -14,7 +14,8 @@ import {
   Button,
   Platform,
   ScrollView,
-  Share
+  Share,
+  Dimensions,
 } from "react-native";
 import { useUser } from "../../contexts/UserContext"; // Certifique-se de que esta é a importação correta
 import StarRating from "../../components/starComponent/starComponent";
@@ -22,15 +23,20 @@ import logo from "../../assets/images/logo.png";
 import { useTheme } from "../../constants/temas/ThemeContext";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ActivityIndicator } from "react-native-paper";
+import { useConfiguration } from "../../contexts/ConfigurationContext";
 
 // import {
 //   AdEventType,
 //   BannerAd,
 //   InterstitialAd,
 //   TestIds,
-// } from "react-native-google-mobile-ads"; 
+// } from "react-native-google-mobile-ads";
 
-const BANNER_H = 250;
+const { width, height } = Dimensions.get("window");
+
+const isTablet = width >= 768; // Um critério comum para tablets
+
+const BANNER_H = isTablet ? 400 : 250;
 
 // let adUnitId: string;
 
@@ -135,14 +141,13 @@ export default function TabFourScreen() {
 
   const handleShare = () => {
     if (!selectedMovieId) return; // Certifique-se de que há um filme selecionado
- 
-    const message = `> Recomendo esse filme:\n\n*${selectedMovieId.title}* \n${selectedMovieId.description}
+
+    const message = `>  ${translations[language].recomendo}\n\n*${selectedMovieId.title}* \n${selectedMovieId.description}
 
     \nLINK: watchfolio.com.br/movie/${selectedMovieId.id}/?popup=true`;
     Share.share({
       message,
-   })
-   .catch((error) => console.error("Error sharing:", error));
+    }).catch((error) => console.error("Error sharing:", error));
   };
 
   const openModalMovie = (movieId: number, selectedMovieId: Movie) => {
@@ -218,6 +223,96 @@ export default function TabFourScreen() {
   const moviesSortedByRating = [...movies].sort((a, b) => b.rating - a.rating);
   const scrollY = useRef(new Animated.Value(0)).current;
 
+  const { language } = useConfiguration();
+
+  const translations = {
+    english: {
+      Avaliados: "Rated",
+      SeusAvaliados: "YOUR RATED MOVIES",
+      ParaAssistir: "To Watch",
+      SemAssistir:
+        "You have no movies in your list. Add a movie to watch later by searching in the Recommendations tab.",
+      SemAvaliados: "You have not rated any movie.",
+      recomendo: "I recommend this movie:",
+      compartilhar: "Share",
+      fechar: "Close",
+      descricao: "Description",
+      atores: "Actors",
+      javiu: "Have you watched this movie?",
+      removeLista: "Remove from list",
+      sim: "Yes",
+      nao: "No",
+    },
+    portuguese: {
+      Avaliados: "Avaliados",
+      SeusAvaliados: "SEUS FILMES AVALIADOS",
+      ParaAssistir: "Para Assistir",
+      SemAssistir:
+        "Você não tem nenhum filme na lista. Adicione um filme para assistir mais tarde procurando na aba Recomendações.",
+      SemAvaliados: "Você não avaliou nenhum filme.",
+      recomendo: "Recomendo esse filme:",
+      compartilhar: "Compartilhar",
+      fechar: "Fechar",
+      descricao: "Descrição",
+      atores: "Atores",
+      javiu: "Já assistiu esse filme?",
+      removeLista: "Remover da lista",
+      sim: "Sim",
+      nao: "Não",
+    },
+    spanish: {
+      Avaliados: "Evaluados",
+      SeusAvaliados: "TUS PELÍCULAS EVALUADAS",
+      ParaAssistir: "Para Ver",
+      SemAssistir:
+        "No tienes ninguna película en tu lista. Añade una película para ver más tarde buscando en la pestaña Recomendaciones.",
+      SemAvaliados: "No has evaluado ninguna película.",
+      recomendo: "Recomiendo esta película:",
+      compartilhar: "Compartir",
+      fechar: "Cerrar",
+      descricao: "Descripción",
+      atores: "Actores",
+      javiu: "¿Ya viste esta película?",
+      removeLista: "Quitar de la lista",
+      sim: "Sí",
+      nao: "No",
+    },
+    french: {
+      Avaliados: "Évalués",
+      SeusAvaliados: "VOS FILMS ÉVALUÉS",
+      ParaAssistir: "À Regarder",
+      SemAssistir:
+        "Vous n'avez aucun film dans votre liste. Ajoutez un film à regarder plus tard en cherchant dans l'onglet Recommandations.",
+      SemAvaliados: "Vous n'avez évalué aucun film.",
+      recomendo: "Je recommande ce film :",
+      compartilhar: "Partager",
+      fechar: "Fermer",
+      descricao: "Description",
+      atores: "Acteurs",
+      javiu: "Avez-vous vu ce film ?",
+      removeLista: "Retirer de la liste",
+      sim: "Oui",
+      nao: "Non",
+    },
+    german: {
+      Avaliados: "Bewertet",
+      SeusAvaliados: "IHRE BEWERTETEN FILME",
+      ParaAssistir: "Zum Anschauen",
+      SemAssistir:
+        "Sie haben keine Filme auf Ihrer Liste. Fügen Sie einen Film hinzu, den Sie später sehen möchten, indem Sie im Empfehlungen-Tab suchen.",
+      SemAvaliados: "Sie haben keinen Film bewertet.",
+      recomendo: "Ich empfehle diesen Film:",
+      compartilhar: "Teilen",
+      fechar: "Schließen",
+      descricao: "Beschreibung",
+      atores: "Schauspieler",
+      javiu: "Haben Sie diesen Film schon gesehen?",
+      removeLista: "Von der Liste entfernen",
+      sim: "Ja",
+      nao: "Nein",
+    },
+  };
+
   return (
     <SafeAreaView
       edges={["top"]}
@@ -242,7 +337,7 @@ export default function TabFourScreen() {
                   : styles.tabText
               }
             >
-              Avaliados
+              {translations[language].Avaliados}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -261,7 +356,7 @@ export default function TabFourScreen() {
                   : styles.tabText
               }
             >
-              Para Assistir
+              {translations[language].ParaAssistir}
             </Text>
           </TouchableOpacity>
         </View>
@@ -270,7 +365,7 @@ export default function TabFourScreen() {
           moviesSortedByRating.length > 0 ? (
             <>
               <Text style={[styles.movieListTitle, { color: theme.text }]}>
-                SEUS FILMES AVALIADOS
+                {translations[language].SeusAvaliados}
               </Text>
               <FlatList
                 style={styles.flatlist}
@@ -280,7 +375,10 @@ export default function TabFourScreen() {
                 renderItem={({ item, index }) => (
                   <View style={styles.movieItem}>
                     <TouchableOpacity
-                      style={[styles.movieList, {borderBottomColor: theme.borderBottom}]}
+                      style={[
+                        styles.movieList,
+                        { borderBottomColor: theme.borderBottom },
+                      ]}
                       onPress={() => openModalMovie(item.id, item)}
                     >
                       <View style={styles.imageIndex}>
@@ -316,14 +414,14 @@ export default function TabFourScreen() {
             </>
           ) : (
             <Text style={{ color: theme.text, marginTop: 20 }}>
-              Você não avaliou nenhum filme.
+              {translations[language].SemAvaliados}
             </Text>
           )
         ) : toWatchMovies.length > 0 ? (
           <FlatList
             data={toWatchMovies}
             keyExtractor={(movie) => movie.id.toString()}
-            numColumns={3}
+            numColumns={isTablet ? 4 : 3}
             showsHorizontalScrollIndicator={false}
             showsVerticalScrollIndicator={false}
             renderItem={({ item }) => (
@@ -355,14 +453,12 @@ export default function TabFourScreen() {
               paddingHorizontal: 20,
             }}
           >
-            Você não tem nenhum filme na lista. Adicione um filme para assistir
-            mais tarde procurando na aba Recomendações.
+            {translations[language].SemAssistir}
           </Text>
         )}
       </View>
 
       {/* MODAL DE PARA ASSISTIR MAIS TARDE  */}
-
 
       <Modal
         animationType="slide"
@@ -404,15 +500,16 @@ export default function TabFourScreen() {
                 scrollEventThrottle={16} // Defina a frequência de eventos de rolagem
               >
                 <View
-                  style={[{
-                    display: "flex",
-                    flexDirection: "column",
-                    height: BANNER_H,
-                    backgroundColor: theme.modalBackground
-                  }, styles.imageShadowContainerBanner]}
+                  style={[
+                    {
+                      display: "flex",
+                      flexDirection: "column",
+                      height: BANNER_H,
+                      backgroundColor: theme.modalBackground,
+                    },
+                    styles.imageShadowContainerBanner,
+                  ]}
                 >
-                 
-
                   <Animated.Image
                     style={[
                       styles.movieImageBanner,
@@ -444,7 +541,7 @@ export default function TabFourScreen() {
                 <View style={styles.modalInfoContent}>
                   <View style={styles.modalMovieInfo}>
                     <View style={styles.modalMovieTitle}>
-                    <View
+                      <View
                         style={[
                           styles.imageShadowContainer,
                           { backgroundColor: theme.modalBackground },
@@ -478,18 +575,32 @@ export default function TabFourScreen() {
                           }}
                           onPress={handleShare}
                         >
-                          <Text style={{ color: theme.textButtons, textAlign: "center" }}>Compartilhar</Text>
+                          <Text
+                            style={{
+                              color: theme.textButtons,
+                              textAlign: "center",
+                            }}
+                          >
+                            {translations[language].compartilhar}
+                          </Text>
                         </TouchableHighlight>
 
                         <TouchableOpacity
-                      style={[
-                        styles.modalButton,
-                        { backgroundColor: theme.errorColor, },
-                      ]}
-                      onPress={confirmRemoveMovieList}
-                    >
-                      <Text style={{ color: theme.textButtons, textAlign: "center" }}>Remover da lista</Text>
-                    </TouchableOpacity>
+                          style={[
+                            styles.modalButton,
+                            { backgroundColor: theme.errorColor },
+                          ]}
+                          onPress={confirmRemoveMovieList}
+                        >
+                          <Text
+                            style={{
+                              color: theme.textButtons,
+                              textAlign: "center",
+                            }}
+                          >
+                            {translations[language].removeLista}
+                          </Text>
+                        </TouchableOpacity>
                       </View>
                     </View>
 
@@ -501,7 +612,7 @@ export default function TabFourScreen() {
                       }}
                     >
                       <Text style={{ fontWeight: "bold", fontSize: 16 }}>
-                        Descrição:{" "}
+                        {translations[language].descricao}{" "}
                       </Text>
                       <Text
                         style={[
@@ -521,7 +632,7 @@ export default function TabFourScreen() {
                           fontSize: 16,
                         }}
                       >
-                        Atores:
+                        {translations[language].atores}:
                       </Text>
                       <ScrollView
                         horizontal={true}
@@ -581,7 +692,6 @@ export default function TabFourScreen() {
                     </View>
                   </View>
 
-
                   <View
                     style={{
                       justifyContent: "center",
@@ -591,34 +701,42 @@ export default function TabFourScreen() {
                       marginVertical: 5,
                     }}
                   >
-                    <Text style={{ color: theme.text, fontSize: 18, fontWeight: "bold", paddingTop: 20 }}>
-                      Já assistiu esse filme?
+                    <Text
+                      style={{
+                        color: theme.text,
+                        fontSize: 18,
+                        fontWeight: "bold",
+                        paddingTop: 20,
+                      }}
+                    >
+                      {translations[language].javiu}
                     </Text>
-                    <View style={{marginBottom: 50}}>
-                    <View style={styles.modalButtons}>
-                      <TouchableOpacity
-                        style={[
-                          styles.modalButton,
-                          { backgroundColor: theme.borderRed },
-                        ]}
-                        onPress={confirmRemoveMovie}
-                      >
-                        <Text style={{ color: theme.text }}>Sim</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={[
-                          styles.modalButton,
-                          { backgroundColor: theme.modalBackgroundSecondary },
-                        ]}
-                        onPress={closeModal}
-                      >
-                        <Text style={{ color: theme.textButtons }}>Não</Text>
-                      </TouchableOpacity>
+                    <View style={{ marginBottom: 50 }}>
+                      <View style={styles.modalButtons}>
+                        <TouchableOpacity
+                          style={[
+                            styles.modalButton,
+                            { backgroundColor: theme.borderRed },
+                          ]}
+                          onPress={confirmRemoveMovie}
+                        >
+                          <Text style={[styles.textStyle, { color: theme.text }]}>
+                            {translations[language].sim}
+                          </Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={[
+                            styles.modalButton,
+                            { backgroundColor: theme.modalBackgroundSecondary },
+                          ]}
+                          onPress={closeModal}
+                        >
+                          <Text style={[styles.textStyle, { color: theme.text }]}>
+                            {translations[language].nao}
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
                     </View>
-
-                    
-                    </View>
-
 
                     {/* <BannerAd
                       unitId={adUnitId}
@@ -638,8 +756,6 @@ export default function TabFourScreen() {
           )}
         </View>
       </Modal>
-
-
 
       <Modal
         animationType="slide"
@@ -681,14 +797,16 @@ export default function TabFourScreen() {
                 scrollEventThrottle={16} // Defina a frequência de eventos de rolagem
               >
                 <View
-                  style={[{
-                    display: "flex",
-                    flexDirection: "column",
-                    height: BANNER_H,
-                    backgroundColor: theme.modalBackground
-                  }, styles.imageShadowContainerBanner]}
+                  style={[
+                    {
+                      display: "flex",
+                      flexDirection: "column",
+                      height: BANNER_H,
+                      backgroundColor: theme.modalBackground,
+                    },
+                    styles.imageShadowContainerBanner,
+                  ]}
                 >
-              
                   <Animated.Image
                     style={[
                       styles.movieImageBanner,
@@ -720,7 +838,7 @@ export default function TabFourScreen() {
                 <View style={styles.modalInfoContent}>
                   <View style={styles.modalMovieInfo}>
                     <View style={styles.modalMovieTitle}>
-                    <View
+                      <View
                         style={[
                           styles.imageShadowContainer,
                           { backgroundColor: theme.modalBackground },
@@ -740,10 +858,10 @@ export default function TabFourScreen() {
                         >
                           {selectedMovieId?.title}
                         </Text>
-                        <View style={{marginBottom: 10}}>
-                        <StarRating
-                          rating={selectedMovieId?.rating}
-                        ></StarRating>
+                        <View style={{ marginBottom: 10 }}>
+                          <StarRating
+                            rating={selectedMovieId?.rating}
+                          ></StarRating>
                         </View>
 
                         <Text
@@ -760,9 +878,15 @@ export default function TabFourScreen() {
                           }}
                           onPress={handleShare}
                         >
-                          <Text style={{ color: theme.textButtons, textAlign: "center" }}>Compartilhar</Text>
+                          <Text
+                            style={{
+                              color: theme.textButtons,
+                              textAlign: "center",
+                            }}
+                          >
+                            {translations[language].compartilhar}
+                          </Text>
                         </TouchableHighlight>
-
                       </View>
                     </View>
 
@@ -774,7 +898,7 @@ export default function TabFourScreen() {
                       }}
                     >
                       <Text style={{ fontWeight: "bold", fontSize: 16 }}>
-                        Descrição:{" "}
+                        {translations[language].descricao}{" "}
                       </Text>
                       <Text
                         style={[
@@ -794,7 +918,7 @@ export default function TabFourScreen() {
                           fontSize: 16,
                         }}
                       >
-                        Atores:
+                        {translations[language].atores}:
                       </Text>
                       <ScrollView
                         horizontal={true}
@@ -856,18 +980,22 @@ export default function TabFourScreen() {
 
                   <View style={styles.modalButtonsContainerAll}>
                     <View style={styles.modalButtonsContainer}>
-                      <View
-                        style={[
-                          styles.buttonContainer,
-                          { backgroundColor: theme.borderRed },
-                        ]}
+                      <TouchableHighlight
+                        style={{
+                          ...styles.modalButton,
+                          backgroundColor: theme.modalBackgroundSecondary,
+                        }}
+                        onPress={closeModalMovie}
                       >
-                        <Button
-                          title="Fechar"
-                          onPress={closeModalMovie}
-                          color={theme.textButtons}
-                        />
-                      </View>
+                        <Text
+                          style={[
+                            styles.textStyle,
+                            { color: theme.textButtons, fontSize: 18 },
+                          ]}
+                        >
+                          {translations[language].fechar}
+                        </Text>
+                      </TouchableHighlight>
                     </View>
                   </View>
 
@@ -903,6 +1031,11 @@ export default function TabFourScreen() {
 }
 
 const styles = StyleSheet.create({
+  textStyle: {
+    color: "white",
+    fontWeight: "bold",
+    textAlign: "center",
+  },
   moviesLists: {
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
@@ -921,8 +1054,8 @@ const styles = StyleSheet.create({
   textRateText: {
     display: "flex",
     flexWrap: "wrap",
-    width: "70%",
-    fontSize: 18,
+    width: "60%",
+    fontSize: 20,
     fontWeight: "bold",
   },
 
@@ -948,7 +1081,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 20,
     borderBottomWidth: 2,
-    
   },
   scrollView: {
     width: "100%",
@@ -996,8 +1128,8 @@ const styles = StyleSheet.create({
     marginRight: 16,
   },
   movieImage: {
-    width: 100,
-    height: 150,
+    width: isTablet ? 150 : 100,
+    height: isTablet ? 230 : 150,
     resizeMode: "cover",
     borderRadius: 10,
   },
@@ -1030,8 +1162,8 @@ const styles = StyleSheet.create({
     marginHorizontal: 7,
   },
   toWatchmovieImage: {
-    width: 100,
-    height: 150,
+    width: isTablet ? 150 : 100,
+    height: isTablet ? 230 : 150,
     resizeMode: "cover",
     borderRadius: 10,
   },
@@ -1193,8 +1325,8 @@ const styles = StyleSheet.create({
   },
 
   imageShadowContainer: {
-    width: 100,
-    height: 150,
+    width: isTablet ? 150 : 100,
+    height: isTablet ? 230 : 150,
     marginBottom: 5,
     borderRadius: 10,
     shadowColor: "#000", // Cor da sombra
@@ -1203,7 +1335,7 @@ const styles = StyleSheet.create({
     shadowRadius: 3, // Raio da sombra
     elevation: 5, // Adiciona sombra no Android
   },
-  
+
   imageShadowContainerBanner: {
     marginBottom: 30,
     shadowColor: "#000", // Cor da sombra
@@ -1223,7 +1355,6 @@ const styles = StyleSheet.create({
     shadowRadius: 3, // Raio da sombra
     elevation: 5, // Adiciona sombra no Android
   },
-
 
   actorsContainer: {
     width: "100%",

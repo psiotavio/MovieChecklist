@@ -14,6 +14,7 @@ import {
   Share,
   Platform,
   TouchableHighlight,
+  Dimensions,
 } from "react-native";
 import { useUser } from "../../contexts/UserContext";
 import logo from "../../assets/images/logo.png";
@@ -21,6 +22,7 @@ import { useTheme } from "../../constants/temas/ThemeContext";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as Linking from "expo-linking";
 import { set } from "date-fns";
+import { useConfiguration } from "../../contexts/ConfigurationContext";
 
 // import {
 //   AdEventType,
@@ -29,7 +31,11 @@ import { set } from "date-fns";
 //   BannerAd,
 // } from "react-native-google-mobile-ads";
 
-const BANNER_H = 250;
+const { width, height } = Dimensions.get("window");
+
+const isTablet = width >= 768; // Um critério comum para tablets
+
+const BANNER_H = isTablet ? 400 : 250;
 
 // const anuncio = InterstitialAd.createForAdRequest(TestIds.INTERSTITIAL, {
 //   requestNonPersonalizedAdsOnly: true,
@@ -103,6 +109,126 @@ export default function TabThreeScreen() {
   //   return unsubscribeInterstitialEvents;
   // }, []);
 
+  const { language } = useConfiguration();
+
+  const translation = {
+    english: {
+      Action: "Action",
+      Adventure: "Adventure",
+      Animation: "Animation",
+      Comedy: "Comedy",
+      Drama: "Drama",
+      Family: "Family",
+      Fantasy: "Fantasy",
+      Horror: "Horror",
+      Music: "Music",
+      Mystery: "Mystery",
+      ScienceFiction: "Science Fiction",
+      All: "All",
+      RecommendedForYou: "Recommended for You",
+      Description: "Description",
+      Share: "Share",
+      Actors: "Actors",
+      AddPrompt: "Do you want to add this item to the list?",
+      AddToList: "Add to List",
+      Cancel: "Cancel",
+      Todas: "All Platforms",
+      NoRecommendations: "There are no recommendations at the moment...",
+    },
+    portuguese: {
+      Action: "Ação",
+      Adventure: "Aventura",
+      Animation: "Animação",
+      Comedy: "Comédia",
+      Drama: "Drama",
+      Family: "Família",
+      Fantasy: "Fantasia",
+      Horror: "Terror",
+      Music: "Música",
+      Mystery: "Mistério",
+      ScienceFiction: "Ficção científica",
+      All: "Todos",
+      RecommendedForYou: "Recomendado para você",
+      Description: "Descrição",
+      Share: "Compartilhar",
+      Actors: "Atores",
+      AddPrompt: "Deseja adicionar este item à lista?",
+      AddToList: "Adicionar à lista",
+      Cancel: "Cancelar",
+      Todas: "Todas as Plataformas",
+      NoRecommendations: "Não há nenhuma recomendação no momento...",
+    },
+    spanish: {
+      Action: "Acción",
+      Adventure: "Aventura",
+      Animation: "Animación",
+      Comedy: "Comedia",
+      Drama: "Drama",
+      Family: "Familia",
+      Fantasy: "Fantasía",
+      Horror: "Terror",
+      Music: "Música",
+      Mystery: "Misterio",
+      ScienceFiction: "Ciencia ficción",
+      All: "Todos",
+      RecommendedForYou: "Recomendado para ti",
+      Description: "Descripción",
+      Share: "Compartir",
+      Actors: "Actores",
+      AddPrompt: "¿Deseas agregar este artículo a la lista?",
+      AddToList: "Agregar a la lista",
+      Cancel: "Cancelar",
+      Todas: "Todas las Plataformas",
+      NoRecommendations: "No hay recomendaciones en este momento...",
+    },
+    french: {
+      Action: "Action",
+      Adventure: "Aventure",
+      Animation: "Animation",
+      Comedy: "Comédie",
+      Drama: "Drame",
+      Family: "Famille",
+      Fantasy: "Fantaisie",
+      Horror: "Horreur",
+      Music: "Musique",
+      Mystery: "Mystère",
+      ScienceFiction: "Science-fiction",
+      All: "Tous",
+      RecommendedForYou: "Recommandé pour vous",
+      Description: "Description",
+      Share: "Partager",
+      Actors: "Acteurs",
+      AddPrompt: "Voulez-vous ajouter cet article à la liste?",
+      AddToList: "Ajouter à la liste",
+      Cancel: "Annuler",
+      Todas: "Toutes les Plateformes",
+      NoRecommendations: "Il n'y a aucune recommandation pour le moment...",
+    },
+    german: {
+      Action: "Aktion",
+      Adventure: "Abenteuer",
+      Animation: "Animation",
+      Comedy: "Komödie",
+      Drama: "Drama",
+      Family: "Familie",
+      Fantasy: "Fantasie",
+      Horror: "Horror",
+      Music: "Musik",
+      Mystery: "Geheimnis",
+      ScienceFiction: "Wissenschaftsfiktion",
+      All: "Alle",
+      RecommendedForYou: "Für dich empfohlen",
+      Description: "Beschreibung",
+      Share: "Teilen",
+      Actors: "Schauspieler",
+      AddPrompt: "Möchten Sie diesen Artikel zur Liste hinzufügen?",
+      AddToList: "Zur Liste hinzufügen",
+      Cancel: "Abbrechen",
+      Todas: "Alle Plattformen",
+      NoRecommendations: "Es gibt derzeit keine Empfehlungen...",
+    },
+  };
+
   const {
     recommendedMovies,
     recommendedByGenre,
@@ -113,13 +239,17 @@ export default function TabThreeScreen() {
     fetchMoviesByGenreAndPage, // Adicione isso
     paginationState, // Adicione isso
   } = useUser(); // Supondo que `addToWatchList` é o método do contexto
-  const [selectedGenre, setSelectedGenre] = useState("Recomendado para você");
+  const [selectedGenre, setSelectedGenre] = useState(
+    translation[language].RecommendedForYou
+  );
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isDetailsLoading, setIsDetailsLoading] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [showModal, setShowModal] = useState(false); // Estado para controlar a visibilidade do modal
-  const [genres, setGenres] = useState(["Recomendado para você"]);
+  const [genres, setGenres] = useState([
+    translation[language].RecommendedForYou,
+  ]);
   const { theme } = useTheme();
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -134,9 +264,12 @@ export default function TabThreeScreen() {
     }
   }, [isDetailsLoading]);
 
-  const [selectedPlatform, setSelectedPlatform] = useState("Todos");
+  const [selectedPlatform, setSelectedPlatform] = useState(
+    translation[language].All
+  );
+
   const platforms = [
-    "Todos",
+    translation[language].All,
     "Max",
     "Amazon Prime Video",
     "Netflix",
@@ -150,32 +283,32 @@ export default function TabThreeScreen() {
   }
 
   const generosFiltro: GenreMappings = {
-    "28": "Ação",
-    "12": "Aventura",
-    "16": "Animação",
-    "35": "Comédia",
-    "18": "Drama",
-    "10751": "Família",
-    "14": "Fantasia",
-    "27": "Terror",
-    "10402": "Música",
-    "9648": "Mistério",
-    "878": "Ficção científica",
+    "28": translation[language].Action,
+    "12": translation[language].Adventure,
+    "16": translation[language].Animation,
+    "35": translation[language].Comedy,
+    "18": translation[language].Drama,
+    "10751": translation[language].Family,
+    "14": translation[language].Fantasy,
+    "27": translation[language].Horror,
+    "10402": translation[language].Music,
+    "9648": translation[language].Mystery,
+    "878": translation[language].ScienceFiction,
   };
 
   useEffect(() => {
-    if (selectedGenre !== "Recomendado para você") {
+    if (selectedGenre !== translation[language].RecommendedForYou) {
       const currentGenreId = Object.keys(generosFiltro).find(
         (key) => generosFiltro[key] === selectedGenre
       );
       fetchMoviesByGenreAndPage(currentGenreId!, 1);
     }
-  }, [selectedGenre]); // Dependências do useEffect
+  }, [selectedGenre, language]); // Dependências do useEffect
 
   const getFilteredMovies = () => {
     let allMovies = [];
 
-    if (selectedGenre === "Recomendado para você") {
+    if (selectedGenre === translation[language].RecommendedForYou) {
       // Se for "Recomendado para você", usar a lista geral de recomendados
       allMovies = [...recommendedMovies];
     } else {
@@ -189,7 +322,7 @@ export default function TabThreeScreen() {
         ...(recommendedByGenre[selectedGenre] || []),
       ];
 
-      allMovies.map((moviesS) => console.log(moviesS.title));
+    //  allMovies.map((moviesS) => console.log(moviesS.title));
     }
 
     // Remove duplicatas
@@ -198,7 +331,7 @@ export default function TabThreeScreen() {
     );
 
     // Filtrar por plataforma, se necessário
-    if (selectedPlatform !== "Todos") {
+    if (selectedPlatform !== translation[language].All) {
       allMovies = allMovies.filter((movie) =>
         movie.streamingPlatforms?.some(
           (platform) => platform.name === selectedPlatform
@@ -221,12 +354,12 @@ export default function TabThreeScreen() {
     const genreNames = Object.values(generosFiltro);
 
     // Inclui "Recomendado para você" como a primeira opção
-    setGenres(["Recomendado para você", ...genreNames]);
-  }, []); // Esse useEffect depende apenas de generosFiltro, que é estático, então ele roda uma vez
+    setGenres([translation[language].RecommendedForYou, ...genreNames]);
+  }, [language]); // Esse useEffect depende apenas de generosFiltro, que é estático, então ele roda uma vez
 
   useEffect(() => {
     const moviesToCheck =
-      selectedGenre === "Recomendado para você"
+      selectedGenre === translation[language].RecommendedForYou
         ? recommendedMovies
         : recommendedByGenre[selectedGenre];
     setIsLoading(!moviesToCheck);
@@ -248,14 +381,13 @@ export default function TabThreeScreen() {
 
   const handleShare = () => {
     if (!selectedMovie) return; // Certifique-se de que há um filme selecionado
- 
+
     const message = `> Recomendo esse filme:\n\n*${selectedMovie.title}* \n${selectedMovie.description}
 
     \nLINK: watchfolio.com.br/movie/${selectedMovie.id}/?popup=true`;
     Share.share({
       message,
-   })
-   .catch((error) => console.error("Error sharing:", error));
+    }).catch((error) => console.error("Error sharing:", error));
   };
 
   const handleAddToList = () => {
@@ -353,25 +485,25 @@ export default function TabThreeScreen() {
   //TESTES
   const handleLoadMore = async () => {
     if (
-      selectedGenre != "Recomendado para você" &&
-      selectedPlatform == "Todos"
+      selectedGenre != translation[language].RecommendedForYou &&
+      selectedPlatform == translation[language].All
     ) {
       const currentGenreId =
         Object.keys(generosFiltro).find(
           (key) => generosFiltro[key] === selectedGenre
         ) || ""; // Isso converte o nome do gênero de volta para seu ID correspondente
-      console.log(currentGenreId);
+     // console.log(currentGenreId);
       const currentPage = paginationState[currentGenreId]?.page || 0;
       await fetchMoviesByGenreAndPage(currentGenreId, currentPage + 1);
     } else if (
-      selectedGenre != "Recomendado para você" &&
-      selectedPlatform != "Todos"
+      selectedGenre != translation[language].RecommendedForYou &&
+      selectedPlatform != translation[language].All
     ) {
       const currentGenreId =
         Object.keys(generosFiltro).find(
           (key) => generosFiltro[key] === selectedGenre
         ) || ""; // Isso converte o nome do gênero de volta para seu ID correspondente
-      console.log(currentGenreId);
+     // console.log(currentGenreId);
       const currentPage = paginationState[currentGenreId]?.page || 0;
 
       setTimeout(() => {
@@ -400,8 +532,8 @@ export default function TabThreeScreen() {
         onPress={() => setShowPlatformDropdown(true)} // Use um novo estado para controlar a visibilidade do dropdown de plataformas
       >
         <Text style={[styles.dropdownButtonText, { color: theme.text }]}>
-          {selectedPlatform === "Todos"
-            ? "Todas as Plataformas"
+          {selectedPlatform === translation[language].All
+            ? translation[language].Todas
             : selectedPlatform}
         </Text>
       </TouchableOpacity>
@@ -436,8 +568,8 @@ export default function TabThreeScreen() {
                     { backgroundColor: theme.modalBackground },
                   ]}
                   onPress={() => {
-                    if (platform === "Todos") {
-                      setSelectedPlatform("Todos");
+                    if (platform === translation[language].All) {
+                      setSelectedPlatform(translation[language].All);
                     } else {
                       // Aqui você precisaria encontrar o objeto de plataforma correspondente
                       // Isso é apenas um exemplo e precisa ser adaptado com base em seus dados
@@ -519,7 +651,7 @@ export default function TabThreeScreen() {
         <FlatList
           data={getFilteredMovies()}
           keyExtractor={(item) => item.id.toString()}
-          numColumns={3}
+          numColumns={isTablet ? 4 : 3}
           showsVerticalScrollIndicator={false}
           onEndReached={handleLoadMore}
           onEndReachedThreshold={0.5}
@@ -547,7 +679,7 @@ export default function TabThreeScreen() {
         <Text
           style={[styles.movieListTitle, { color: theme.text, marginTop: 50 }]}
         >
-          Não há nenhuma recomendação no momento...
+          {translation[language].NoRecommendations}
         </Text>
       )}
 
@@ -592,14 +724,16 @@ export default function TabThreeScreen() {
                 scrollEventThrottle={16} // Defina a frequência de eventos de rolagem
               >
                 <View
-                  style={[{
-                    display: "flex",
-                    flexDirection: "column",
-                    height: BANNER_H,
-                    backgroundColor: theme.modalBackground
-                  }, styles.imageShadowContainerBanner]}
+                  style={[
+                    {
+                      display: "flex",
+                      flexDirection: "column",
+                      height: BANNER_H,
+                      backgroundColor: theme.modalBackground,
+                    },
+                    styles.imageShadowContainerBanner,
+                  ]}
                 >
-                  
                   <Animated.Image
                     style={[
                       styles.movieImageBanner,
@@ -665,7 +799,14 @@ export default function TabThreeScreen() {
                           }}
                           onPress={handleShare}
                         >
-                          <Text style={{ color: theme.textButtons, textAlign: "center" }}>Compartilhar</Text>
+                          <Text
+                            style={{
+                              color: theme.textButtons,
+                              textAlign: "center",
+                            }}
+                          >
+                            {translation[language].Share}
+                          </Text>
                         </TouchableHighlight>
                       </View>
                     </View>
@@ -678,7 +819,7 @@ export default function TabThreeScreen() {
                       }}
                     >
                       <Text style={{ fontWeight: "bold", fontSize: 16 }}>
-                        Descrição:{" "}
+                        {translation[language].Description}:{" "}
                       </Text>
                       <Text
                         style={[
@@ -702,7 +843,7 @@ export default function TabThreeScreen() {
                           fontSize: 16,
                         }}
                       >
-                        Atores:
+                        {translation[language].Actors}:
                       </Text>
                       <ScrollView
                         horizontal={true}
@@ -764,34 +905,43 @@ export default function TabThreeScreen() {
 
                   <View style={styles.modalButtonsContainerAll}>
                     <Text style={[styles.modalText, { color: theme.text }]}>
-                      Deseja adicionar este item à lista?
+                      {translation[language].AddPrompt}
                     </Text>
 
                     <View style={styles.modalButtonsContainer}>
-                      <View
-                        style={[
-                          styles.buttonContainer,
-                          { backgroundColor: theme.borderRed },
-                        ]}
+                      <TouchableHighlight
+                        style={{
+                          ...styles.modalButton,
+                          backgroundColor: theme.borderRed,
+                        }}
+                        onPress={handleAddToList}
                       >
-                        <Button
-                          title="Adicionar à lista"
-                          onPress={handleAddToList}
-                          color={theme.text}
-                        />
-                      </View>
-                      <View
-                        style={[
-                          styles.buttonContainer,
-                          { backgroundColor: theme.modalBackgroundSecondary },
-                        ]}
+                        <Text
+                          style={[
+                            styles.textStyle,
+                            { color: theme.textButtons },
+                          ]}
+                        >
+                          {translation[language].AddToList}
+                        </Text>
+                      </TouchableHighlight>
+
+                      <TouchableHighlight
+                        style={{
+                          ...styles.modalButton,
+                          backgroundColor: theme.modalBackgroundSecondary,
+                        }}
+                        onPress={handleAddToList}
                       >
-                        <Button
-                          title="Cancelar"
-                          onPress={closeModal}
-                          color={theme.textButtons}
-                        />
-                      </View>
+                        <Text
+                          style={[
+                            styles.textStyle,
+                            { color: theme.textButtons },
+                          ]}
+                        >
+                          {translation[language].Cancel}
+                        </Text>
+                      </TouchableHighlight>
                     </View>
                   </View>
 
@@ -827,6 +977,12 @@ export default function TabThreeScreen() {
 }
 
 const styles = StyleSheet.create({
+
+  textStyle: {
+    color: "white",
+    fontWeight: "bold",
+    textAlign: "center",
+  },
   bannerContainer: {
     height: 250,
     width: "100%",
@@ -917,8 +1073,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   movieImage: {
-    width: 100,
-    height: 150,
+    width: isTablet ? 150 : 100,
+    height: isTablet ? 230 : 150,
     borderRadius: 10,
     resizeMode: "cover",
   },
@@ -929,8 +1085,8 @@ const styles = StyleSheet.create({
     resizeMode: "cover",
   },
   imageShadowContainer: {
-    width: 100,
-    height: 150,
+    width: isTablet ? 150 : 100,
+    height: isTablet ? 230 : 150,
     marginBottom: 5,
     borderRadius: 10,
     shadowColor: "#000", // Cor da sombra
@@ -1069,5 +1225,14 @@ const styles = StyleSheet.create({
     marginVertical: 5,
     borderRadius: 30,
     paddingHorizontal: 35,
+  },
+
+  //IPAD
+  text: {
+    fontSize: isTablet ? 24 : 16,
+  },
+  image: {
+    width: isTablet ? 200 : 100,
+    height: isTablet ? 200 : 100,
   },
 });
