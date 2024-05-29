@@ -22,7 +22,12 @@ import axios from "axios";
 import StarRating from "../../components/starComponent/starComponent";
 import { isSameWeek, isSameYear, isSameMonth, parse } from "date-fns";
 import { useUser } from "../../contexts/UserContext";
-import logo from "../../assets/images/logo.png";
+import logoDefault from "../../assets/images/logo.png";
+import logoBlue from "../../assets/images/logoBlue.png";
+import logoPink from "../../assets/images/logoPink.png";
+import logoGreen from "../../assets/images/logoGreen.png";
+import logoRed from "../../assets/images/logoRed.png";
+import logoOrange from "../../assets/images/logoOrange.png";
 import { useTheme } from "../../constants/temas/ThemeContext";
 import Slider from "@react-native-community/slider";
 import {
@@ -62,6 +67,19 @@ type Actor = {
   id: number;
   name: string;
   profilePath?: string; // URL para a foto do perfil do ator, se disponível
+
+  biography?: string;
+  birthYear?: string;
+  movies?: Movie[];
+};
+
+type ActorDetails = {
+  id: number;
+  name: string;
+  biography: string;
+  birthYear: string;
+  profilePath?: string;
+  movies: Movie[];
 };
 
 type StreamingPlatform = {
@@ -83,6 +101,7 @@ interface Movie {
   alternateImageUrl?: string; // Nova propriedade para o banner do filme
   description?: string; // Descrição do filme
   actors?: Actor[]; // Novo
+  similarMovies?: Movie[]; // Novo
 }
 
 // let movieList: Movie[] = [];
@@ -162,10 +181,12 @@ export default function HomeScreen() {
     removeFromList,
     fetchMovieDetails,
     addToWatchList,
+    fetchActorDetails,
   } = useUser(); // Use o contexto de usuário
   const [movieInput, setMovieInput] = useState<string>("");
   const [searchResults, setSearchResults] = useState<Movie[]>([]);
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
+  const [selectedActor, setSelectedActor] = useState<Actor | null>(null);
   const [selectedMovieRating, setSelectedMovieRating] = useState<Movie | null>(
     null
   );
@@ -177,13 +198,44 @@ export default function HomeScreen() {
   const totalMoviesThisWeek = getTotalMoviesWatchedThisWeek(movies);
   const totalMoviesThisMonth = getTotalMoviesWatchedThisMonth(movies);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const [modalType, setModalType] = useState("");
 
   const [isDetailsLoading, setIsDetailsLoading] = useState(false);
   const scrollY = useRef(new Animated.Value(0)).current;
 
-  const { theme, toggleTheme } = useTheme();
+  const { theme, themeName } = useTheme();
 
-  const { language } = useConfiguration();
+    // Definindo logos para diferentes temas
+    const logos = {
+      default: logoDefault,
+      dark:  logoDefault,
+      light:   logoDefault,
+      blue:  logoBlue,
+      orange:  logoOrange,
+      pink:  logoPink,
+      lightpink:  logoPink,
+      green: logoGreen,
+      deepPurple:  logoDefault,
+      red:  logoRed,
+    };
+  
+    // Selecionar logo com base no tema atual
+    const logo = logos[themeName] || logos.default;
+
+    const fadeAnim = useRef(new Animated.Value(0)).current;
+
+    useEffect(() => {
+      if (!isDetailsLoading) {
+        fadeAnim.setValue(0);
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        }).start();
+      }
+    }, [isDetailsLoading]);
+
+  const { translation, language } = useConfiguration();
 
   const languageMapping = {
     english: "en-US",
@@ -191,170 +243,108 @@ export default function HomeScreen() {
     spanish: "es-ES",
     french: "fr-FR",
     german: "de-DE",
+    italian: "it-IT",
+    chinese: "zh-CN",
   };
 
   const tmdbLanguage = languageMapping[language]; // Obtém o código de idioma correto para a API
 
-  const translations = {
-    english: {
-      digiteNomeFilme: "Type the movie name",
-      assistidosEm: "Watched in",
-      melhores: "Best",
-      descricao: "Description",
-      atores: "Actors",
-      melhoresFilmesDe: "Best movies of",
-      avaliarFilme: "Rate the movie:",
-      avaliacao: "Rating",
-      cancelar: "Cancel",
-      confirmar: "Confirm",
-      compartilhar: "Share",
-      assistirMaisTarde: "Watch later",
-      voceAssistiuEsseFilme: "You have watched this movie",
-      adicionar: "Add",
-      assistidoQuando: "Watched when?",
-      escolherData: "Choose date",
-      hoje: "Today",
-    },
-    portuguese: {
-      digiteNomeFilme: "Digite o nome do filme",
-      assistidosEm: "Assistidos em",
-      melhores: "Melhores",
-      descricao: "Descrição",
-      atores: "Atores",
-      melhoresFilmesDe: "Melhores filmes de",
-      avaliarFilme: "Avaliar o filme:",
-      avaliacao: "Avaliação",
-      cancelar: "Cancelar",
-      confirmar: "Confirmar",
-      compartilhar: "Compartilhar",
-      assistirMaisTarde: "Assistir mais tarde",
-      voceAssistiuEsseFilme: "Você assistiu esse filme",
-      adicionar: "Adicionar",
-      assistidoQuando: "Assistido quando?",
-    escolherData: "Escolher data",
-    hoje: "Hoje",
-    },
-    spanish: {
-      digiteNomeFilme: "Escribe el nombre de la película",
-      assistidosEm: "Vistos en",
-      melhores: "Mejores",
-      descricao: "Descripción",
-      atores: "Actores",
-      melhoresFilmesDe: "Mejores películas de",
-      avaliarFilme: "Evaluar la película:",
-      avaliacao: "Evaluación",
-      cancelar: "Cancelar",
-      confirmar: "Confirmar",
-      compartilhar: "Compartir",
-      assistirMaisTarde: "Ver más tarde",
-      voceAssistiuEsseFilme: "Has visto esta película",
-      adicionar: "Añadir",
-      assistidoQuando: "¿Cuándo viste?",
-      escolherData: "Elegir fecha",
-      hoje: "Hoy",
-    },
-    french: {
-      digiteNomeFilme: "Tapez le nom du film",
-      assistidosEm: "Regardés en",
-      melhores: "Meilleurs",
-      descricao: "Description",
-      atores: "Acteurs",
-      melhoresFilmesDe: "Meilleurs films de",
-      avaliarFilme: "Évaluer le film :",
-      avaliacao: "Évaluation",
-      cancelar: "Annuler",
-      confirmar: "Confirmer",
-      compartilhar: "Partager",
-      assistirMaisTarde: "Regarder plus tard",
-      voceAssistiuEsseFilme: "Vous avez regardé ce film",
-      adicionar: "Ajouter",
-      assistidoQuando: "Regardé quand ?",
-      escolherData: "Choisir une date",
-      hoje: "Aujourd'hui",
-    },
-    german: {
-      digiteNomeFilme: "Geben Sie den Namen des Films ein",
-      assistidosEm: "Gesehen in",
-      melhores: "Besten",
-      descricao: "Beschreibung",
-      atores: "Schauspieler",
-      melhoresFilmesDe: "Beste Filme von",
-      avaliarFilme: "Den Film bewerten:",
-      avaliacao: "Bewertung",
-      cancelar: "Abbrechen",
-      confirmar: "Bestätigen",
-      compartilhar: "Teilen",
-      assistirMaisTarde: "Später ansehen",
-      voceAssistiuEsseFilme: "Sie haben diesen Film gesehen",
-      adicionar: "Hinzufügen",
-      assistidoQuando: "Wann gesehen?",
-      escolherData: "Datum auswählen",
-      hoje: "Heute"
-    },
-  };
+  
 
   const [datePickerVisible, setDatePickerVisible] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [dateModalVisible, setDateModalVisible] = useState(false);
 
   const handleDateChange = (event: any, date: Date | undefined) => {
-    if (date) {
-      setSelectedDate(date);
-      setDatePickerVisible(false); // Fechar o DatePicker após a seleção
-    } else {
-      setDatePickerVisible(false); // Fechar o DatePicker se o usuário cancelar
+    if (Platform.OS === "ios") {
+      if (date) {
+        setSelectedDate(date);
+      } else {
+        setDatePickerVisible(false); // Fechar o DatePicker se o usuário cancelar
+      }
+    } else if (Platform.OS === "android") {
+      if (date) {
+        setSelectedDate(date);
+        setDatePickerVisible(false);
+      } else {
+        setDatePickerVisible(false); // Fechar o DatePicker se o usuário cancelar
+      }
     }
+
+    
   };
 
   const searchMovies = async (query: string) => {
     try {
-      const response = await axios.get(
+      // Busca por filmes
+      const movieResponse = await axios.get(
         `https://api.themoviedb.org/3/search/movie?api_key=${TMDB_API_KEY}&language=${tmdbLanguage}&query=${encodeURIComponent(
           query
         )}`
       );
 
-      if (response.data.results) {
-        const filteredResults = response.data.results.filter(
+      let movieResults = [];
+      if (movieResponse.data.results) {
+        const filteredMovieResults = movieResponse.data.results.filter(
           (movieData: any) => {
             return movieData.overview && movieData.overview.trim().length > 0;
           }
         );
 
-        // Ordenar os resultados com base no número de avaliações
-        const sortedResults = filteredResults.sort((a: any, b: any) => {
-          const voteCountA = a.vote_count || 0; // Atribui 0 se vote_count não estiver definido
-          const voteCountB = b.vote_count || 0;
+        const sortedMovieResults = filteredMovieResults.sort(
+          (a: any, b: any) => {
+            const voteCountA = a.vote_count || 0;
+            const voteCountB = b.vote_count || 0;
 
-          if (voteCountA < 150 && voteCountB >= 150) {
-            return 1; // Move A para o final se A tem menos de 150 avaliações e B tem 150 ou mais
-          } else if (voteCountB < 150 && voteCountA >= 150) {
-            return -1; // Move B para o final se B tem menos de 150 avaliações e A tem 150 ou mais
-          } else {
-            return voteCountB - voteCountA; // Ordena por maior número de avaliações se ambos têm mais de 150 avaliações
+            if (voteCountA < 150 && voteCountB >= 150) {
+              return 1;
+            } else if (voteCountB < 150 && voteCountA >= 150) {
+              return -1;
+            } else {
+              return voteCountB - voteCountA;
+            }
           }
-        });
+        );
 
-        const results = sortedResults.map((movieData: any) => ({
+        movieResults = sortedMovieResults.map((movieData: any) => ({
           id: movieData.id,
           title: movieData.title,
           date: new Date().toLocaleDateString(),
           imageUrl: `https://image.tmdb.org/t/p/w500${movieData.poster_path}`,
+          type: "movie", // Adiciona um tipo para facilitar a distinção
         }));
-
-        setSearchResults(results);
-      } else {
-        setSearchResults([]);
       }
+
+      // Busca por atores
+      const actorResponse = await axios.get(
+        `https://api.themoviedb.org/3/search/person?api_key=${TMDB_API_KEY}&language=${tmdbLanguage}&query=${encodeURIComponent(
+          query
+        )}`
+      );
+
+      let actorResults = [];
+      if (actorResponse.data.results) {
+        actorResults = actorResponse.data.results.map((actorData: any) => ({
+          id: actorData.id,
+          title: actorData.name,
+          imageUrl: `https://image.tmdb.org/t/p/w500${actorData.profile_path}`,
+          type: "actor", // Adiciona um tipo para facilitar a distinção
+        }));
+      }
+
+      // Combina resultados de filmes e atores, garantindo que os atores fiquem no fim da lista
+      const combinedResults = [...movieResults, ...actorResults];
+
+      setSearchResults(combinedResults);
     } catch (error) {
-      console.error("Error fetching movies:", error);
+      console.error("Error fetching movies and actors:", error);
     }
   };
 
   const handleShare = () => {
     if (!selectedMovie) return; // Certifique-se de que há um filme selecionado
 
-    const message = `> Recomendo esse filme:\n\n*${selectedMovie.title}* \n${selectedMovie.description}
+    const message = `> ${translation.RecommendMovie} \n\n*${selectedMovie.title}* \n${selectedMovie.description}
 
     \nLINK: watchfolio.com.br/movie/${selectedMovie.id}/?popup=true`;
     Share.share({
@@ -370,12 +360,6 @@ export default function HomeScreen() {
   const handleSelectSuggestion = (movie: Movie) => {
     setSelectedMovie(movie);
     setMovieInput(movie.title);
-    setModalVisible(true);
-
-    fetchMovieDetails(movie.id, 0, (movieDetails) => {
-      setIsDetailsLoading(false); // Inicia o loading
-      setSelectedMovie(movieDetails);
-    });
   };
 
   const handleAddMovie = () => {
@@ -383,11 +367,13 @@ export default function HomeScreen() {
     const alreadyAdded = movies.some((movie) => movie.id === selectedMovie.id);
     if (alreadyAdded) {
       // Se o filme já foi adicionado, talvez mostrar uma mensagem ou lidar de outra forma.
-      alert("Este filme já está na sua lista!");
+      alert(translation.FilmeJaNaLista);
       return;
     }
     setDateModalVisible(true);
     setModalVisible(false);
+    setMovieInput("");
+    setSearchResults([]); // Fecha os resultados da busca imediatamente ao clicar na tela
   };
 
   const handleRemoveMovie = (movie: Movie) => {
@@ -402,27 +388,23 @@ export default function HomeScreen() {
   };
 
   const getMonthYearTitle = (dateString: string): string => {
-    // Corrigindo para assumir o formato "DD/MM/YYYY"
     const [day, month, year] = dateString.split("/");
     const dayNumber = parseInt(day, 10);
     const monthNumber = parseInt(month, 10);
     const yearNumber = parseInt(year, 10);
 
     if (isNaN(monthNumber) || monthNumber < 1 || monthNumber > 12) {
-        console.error(`Invalid month value: ${dateString}`);
-        return "";
+      console.error(`Invalid month value: ${dateString}`);
+      return "";
     }
 
     const options: Intl.DateTimeFormatOptions = { month: "long" };
-    // Usando o mês e ano corretamente convertidos para números
     const monthName = new Intl.DateTimeFormat(tmdbLanguage, options).format(
-        new Date(yearNumber, monthNumber - 1, 1)
+      new Date(yearNumber, monthNumber - 1, 1)
     );
 
     return `${monthName.charAt(0).toUpperCase() + monthName.slice(1)} ${year}`;
-};
-
-
+  };
 
   interface OrganizedMovies {
     [key: string]: { title: string; data: Movie[] };
@@ -447,24 +429,109 @@ export default function HomeScreen() {
     return combinedArray;
   };
 
-  const monthOrder: { [key: string]: number } = {
-    Janeiro: 1,
-    Fevereiro: 2,
-    Março: 3,
-    Abril: 4,
-    Maio: 5,
-    Junho: 6,
-    Julho: 7,
-    Agosto: 8,
-    Setembro: 9,
-    Outubro: 10,
-    Novembro: 11,
-    Dezembro: 12,
+  const monthOrder: { [key: string]: { [key: string]: number } } = {
+    english: {
+      January: 1,
+      February: 2,
+      March: 3,
+      April: 4,
+      May: 5,
+      June: 6,
+      July: 7,
+      August: 8,
+      September: 9,
+      October: 10,
+      November: 11,
+      December: 12,
+    },
+    portuguese: {
+      Janeiro: 1,
+      Fevereiro: 2,
+      Março: 3,
+      Abril: 4,
+      Maio: 5,
+      Junho: 6,
+      Julho: 7,
+      Agosto: 8,
+      Setembro: 9,
+      Outubro: 10,
+      Novembro: 11,
+      Dezembro: 12,
+    },
+    spanish: {
+      Enero: 1,
+      Febrero: 2,
+      Marzo: 3,
+      Abril: 4,
+      Mayo: 5,
+      Junio: 6,
+      Julio: 7,
+      Agosto: 8,
+      Septiembre: 9,
+      Octubre: 10,
+      Noviembre: 11,
+      Diciembre: 12,
+    },
+    french: {
+      Janvier: 1,
+      Février: 2,
+      Mars: 3,
+      Avril: 4,
+      Mai: 5,
+      Juin: 6,
+      Juillet: 7,
+      Août: 8,
+      Septembre: 9,
+      Octobre: 10,
+      Novembre: 11,
+      Décembre: 12,
+    },
+    german: {
+      Januar: 1,
+      Februar: 2,
+      März: 3,
+      April: 4,
+      Mai: 5,
+      Juni: 6,
+      Juli: 7,
+      August: 8,
+      September: 9,
+      Oktober: 10,
+      November: 11,
+      Dezember: 12,
+    },
+    italian: {
+      Gennaio: 1,
+      Febbraio: 2,
+      Marzo: 3,
+      Aprile: 4,
+      Maggio: 5,
+      Giugno: 6,
+      Luglio: 7,
+      Agosto: 8,
+      Settembre: 9,
+      Ottobre: 10,
+      Novembre: 11,
+      Dicembre: 12,
+    },
+    chinese: {
+      一月: 1,
+      二月: 2,
+      三月: 3,
+      四月: 4,
+      五月: 5,
+      六月: 6,
+      七月: 7,
+      八月: 8,
+      九月: 9,
+      十月: 10,
+      十一月: 11,
+      十二月: 12,
+    },
   };
 
-
   const organizedMovies: OrganizedMovies = movies.reduce((acc, movie) => {
-    const monthYearTitle = getMonthYearTitle(movie.date);  // Usando o novo nome da função
+    const monthYearTitle = getMonthYearTitle(movie.date); // Usando o novo nome da função
 
     if (!monthYearTitle) {
       return acc;
@@ -472,72 +539,103 @@ export default function HomeScreen() {
 
     if (!acc[monthYearTitle]) {
       acc[monthYearTitle] = {
-        title: `${translations[language].assistidosEm} ${monthYearTitle}`,
+        title: `${translation.assistidosEm} ${monthYearTitle}`,
         data: [],
       };
     }
 
     acc[monthYearTitle].data.push(movie);
     return acc;
-}, {} as OrganizedMovies);
+  }, {} as OrganizedMovies);
 
-// Ordenar cada grupo por data em ordem decrescente
-Object.keys(organizedMovies).forEach((month) => {
-  organizedMovies[month].data.sort((a, b) => {
-    const dateA = new Date(a.date).getTime();
-    const dateB = new Date(b.date).getTime();
-    return dateB - dateA; // Ordena de forma decrescente por data
+  // Ordenar cada grupo por data em ordem decrescente
+  Object.keys(organizedMovies).forEach((month) => {
+    organizedMovies[month].data.sort((a, b) => {
+      const dateA = new Date(a.date).getTime();
+      const dateB = new Date(b.date).getTime();
+      return dateB - dateA; // Ordena de forma decrescente por data
+    });
   });
-});
 
+  const organizedMoviesArray = Object.values(organizedMovies).sort((a, b) => {
+    const matchA = a.title.match(/(\w+) (\d{4})$/);
+    const matchB = b.title.match(/(\w+) (\d{4})$/);
 
-const organizedMoviesArray = Object.values(organizedMovies).sort((a, b) => {
-  const matchA = a.title.match(/(\w+) (\d{4})$/);
-  const matchB = b.title.match(/(\w+) (\d{4})$/);
+    if (!matchA || !matchB) {
+      console.error("Failed to parse month and year from title");
+      return 0; // Retorna 0 para manter a ordem original se não conseguir parsear
+    }
 
-  if (!matchA || !matchB) {
-    console.error('Failed to parse month and year from title');
-    return 0; // Retorna 0 para manter a ordem original se não conseguir parsear
-  }
+    const [, monthA, yearA] = matchA;
+    const [, monthB, yearB] = matchB;
 
-  const [, monthA, yearA] = matchA;
-  const [, monthB, yearB] = matchB;
+    const yearDifference = parseInt(yearB) - parseInt(yearA);
+    if (yearDifference !== 0) {
+      return yearDifference;
+    }
 
+    const languageMonthOrder = monthOrder[language]; // Obtemos a ordem dos meses para o idioma atual
 
-  const yearDifference = parseInt(yearB) - parseInt(yearA);
-  if (yearDifference !== 0) {
-    return yearDifference;
-  }
+    return (
+      (languageMonthOrder[monthB] || 0) - (languageMonthOrder[monthA] || 0)
+    );
+  });
 
-  return monthOrder[monthB] - monthOrder[monthA];
-});
-
-
-// Cria um array de melhores filmes, removendo "assistidos em" do título
-const bestMoviesArray: { title: string; data: Movie[] }[] = organizedMoviesArray.map((item) => {
-  const bestMovies = item.data.slice().sort((a, b) => b.rating - a.rating);
-
-  // Expressão regular atualizada para capturar corretamente os meses com acentos
-  const match = item.title.match(/([\p{L}\p{M}]+ \d{4})$/u);
-  const monthYear = match ? match[1] : "Mês/Ano Desconhecido";
-
-  return {
-    title: `${translations[language].melhoresFilmesDe} ${monthYear}`,
-    data: bestMovies.map((movie, index) => ({
-      ...movie,
-      rank: <Text style={styles.rankNumber}>{index + 1}</Text>,
-    })),
+  const parseDate = (dateString: string): Date => {
+    const [day, month, year] = dateString.split("/").map(Number);
+    return new Date(year, month - 1, day);
   };
-});
 
+  // Cria um array de melhores filmes, removendo "assistidos em" do título
+  const bestMoviesArray: { title: string; data: Movie[] }[] =
+    organizedMoviesArray.map((item) => {
+      const bestMovies = item.data.slice().sort((a, b) => b.rating - a.rating);
 
+      // Expressão regular atualizada para capturar corretamente os meses com acentos
+      const match = item.title.match(/([\p{L}\p{M}]+ \d{4})$/u);
+      const monthYear = match ? match[1] : "Mês/Ano Desconhecido";
 
-  const dismissKeyboardAndResults = () => {
-    Keyboard.dismiss();
-    setTimeout(() => {
-      setSearchResults([]);
-    }, 1500);
-  };
+      return {
+        title: `${translation.melhoresFilmesDe} ${monthYear}`,
+        data: bestMovies.map((movie, index) => ({
+          ...movie,
+          rank: <Text style={styles.rankNumber}>{index + 1}</Text>,
+        })),
+      };
+    });
+
+    const dismissKeyboardAndResults = () => {
+      Keyboard.dismiss();
+      setSearchResults([]); // Fecha os resultados da busca imediatamente ao clicar na tela
+    };
+    
+
+    const handlePressItemModalType = (item: any) => {
+      setModalVisible(false); // Feche o modal atual
+      setTimeout(() => {
+        if (item.type === "movie" || (item && typeof item.title === "string" && typeof item.date === "string")) {
+          setSelectedMovie(item);
+          setModalType("movie");
+          setIsDetailsLoading(true); // Indica que os detalhes estão carregando
+    
+          fetchMovieDetails(item.id, 0, (movieDetails) => {
+            setSelectedMovie(movieDetails);
+            setIsDetailsLoading(false); // Carregamento concluído
+          });
+        } else {
+          setSelectedActor(item);
+          setModalType("actor");
+          setIsDetailsLoading(true); // Indica que os detalhes estão carregando
+    
+          fetchActorDetails(item.id, (actorDetails) => {
+            setSelectedActor(actorDetails);
+            setIsDetailsLoading(false); // Carregamento concluído
+          });
+        }
+        setModalVisible(true); // Reabra o modal
+      }, 300); // Adicione um pequeno atraso para garantir que o modal foi fechado
+    };
+    
 
   const handleAddToList = () => {
     if (selectedMovie) {
@@ -591,18 +689,15 @@ const bestMoviesArray: { title: string; data: Movie[] }[] = organizedMoviesArray
       "keyboardDidHide",
       () => {
         setKeyboardVisible(false);
-
-        setTimeout(() => {
-          setSearchResults([]);
-        }, 1500);
       }
     );
-
+  
     return () => {
       keyboardDidShowListener.remove();
       keyboardDidHideListener.remove();
     };
   }, []);
+  
 
   const combinedArray = combineLists(organizedMoviesArray, bestMoviesArray);
 
@@ -655,7 +750,7 @@ const bestMoviesArray: { title: string; data: Movie[] }[] = organizedMoviesArray
                   backgroundColor: theme.modalBackground,
                 }, // Estilo dinâmico baseado no tema atual
               ]}
-              placeholder={translations[language].digiteNomeFilme}
+              placeholder={translation.digiteNomeFilme}
               placeholderTextColor={theme.text}
               value={movieInput}
               onChangeText={handleInputChange}
@@ -674,7 +769,10 @@ const bestMoviesArray: { title: string; data: Movie[] }[] = organizedMoviesArray
               {searchResults.map((item) => (
                 <TouchableOpacity
                   key={item.id}
-                  onPress={() => handleSelectSuggestion(item)}
+                  onPress={() => {
+                    handleSelectSuggestion(item);
+                    handlePressItemModalType(item);
+                  }}
                 >
                   <View
                     style={[
@@ -716,8 +814,8 @@ const bestMoviesArray: { title: string; data: Movie[] }[] = organizedMoviesArray
               center
               title={
                 activeTab === "bestMovies"
-                  ? translations[language].melhores
-                  : translations[language].melhores
+                  ? translation.melhores
+                  : translation.melhores
               }
               iconRight={true}
               size={isTablet ? 26 : 20}
@@ -758,16 +856,17 @@ const bestMoviesArray: { title: string; data: Movie[] }[] = organizedMoviesArray
                   </Text>
                   <View key={item.title} style={styles.flatlist}>
                     <FlatList
-                      data={item.data}
+                      data={[...item.data].reverse()}
                       keyExtractor={(movie) => movie.id.toString()}
                       horizontal={true}
                       showsHorizontalScrollIndicator={false}
-                      renderItem={({ item, index }) => (
+                      renderItem={({ item }) => (
                         <View style={[styles.movieItem, { marginLeft: 9 }]}>
                           <TouchableOpacity
                             onPress={() => {
                               setRating(item.rating);
                               setSelectedMovieRating(item);
+                              setSelectedDate(new Date(parseDate(item.date)));
                               setModalVisible1(true);
                             }}
                           >
@@ -800,7 +899,7 @@ const bestMoviesArray: { title: string; data: Movie[] }[] = organizedMoviesArray
             </ScrollView>
           ) : (
             <ScrollView style={styles.moviesChekclist}>
-              {bestMoviesArray.reverse().map((item) => (
+              {bestMoviesArray.map((item) => (
                 <View
                   key={item.title}
                   style={[
@@ -823,6 +922,7 @@ const bestMoviesArray: { title: string; data: Movie[] }[] = organizedMoviesArray
                             onPress={() => {
                               setRating(item.rating);
                               setSelectedMovieRating(item);
+                              setSelectedDate(new Date(parseDate(item.date)));
                               setModalVisible1(true);
                             }}
                           >
@@ -856,290 +956,347 @@ const bestMoviesArray: { title: string; data: Movie[] }[] = organizedMoviesArray
           )}
 
           {/* MODAL DE PARA ASSISTIR MAIS TARDE  */}
-          <Modal
-            animationType="slide"
-            visible={modalVisible}
-            onRequestClose={() => {
-              setModalVisible(!modalVisible);
-            }}
-            presentationStyle="pageSheet"
-          >
-            <View style={styles.modalContainerMovie}>
-              {isDetailsLoading ? (
-                <View
-                  style={[
-                    styles.modalContentMovie,
-                    { backgroundColor: theme.modalBackground },
-                  ]}
-                >
-                  <ActivityIndicator
-                    size="large"
-                    color={theme.borderRed}
-                    style={{ alignSelf: "center" }}
-                  />
-                </View>
-              ) : (
-                <View
-                  style={[
-                    styles.modalContentMovie,
-                    { backgroundColor: theme.modalThemeMode },
-                  ]}
-                >
-                  <Animated.ScrollView
-                    style={{
-                      flex: 1,
-                      width: "100%",
-                      backgroundColor: theme.modalBackground,
-                    }}
-                    onScroll={Animated.event(
-                      [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-                      { useNativeDriver: true }
-                    )}
-                    scrollEventThrottle={16} // Defina a frequência de eventos de rolagem
+          {modalType === "movie" && (
+            <Modal
+              animationType="slide"
+              visible={modalVisible}
+              onRequestClose={() => {
+                setModalVisible(!modalVisible);
+              }}
+              presentationStyle="pageSheet"
+            >
+              <View style={styles.modalContainerMovie}>
+                {isDetailsLoading ? (
+                  <View
+                    style={[
+                      styles.modalContentMovie,
+                      { backgroundColor: theme.modalBackground },
+                    ]}
                   >
-                    <View
-                      style={[
-                        {
-                          display: "flex",
-                          flexDirection: "column",
-                          height: BANNER_H,
-                          backgroundColor: theme.modalBackground,
-                        },
-                        styles.imageShadowContainerBanner,
-                      ]}
+                    <ActivityIndicator
+                      size="large"
+                      color={theme.borderRed}
+                      style={{ alignSelf: "center" }}
+                    />
+                  </View>
+                ) : (
+                  <View
+                    style={[
+                      styles.modalContentMovie,
+                      { backgroundColor: theme.modalThemeMode },
+                    ]}
+                  >
+                    <Animated.ScrollView
+                      style={{
+                        flex: 1,
+                        width: "100%",
+                        backgroundColor: theme.modalBackground,
+                        opacity: fadeAnim,
+                      }}
+                      onScroll={Animated.event(
+                        [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+                        { useNativeDriver: true }
+                      )}
+                      scrollEventThrottle={16} // Defina a frequência de eventos de rolagem
                     >
-                      <Animated.Image
+                      <View
                         style={[
-                          styles.movieImageBanner,
                           {
-                            width: "100%",
-                            flex: 1,
+                            display: "flex",
+                            flexDirection: "column",
                             height: BANNER_H,
-                            transform: [
-                              {
-                                translateY: scrollY.interpolate({
-                                  inputRange: [-BANNER_H, 0, BANNER_H],
-                                  outputRange: [-BANNER_H / 2, 0, 0], // Previne movimento para cima
-                                }),
-                              },
-                              {
-                                scale: scrollY.interpolate({
-                                  inputRange: [-BANNER_H, 0],
-                                  outputRange: [2, 1], // Permite expansão ao puxar para baixo
-                                  extrapolateRight: "clamp", // Previne que a escala se ajuste além do especificado
-                                }),
-                              },
-                            ],
+                            backgroundColor: theme.modalBackground,
                           },
+                          styles.imageShadowContainerBanner,
                         ]}
-                        source={{ uri: selectedMovie?.alternateImageUrl }}
-                      />
-                    </View>
+                      >
+                        <Animated.Image
+                          style={[
+                            styles.movieImageBanner,
+                            {
+                              width: "100%",
+                              flex: 1,
+                              height: BANNER_H,
+                              transform: [
+                                {
+                                  translateY: scrollY.interpolate({
+                                    inputRange: [-BANNER_H, 0, BANNER_H],
+                                    outputRange: [-BANNER_H / 2, 0, 0], // Previne movimento para cima
+                                  }),
+                                },
+                                {
+                                  scale: scrollY.interpolate({
+                                    inputRange: [-BANNER_H, 0],
+                                    outputRange: [2, 1], // Permite expansão ao puxar para baixo
+                                    extrapolateRight: "clamp", // Previne que a escala se ajuste além do especificado
+                                  }),
+                                },
+                              ],
+                            },
+                          ]}
+                          source={{ uri: selectedMovie?.alternateImageUrl }}
+                        />
+                      </View>
 
-                    <View style={styles.modalInfoContent}>
-                      <View style={styles.modalMovieInfo}>
-                        <View style={styles.modalMovieTitle}>
-                          <View
-                            style={[
-                              styles.imageShadowContainer,
-                              { backgroundColor: theme.modalBackground },
-                            ]}
-                          >
-                            <Image
-                              style={styles.movieImageDetails}
-                              source={{ uri: selectedMovie?.imageUrl }}
-                            />
-                          </View>
-
-                          <View style={styles.titleAndDate}>
-                            <Text
+                      <View style={styles.modalInfoContent}>
+                        <View style={styles.modalMovieInfo}>
+                          <View style={styles.modalMovieTitle}>
+                            <View
                               style={[
-                                styles.modalMovieTitleText,
-                                { color: theme.text },
+                                styles.imageShadowContainer,
+                                { backgroundColor: theme.modalBackground },
                               ]}
                             >
-                              {selectedMovie?.title}
-                            </Text>
-                            <Text
-                              style={[
-                                styles.modalMovieDate,
-                                { color: theme.text },
-                              ]}
-                            >
-                              {formatDate(selectedMovie?.date)}
-                            </Text>
+                              <Image
+                                style={styles.movieImageDetails}
+                                source={{ uri: selectedMovie?.imageUrl }}
+                              />
+                            </View>
 
-                            <TouchableHighlight
-                              style={{
-                                ...styles.modalButton,
-                                marginBottom: 10,
-                                backgroundColor: "#4caf50", // Cor verde para diferenciar
-                              }}
-                              onPress={handleShare}
-                            >
-                              <Text style={styles.textStyle}>
-                                {translations[language].compartilhar}
-                              </Text>
-                            </TouchableHighlight>
-
-                            <TouchableOpacity
-                              style={[
-                                styles.modalButton,
-                                { backgroundColor: theme.borderRed },
-                              ]}
-                              onPress={handleAddToList}
-                            >
+                            <View style={styles.titleAndDate}>
                               <Text
-                                style={{
-                                  color: theme.text,
-                                  textAlign: "center",
-                                }}
+                                style={[
+                                  styles.modalMovieTitleText,
+                                  { color: theme.text },
+                                ]}
                               >
-                                {translations[language].assistirMaisTarde}
+                                {selectedMovie?.title}
                               </Text>
-                            </TouchableOpacity>
+                              <Text
+                                style={[
+                                  styles.modalMovieDate,
+                                  { color: theme.text },
+                                ]}
+                              >
+                                {formatDate(selectedMovie?.date)}
+                              </Text>
+
+                              <TouchableHighlight
+                                style={{
+                                  ...styles.modalButton,
+                                  marginBottom: 10,
+                                  backgroundColor: "#4caf50", // Cor verde para diferenciar
+                                }}
+                                onPress={handleShare}
+                              >
+                                <Text style={styles.textStyle}>
+                                  {translation.compartilhar}
+                                </Text>
+                              </TouchableHighlight>
+
+                              <TouchableOpacity
+                                style={[
+                                  styles.modalButton,
+                                  { backgroundColor: theme.borderRed },
+                                ]}
+                                onPress={handleAddToList}
+                              >
+                                <Text
+                                  style={{
+                                    color: theme.text,
+                                    textAlign: "center",
+                                  }}
+                                >
+                                  {translation.assistirMaisTarde}
+                                </Text>
+                              </TouchableOpacity>
+                            </View>
                           </View>
-                        </View>
 
-                        <Text
-                          style={{
-                            color: theme.text,
-                            marginTop: 30,
-                            textAlign: "justify",
-                          }}
-                        >
-                          <Text style={{ fontWeight: "bold", fontSize: 16 }}>
-                            {translations[language].descricao}:{" "}
-                          </Text>
-                          <Text
-                            style={[
-                              styles.modalText,
-                              { color: theme.text, marginBottom: 30 },
-                            ]}
-                          >
-                            {selectedMovie?.description}
-                          </Text>
-                        </Text>
-
-                        <View style={{ marginTop: 30 }}>
                           <Text
                             style={{
                               color: theme.text,
-                              fontWeight: "bold",
-                              fontSize: 16,
+                              marginTop: 30,
+                              textAlign: "justify",
                             }}
                           >
-                            {translations[language].atores}:
+                            <Text style={{ fontWeight: "bold", fontSize: 16 }}>
+                              {translation.descricao}:{" "}
+                            </Text>
+                            <Text
+                              style={[
+                                styles.modalText,
+                                { color: theme.text, marginBottom: 30 },
+                              ]}
+                            >
+                              {selectedMovie?.description}
+                            </Text>
                           </Text>
-                          <ScrollView
-                            horizontal={true}
-                            showsHorizontalScrollIndicator={false}
-                            style={styles.actorsContainer}
-                          >
-                            {selectedMovie?.actors?.map((actor, index) => (
-                              <View key={index} style={styles.actorCard}>
-                                <View
-                                  style={[
-                                    styles.imageShadowContainerActor,
-                                    { backgroundColor: theme.modalBackground },
-                                  ]}
+
+                          <View style={{ marginTop: 30 }}>
+                            <Text
+                              style={{
+                                color: theme.text,
+                                fontWeight: "bold",
+                                fontSize: 16,
+                              }}
+                            >
+                              {translation.atores}:
+                            </Text>
+                            <ScrollView
+                              horizontal={true}
+                              showsHorizontalScrollIndicator={false}
+                              style={styles.actorsContainer}
+                            >
+                              {selectedMovie?.actors?.map((actor, index) => (
+                                <TouchableOpacity
+                                  onPress={() =>
+                                    handlePressItemModalType(actor)
+                                  }
                                 >
-                                  <Image
-                                    source={{ uri: actor.profilePath! }}
-                                    style={styles.actorImage}
-                                    resizeMode="cover"
-                                  />
-                                </View>
-                                <Text
-                                  style={[
-                                    styles.modalMovieTitleTextActors,
-                                    { color: theme.text },
-                                  ]}
+                                  <View key={index} style={styles.actorCard}>
+                                    <View
+                                      style={[
+                                        styles.imageShadowContainerActor,
+                                        {
+                                          backgroundColor:
+                                            theme.modalBackground,
+                                        },
+                                      ]}
+                                    >
+                                      <Image
+                                        source={{ uri: actor.profilePath! }}
+                                        style={styles.actorImage}
+                                        resizeMode="cover"
+                                      />
+                                    </View>
+                                    <Text
+                                      style={[
+                                        styles.modalMovieTitleTextActors,
+                                        { color: theme.text },
+                                      ]}
+                                    >
+                                      {actor.name}
+                                    </Text>
+                                  </View>
+                                </TouchableOpacity>
+                              ))}
+                            </ScrollView>
+                          </View>
+
+
+                          <View style={{ marginTop: 30 }}>
+                            <Text
+                              style={{
+                                color: theme.text,
+                                fontWeight: "bold",
+                                fontSize: 16,
+                              }}
+                            >
+                             {translation.Recomendado}:
+                            </Text>
+                            <ScrollView
+                              horizontal={true}
+                              showsHorizontalScrollIndicator={false}
+                              style={styles.actorsContainer}
+                            >
+                               {selectedMovie?.similarMovies?.map((movie, index) => (
+                              <View key={index} style={styles.movieCard}>
+                                <TouchableOpacity
+                                  onPress={() =>
+                                    handlePressItemModalType(movie)
+                                  }
                                 >
-                                  {actor.name}
-                                </Text>
+                                  <View
+                                    style={[
+                                      styles.imageShadowContainerMovies,
+                                      {
+                                        backgroundColor: theme.modalBackground,
+                                      },
+                                    ]}
+                                  >
+                                    <Image
+                                      source={{ uri: movie.imageUrl }}
+                                      style={styles.MovieImage}
+                                      resizeMode="cover"
+                                    />
+                                  </View>
+                                </TouchableOpacity>
                               </View>
                             ))}
-                          </ScrollView>
+                            </ScrollView>
+                          </View>
+
+                          <View
+                            style={{
+                              flexDirection: "row",
+                              alignItems: "center",
+                              flexWrap: "wrap",
+                              marginTop: 30,
+                            }}
+                          >
+                            {selectedMovie?.streamingPlatforms
+                              ?.filter(
+                                (streaming) => streaming.name !== "HBO Max"
+                              ) // Supondo que 'name' seja uma propriedade identificadora
+                              .map((streaming, index) => (
+                                <Image
+                                  key={index}
+                                  source={{ uri: streaming.logoPath }}
+                                  style={{
+                                    width: 50, // Defina a largura conforme necessário
+                                    height: 50, // Defina a altura conforme necessário
+                                    marginRight: 10, // Espaço à direita de cada imagem
+                                    borderRadius: 30,
+                                  }}
+                                  resizeMode="contain"
+                                />
+                              ))}
+                          </View>
                         </View>
 
                         <View
                           style={{
-                            flexDirection: "row",
+                            justifyContent: "center",
+                            alignContent: "center",
                             alignItems: "center",
-                            flexWrap: "wrap",
-                            marginTop: 30,
+                            paddingVertical: 5,
+                            marginVertical: 5,
                           }}
                         >
-                          {selectedMovie?.streamingPlatforms
-                            ?.filter(
-                              (streaming) => streaming.name !== "HBO Max"
-                            ) // Supondo que 'name' seja uma propriedade identificadora
-                            .map((streaming, index) => (
-                              <Image
-                                key={index}
-                                source={{ uri: streaming.logoPath }}
+                          <Text
+                            style={{
+                              color: theme.text,
+                              fontSize: 18,
+                              fontWeight: "bold",
+                              paddingTop: 20,
+                            }}
+                          >
+                            {translation.voceAssistiuEsseFilme}
+                          </Text>
+                          <View style={{ marginBottom: 50 }}>
+                            <View style={styles.modalButtons}>
+                              <TouchableHighlight
                                 style={{
-                                  width: 50, // Defina a largura conforme necessário
-                                  height: 50, // Defina a altura conforme necessário
-                                  marginRight: 10, // Espaço à direita de cada imagem
-                                  borderRadius: 30,
+                                  ...styles.modalButton,
+                                  backgroundColor:
+                                    theme.modalBackgroundSecondary,
                                 }}
-                                resizeMode="contain"
-                              />
-                            ))}
-                        </View>
-                      </View>
-
-                      <View
-                        style={{
-                          justifyContent: "center",
-                          alignContent: "center",
-                          alignItems: "center",
-                          paddingVertical: 5,
-                          marginVertical: 5,
-                        }}
-                      >
-                        <Text
-                          style={{
-                            color: theme.text,
-                            fontSize: 18,
-                            fontWeight: "bold",
-                            paddingTop: 20,
-                          }}
-                        >
-                          {translations[language].voceAssistiuEsseFilme}
-                        </Text>
-                        <View style={{ marginBottom: 50 }}>
-                          <View style={styles.modalButtons}>
-                            <TouchableHighlight
-                              style={{
-                                ...styles.modalButton,
-                                backgroundColor: theme.modalBackgroundSecondary,
-                              }}
-                              onPress={() => {
-                                setModalVisible(false);
-                                setMovieInput("");
-                              }}
-                            >
-                              <Text style={styles.textStyle}>
-                                {translations[language].cancelar}
-                              </Text>
-                            </TouchableHighlight>
-                            <TouchableHighlight
-                              style={{
-                                ...styles.modalButton,
-                                backgroundColor: theme.borderRed,
-                              }}
-                              onPress={handleAddMovie}
-                            >
-                              <Text style={styles.textStyle}>
-                                {translations[language].adicionar}
-                              </Text>
-                            </TouchableHighlight>
+                                onPress={() => {
+                                  setModalVisible(false);
+                                  setMovieInput("");
+                                  setDatePickerVisible(false);
+                                  setSearchResults([]);
+                                }}
+                              >
+                                <Text style={styles.textStyle}>
+                                  {translation.cancelar}
+                                </Text>
+                              </TouchableHighlight>
+                              <TouchableHighlight
+                                style={{
+                                  ...styles.modalButton,
+                                  backgroundColor: theme.borderRed,
+                                }}
+                                onPress={handleAddMovie}
+                              >
+                                <Text style={styles.textStyle}>
+                                  {translation.adicionar}
+                                </Text>
+                              </TouchableHighlight>
+                            </View>
                           </View>
-                        </View>
-                        {/* <BannerAd
+                          {/* <BannerAd
                       unitId={adUnitId}
                       size="BANNER"
                       onAdLoaded={() => {}}
@@ -1150,13 +1307,220 @@ const bestMoviesArray: { title: string; data: Movie[] }[] = organizedMoviesArray
                         requestNonPersonalizedAdsOnly: true,
                       }}
                     /> */}
+                        </View>
                       </View>
-                    </View>
-                  </Animated.ScrollView>
-                </View>
-              )}
-            </View>
-          </Modal>
+                    </Animated.ScrollView>
+                  </View>
+                )}
+              </View>
+            </Modal>
+          )}
+          {modalType === "actor" && (
+            <Modal
+              animationType="slide"
+              visible={modalVisible}
+              onRequestClose={() => setModalVisible(false)}
+              presentationStyle="pageSheet"
+            >
+              <View style={styles.modalContainerMovie}>
+                {isDetailsLoading ? (
+                  <View
+                    style={[
+                      styles.modalContentMovie,
+                      { backgroundColor: theme.modalBackground },
+                    ]}
+                  >
+                    <ActivityIndicator
+                      size="large"
+                      color={theme.borderRed}
+                      style={{ alignSelf: "center" }}
+                    />
+                  </View>
+                ) : (
+                  <View
+                    style={[
+                      styles.modalContentMovie,
+                      { backgroundColor: theme.modalThemeMode },
+                    ]}
+                  >
+                    <Animated.ScrollView
+              style={{
+                flex: 1,
+                width: "100%",
+                backgroundColor: theme.modalBackground,
+                opacity: fadeAnim,
+              }}
+            >
+                      <View style={styles.modalInfoContent}>
+                        <View style={styles.modalActorInfo}>
+                          <View style={styles.modalActorTitle}>
+                            <View
+                              style={[
+                                styles.imageActorShadowContainer,
+                                { backgroundColor: theme.modalBackground },
+                              ]}
+                            >
+                              <Image
+                                style={styles.actorImageDetails}
+                                source={{ uri: selectedActor?.profilePath }}
+                              />
+                            </View>
+                            <View style={styles.titleAndDate}>
+                              <Text
+                                style={[
+                                  styles.modalMovieTitleText,
+                                  { color: theme.text },
+                                ]}
+                              >
+                                {selectedActor?.name}
+                              </Text>
+
+                              <View
+                                style={{
+                                  display: "flex",
+                                  flexDirection: "row",
+                                  gap: 10,
+                                  marginVertical: 10,
+                                  alignItems: "center",
+                                  alignContent: "center",
+                                }}
+                              >
+                                <Text
+                                  style={{
+                                    color: theme.text,
+                                    fontWeight: "bold",
+                                    fontSize: 16,
+                                  }}
+                                >
+                                  {translation.NasceuEm}
+                                </Text>
+                                <Text style={[{ color: theme.text }]}>
+                                  {selectedActor?.birthYear}
+                                </Text>
+                              </View>
+
+                              <Text
+                                style={{
+                                  color: theme.text,
+                                  fontWeight: "bold",
+                                  fontSize: 16,
+                                }}
+                              >
+                                {translation.Biografia}
+                              </Text>
+                              <Text
+                                style={[
+                                  styles.modalActorBiography,
+                                  { color: theme.text },
+                                ]}
+                              >
+                                {selectedActor?.biography}
+                              </Text>
+                            </View>
+                          </View>
+                        </View>
+                        <View style={{ marginTop: 30 }}>
+                          <Text
+                            style={{
+                              color: theme.text,
+                              fontWeight: "bold",
+                              fontSize: 16,
+                            }}
+                          >
+                            {translation.ConhecidoPor}
+                          </Text>
+                          <ScrollView
+                            horizontal={true}
+                            showsHorizontalScrollIndicator={false}
+                            style={styles.moviesContainer}
+                          >
+                            {selectedActor?.movies?.map((movie, index) => (
+                              <View key={index} style={styles.movieCard}>
+                                <TouchableOpacity
+                                  onPress={() =>
+                                    handlePressItemModalType(movie)
+                                  }
+                                >
+                                  <View
+                                    style={[
+                                      styles.imageShadowContainerMovies,
+                                      {
+                                        backgroundColor: theme.modalBackground,
+                                      },
+                                    ]}
+                                  >
+                                    <Image
+                                      source={{ uri: movie.imageUrl }}
+                                      style={styles.MovieImage}
+                                      resizeMode="cover"
+                                    />
+                                  </View>
+                                  <Text
+                                    style={[
+                                      styles.modalActorsMovies,
+                                      { color: theme.text },
+                                    ]}
+                                  >
+                                    {movie.title}
+                                  </Text>
+                                </TouchableOpacity>
+                              </View>
+                            ))}
+                          </ScrollView>
+                        </View>
+                      </View>
+
+                      <View
+                        style={{
+                          marginBottom: 50,
+                          alignSelf: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <View
+                          style={{
+                            ...styles.modalButtons,
+                            alignSelf: "center",
+                            justifyContent: "center",
+                          }}
+                        >
+                          <TouchableHighlight
+                            style={{
+                              ...styles.modalButton,
+                              backgroundColor: theme.modalBackgroundSecondary,
+                              width: "65%",
+                              alignSelf: "center",
+                              justifyContent: "center",
+                            }}
+                            onPress={() => {
+                              setModalVisible(false);
+                              setMovieInput("");
+                              setDatePickerVisible(false);
+                            }}
+                          >
+                            <Text style={styles.textStyle}>
+                              {translation.Fechar}
+                            </Text>
+                          </TouchableHighlight>
+                        </View>
+                      </View>
+                      {/* <BannerAd
+                      unitId={adUnitId}
+                      size="BANNER"
+                      onAdLoaded={() => {}}
+                      onAdFailedToLoad={(error) => {
+                        console.error("Ad failed to load", error);
+                      }}
+                      requestOptions={{
+                        requestNonPersonalizedAdsOnly: true,
+                      }}
+                    /> */}
+                    </Animated.ScrollView>
+                  </View>
+                )}
+              </View>
+            </Modal>
+          )}
 
           <Modal
             animationType="fade"
@@ -1185,10 +1549,12 @@ const bestMoviesArray: { title: string; data: Movie[] }[] = organizedMoviesArray
                         fontWeight: "bold",
                       }}
                     >
-                     {translations[language].assistidoQuando}
+                      {translation.assistidoQuando}
                     </Text>
 
-                    <View style={[styles.modalButtons2, {marginVertical: 10}]}>
+                    <View
+                      style={[styles.modalButtons2, { marginVertical: 10 }]}
+                    >
                       <TouchableHighlight
                         style={{
                           ...styles.openButton,
@@ -1206,7 +1572,9 @@ const bestMoviesArray: { title: string; data: Movie[] }[] = organizedMoviesArray
                           }
                         }}
                       >
-                        <Text style={styles.textStyle}>{translations[language].hoje}</Text>
+                        <Text style={styles.textStyle}>
+                          {translation.hoje}
+                        </Text>
                       </TouchableHighlight>
                       <TouchableHighlight
                         style={{
@@ -1215,7 +1583,11 @@ const bestMoviesArray: { title: string; data: Movie[] }[] = organizedMoviesArray
                         }}
                         onPress={() => setDatePickerVisible(true)}
                       >
-                        <Text style={styles.textStyle}>{translations[language].escolherData}</Text>
+                        <Text style={styles.textStyle}>
+                          {translation.escolherData +
+                            ": " +
+                            selectedDate.toLocaleDateString()}
+                        </Text>
                       </TouchableHighlight>
                       {datePickerVisible && (
                         <DateTimePicker
@@ -1223,7 +1595,7 @@ const bestMoviesArray: { title: string; data: Movie[] }[] = organizedMoviesArray
                           value={selectedDate}
                           mode="date"
                           is24Hour={true}
-                          display="default"
+                          display="spinner"
                           onChange={handleDateChange}
                         />
                       )}
@@ -1237,9 +1609,13 @@ const bestMoviesArray: { title: string; data: Movie[] }[] = organizedMoviesArray
                         onPress={() => {
                           setDateModalVisible(false);
                           setMovieInput("");
+                          setDatePickerVisible(false);
+                          setSearchResults([]);
                         }}
                       >
-                        <Text style={styles.textStyle}>{translations[language].cancelar}</Text>
+                        <Text style={styles.textStyle}>
+                          {translation.cancelar}
+                        </Text>
                       </TouchableHighlight>
                       <TouchableHighlight
                         style={{
@@ -1273,9 +1649,12 @@ const bestMoviesArray: { title: string; data: Movie[] }[] = organizedMoviesArray
                           setMovieInput("");
                           setSearchResults([]);
                           setDateModalVisible(false);
+                          setSelectedDate(new Date());
                         }}
                       >
-                        <Text style={styles.textStyle}>{translations[language].confirmar}</Text>
+                        <Text style={styles.textStyle}>
+                          {translation.confirmar}
+                        </Text>
                       </TouchableHighlight>
                     </View>
                   </View>
@@ -1316,30 +1695,34 @@ const bestMoviesArray: { title: string; data: Movie[] }[] = organizedMoviesArray
                     </TouchableHighlight>
 
                     <TouchableHighlight
-                        style={{
-                          ...styles.modalButtonIconCalendar,
-                        }}
-                        onPress={() => setDatePickerVisible(true)}
-                      >
-                         <MaterialIcons name="calendar-today" size={24} color="white" />
-                      </TouchableHighlight>
-                      {datePickerVisible && (
-                        <DateTimePicker
-                          testID="dateTimePicker"
-                          value={selectedDate}
-                          mode="date"
-                          is24Hour={true}
-                          display="default"
-                          onChange={handleDateChange}
-                        />
-                      )}
+                      style={{
+                        ...styles.modalButtonIconCalendar,
+                      }}
+                      onPress={() => setDatePickerVisible(true)}
+                    >
+                      <MaterialIcons
+                        name="calendar-today"
+                        size={24}
+                        color={theme.text}
+                      />
+                    </TouchableHighlight>
+                    {datePickerVisible && (
+                      <DateTimePicker
+                        testID="dateTimePicker"
+                        value={selectedDate}
+                        mode="date"
+                        is24Hour={true}
+                        display="default"
+                        onChange={handleDateChange}
+                      />
+                    )}
 
                     <Text
                       style={
                         { color: theme.text, marginTop: 5 } // Estilo dinâmico baseado no tema atual
                       }
                     >
-                      {translations[language].avaliarFilme}
+                      {translation.avaliarFilme}
                     </Text>
                     <Text
                       style={
@@ -1368,7 +1751,7 @@ const bestMoviesArray: { title: string; data: Movie[] }[] = organizedMoviesArray
                           thumbTintColor={theme.text}
                         />
                         <Text style={{ color: theme.text, marginTop: 10 }}>
-                          {translations[language].avaliacao}:{" "}
+                          {translation.avaliacao}:{" "}
                           {rating.toFixed(1)}
                         </Text>
                       </View>
@@ -1381,10 +1764,11 @@ const bestMoviesArray: { title: string; data: Movie[] }[] = organizedMoviesArray
                         }}
                         onPress={() => {
                           setModalVisible1(false);
+                          setDatePickerVisible(false);
                         }}
                       >
                         <Text style={styles.textStyle}>
-                          {translations[language].cancelar}
+                          {translation.cancelar}
                         </Text>
                       </TouchableHighlight>
                       <TouchableHighlight
@@ -1393,10 +1777,9 @@ const bestMoviesArray: { title: string; data: Movie[] }[] = organizedMoviesArray
                           backgroundColor: theme.borderRed,
                         }}
                         onPress={() => {
-  
-                            // Se `selectedMovie` e `selectedDate` estiverem definidos e `selectedMovie.id` não for undefined
-                            const formattedDate =
-                              selectedDate.toLocaleDateString();
+                          // Se `selectedMovie` e `selectedDate` estiverem definidos e `selectedMovie.id` não for undefined
+                          const formattedDate =
+                            selectedDate.toLocaleDateString();
 
                           if (selectedMovieRating) {
                             addMovieReview({
@@ -1410,7 +1793,7 @@ const bestMoviesArray: { title: string; data: Movie[] }[] = organizedMoviesArray
                         }}
                       >
                         <Text style={styles.textStyle}>
-                          {translations[language].confirmar}
+                          {translation.confirmar}
                         </Text>
                       </TouchableHighlight>
                     </View>
@@ -1426,6 +1809,48 @@ const bestMoviesArray: { title: string; data: Movie[] }[] = organizedMoviesArray
 }
 
 const styles = StyleSheet.create({
+  modalActorInfo: {},
+  modalActorTitle: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 10,
+    justifyContent: "center",
+    alignItems: "center",
+    alignContent: "center",
+    marginTop: 35,
+  },
+  modalActorDate: {
+    fontSize: 14,
+    marginTop: 5,
+  },
+  modalActorBiography: {
+    fontSize: 14,
+    marginTop: 10,
+    textAlign: "justify",
+  },
+  moviesContainer: {
+    width: "100%",
+  },
+  movieCard: {
+    padding: 10,
+    alignItems: "center",
+  },
+  modalMovieTitleTextMovies: {
+    fontSize: 16,
+    textAlign: "center",
+  },
+  imageShadowContainerMovie: {
+    width: 90,
+    height: 125,
+    marginBottom: 5,
+    borderRadius: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 3,
+    elevation: 5,
+  },
+
   openButton: {
     backgroundColor: "#F194FF",
     borderRadius: 20,
@@ -1542,6 +1967,12 @@ const styles = StyleSheet.create({
   movieImageDetails: {
     width: isTablet ? 150 : 100,
     height: isTablet ? 230 : 150,
+    resizeMode: "cover",
+    borderRadius: 10,
+  },
+  actorImageDetails: {
+    width: isTablet ? 250 : 200,
+    height: isTablet ? 360 : 280,
     resizeMode: "cover",
     borderRadius: 10,
   },
@@ -1696,6 +2127,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 10,
   },
+  modalActorTitles: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 10,
+    marginVertical: 20,
+    marginTop: 50,
+    justifyContent: "center",
+  },
   titleAndDate: {
     display: "flex",
     flexDirection: "column",
@@ -1718,6 +2157,12 @@ const styles = StyleSheet.create({
     textAlign: "left",
     fontStyle: "italic",
     flex: 1,
+  },
+  modalActorsMovies: {
+    width: 110,
+    fontSize: 14,
+    textAlign: "center",
+    flexWrap: "wrap",
   },
   modalText: {
     fontSize: 18,
@@ -1754,6 +2199,17 @@ const styles = StyleSheet.create({
     shadowRadius: 3, // Raio da sombra
     elevation: 5, // Adiciona sombra no Android
   },
+  imageActorShadowContainer: {
+    width: isTablet ? 250 : 200,
+    height: isTablet ? 360 : 280,
+    marginBottom: 5,
+    borderRadius: 10,
+    shadowColor: "#000", // Cor da sombra
+    shadowOffset: { width: 0, height: 2 }, // Deslocamento da sombra
+    shadowOpacity: 1, // Opacidade da sombra
+    shadowRadius: 3, // Raio da sombra
+    elevation: 5, // Adiciona sombra no Android
+  },
 
   imageShadowContainerBanner: {
     marginBottom: 30,
@@ -1774,6 +2230,18 @@ const styles = StyleSheet.create({
     shadowRadius: 3, // Raio da sombra
     elevation: 5, // Adiciona sombra no Android
   },
+  imageShadowContainerMovies: {
+    width: 120,
+    height: 175,
+    marginBottom: 5,
+    borderRadius: 10,
+    shadowColor: "#000", // Cor da sombra
+    shadowOffset: { width: 0, height: 2 }, // Deslocamento da sombra
+    shadowOpacity: 1, // Opacidade da sombra
+    shadowRadius: 3, // Raio da sombra
+    elevation: 5, // Adiciona sombra no Android
+  },
+
   actorsContainer: {
     width: "100%",
   },
@@ -1784,6 +2252,13 @@ const styles = StyleSheet.create({
   actorImage: {
     width: 90,
     height: 125,
+    objectFit: "cover",
+    borderRadius: 10,
+    marginBottom: 10,
+  },
+  MovieImage: {
+    width: 120,
+    height: 175,
     objectFit: "cover",
     borderRadius: 10,
     marginBottom: 10,
@@ -1807,4 +2282,5 @@ const styles = StyleSheet.create({
     borderWidth: 0,
     padding: 0,
   },
+
 });

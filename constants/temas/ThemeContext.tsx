@@ -2,40 +2,41 @@ import React, { createContext, useState, useContext, ReactNode, useEffect } from
 import { themes, Theme } from './ThemeColors';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+export type ThemeName = 'light' | 'dark' | 'blue' | 'orange' | 'pink' | 'lightpink' | 'green' | 'deepPurple' | 'red'; // Incluído 'green' como uma opção de tema
 type ThemeContextType = {
   theme: Theme;
-  toggleTheme: () => void;
-  themeName: 'light' | 'dark';
+  setThemeName: (themeName: ThemeName) => void; // Função para alterar o tema
+  themeName: ThemeName;
 };
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 type ThemeProviderProps = {
-  children: ReactNode; // Define o tipo para as children
+  children: ReactNode;
 };
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
-  const [themeName, setThemeName] = useState<'light' | 'dark'>('light');
+  const [themeName, setThemeName] = useState<ThemeName>('dark');
 
   useEffect(() => {
     (async () => {
       const storedThemeName = await AsyncStorage.getItem('themeName');
-      if (storedThemeName) {
-        setThemeName(storedThemeName as 'light' | 'dark');
+      if (storedThemeName && ['light', 'dark', 'blue', 'orange', 'pink', 'lightpink', 'green', 'deepPurple', 'red'].includes(storedThemeName)) {
+        setThemeName(storedThemeName as ThemeName);
       }
     })();
   }, []);
 
-  const toggleTheme = async () => {
-    const newThemeName = themeName === 'light' ? 'dark' : 'light';
-    setThemeName(newThemeName);
-    await AsyncStorage.setItem('themeName', newThemeName);
-  };
+  const theme = themes[themeName]; // Assegura que o tema é retirado do objeto de temas
 
-  const theme = themes[themeName];
+  useEffect(() => {
+    AsyncStorage.setItem('themeName', themeName);
+  }, [themeName]);
+
+  const value = { theme, setThemeName, themeName };
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme, themeName}}>
+    <ThemeContext.Provider value={value}>
       {children}
     </ThemeContext.Provider>
   );

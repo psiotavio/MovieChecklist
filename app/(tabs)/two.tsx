@@ -9,10 +9,10 @@ import {
   TouchableOpacity,
   Alert,
   Button,
+  Linking,
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { useUser } from "../../contexts/UserContext";
-import logo from "../../assets/images/logo.png";
 import { isSameWeek, isSameYear, isSameMonth, parse } from "date-fns";
 import { useTheme } from "../../constants/temas/ThemeContext";
 import { themes } from "../../constants/temas/ThemeColors";
@@ -21,49 +21,35 @@ import { BackgroundImage } from "@rneui/base";
 import { useConfiguration } from "../../contexts/ConfigurationContext";
 import LanguageButton from "../../components/LanguageButton";
 import SettingsButton from "../../components/SettingsButton";
+import Icon from "react-native-vector-icons/FontAwesome6";
+import ThemeButton from "../../components/ThemeButton";
+import logoDefault from "../../assets/images/logo.png";
+import logoBlue from "../../assets/images/logoBlue.png";
+import logoPink from "../../assets/images/logoPink.png";
+import logoGreen from "../../assets/images/logoGreen.png";
+import logoRed from "../../assets/images/logoRed.png";
+import logoOrange from "../../assets/images/logoOrange.png";
 
 // import {
 //   AdEventType,
+//   BannerAd,
 //   InterstitialAd,
 //   TestIds,
 // } from "react-native-google-mobile-ads";
 
-// const anuncio = InterstitialAd.createForAdRequest(TestIds.INTERSTITIAL, {
-//   requestNonPersonalizedAdsOnly: true,
-// });
-
 export default function TabTwoScreen() {
   //  // ANUNCIOS
-  //  const [interstitialLoaded, setInterstitialLoaded] = useState(false);
+  // let adUnitId: string;
 
-  //  const loadInterstitial = () => {
-  //    const unscubscribeLoaded = anuncio.addAdEventListener(
-  //      AdEventType.LOADED,
-  //      () => {
-  //        setInterstitialLoaded(true);
-  //      }
-  //    );
+  // if (Platform.OS === 'ios') {
+  //     adUnitId = "ca-app-pub-1771446730721916/1536500762"; // Coloque o ID do iOS aqui
+  // } else if (Platform.OS === 'android') {
+  //     adUnitId = "ca-app-pub-1771446730721916/6230272284"; // Coloque o ID do Android aqui
+  // }
 
-  //    const unscubscribeClosed = anuncio.addAdEventListener(
-  //      AdEventType.CLOSED,
-  //      () => {
-  //        setInterstitialLoaded(false);
-  //        anuncio.load();
-  //      }
-  //    );
-
-  //    anuncio.load();
-
-  //    return () => {
-  //      unscubscribeClosed();
-  //      unscubscribeLoaded();
-  //    };
-  //  };
-
-  //  useEffect(() => {
-  //    const unsubscribeInterstitialEvents = loadInterstitial();
-  //    return unsubscribeInterstitialEvents;
-  //  }, []);
+  // const anuncio = InterstitialAd.createForAdRequest(TestIds.INTERSTITIAL, {
+  //   requestNonPersonalizedAdsOnly: true,
+  // });
 
   const {
     movies,
@@ -72,9 +58,8 @@ export default function TabTwoScreen() {
     setRecommendedMovies,
     setToWatchMovies,
   } = useUser();
-  const { theme, toggleTheme } = useTheme();
-  const themeName =
-    theme.background === themes.dark.background ? "dark" : "light";
+  const { theme, themeName } = useTheme();
+  
 
   const goalMovies = 365;
   const goalMoviesMonth = 30;
@@ -87,6 +72,8 @@ export default function TabTwoScreen() {
   const [totalMoviesWatchedThisWeek, setTotalMoviesWatchedThisWeek] =
     useState(0);
 
+    
+
   useFocusEffect(
     React.useCallback(() => {
       setTotalMoviesWatchedThisYear(getTotalMoviesWatchedThisYear(movies));
@@ -97,15 +84,15 @@ export default function TabTwoScreen() {
 
   const handleResetMovies = () => {
     Alert.alert(
-      "Redefinir Conta", // Título do Alerta
-      "Você realmente quer redefinir sua conta e apagar todo conteúdo salvo?", // Mensagem do Alerta
+      translation.RedefinirConta, // Título do Alerta
+      translation.ConfirmacaoRedefinir, // Mensagem do Alerta
       [
         {
-          text: "Cancelar",
+          text: translation.cancelar,
           style: "cancel",
         },
         {
-          text: "Sim",
+          text: translation.sim,
           onPress: () => {
             // Aqui você chama as funções para redefinir a conta
 
@@ -145,57 +132,45 @@ export default function TabTwoScreen() {
     100
   );
 
-  const { language } = useConfiguration();
-
-  const translations = {
-    english: {
-      ESTATÍSTICAS: "STATISTICS",
-      Year: "Total movies watched this year:",
-      Month: "Total movies watched this month:",
-      Week: "Total movies watched this week:",
-      redefinir: "Reset Account",
-      tema: "Dark Theme",
-      voltar: "Back"
-    },
-    portuguese: {
-      ESTATÍSTICAS: "ESTATÍSTICAS",
-      Year: "Total de filmes assistidos este ano:",
-      Month: "Total de filmes assistidos este ano:",
-      Week: "Total de filmes assistidos esta semana:",
-      redefinir: "Redefinir Conta",
-      tema: "Tema Escuro",
-      voltar: "Voltar"
-    },
-    spanish: {
-      ESTATÍSTICAS: "ESTADÍSTICAS",
-      Year: "Total de películas vistas este año:",
-      Month: "Total de películas vistas este mes:",
-      Week: "Total de películas vistas esta semana:",
-      redefinir: "Restablecer Cuenta",
-      tema: "Tema Oscuro",
-      voltar: "Volver"
-    },
-    french: {
-      ESTATÍSTICAS: "STATISTIQUES",
-      Year: "Total de films regardés cette année:",
-      Month: "Total de films regardés ce mois-ci:",
-      Week: "Total de films regardés cette semaine:",
-      redefinir: "Réinitialiser le Compte",
-      tema: "Thème Sombre",
-      voltar: "Retour"
-    },
-    german: {
-      ESTATÍSTICAS: "STATISTIKEN",
-      Year: "Gesamtzahl der in diesem Jahr gesehenen Film:",
-      Month: "Gesamtzahl der in diesem Monat gesehenen Film:",
-      Week: "Gesamtzahl der in dieser Woche gesehenen Film:",
-      redefinir: "Konto zurücksetzen",
-      tema: "Dunkles Thema",
-      voltar: "Zurück"
-    },
+  const openInstagramProfile = () => {
+    Linking.openURL("https://www.instagram.com/watchfolio.app/"); // Substitua 'seuperfil' pelo seu perfil do Instagram
   };
 
+  const openTwitterProfile = () => {
+    Linking.openURL("https://x.com/WatchfolioApp"); // Substitua pelo seu perfil no Twitter
+  };
+
+  const openThreadsProfile = () => {
+    Linking.openURL("https://www.threads.net/@watchfolio.app"); // Substitua pelo seu perfil no Threads
+  };
+
+  const openTiktokProfile = () => {
+    Linking.openURL("https://www.tiktok.com/@watchfolio?_t=8mSwKKFvXr3&_r=1"); // Substitua pelo seu perfil no TikTok
+  };
+
+  const openWebVersion = () => {
+    Linking.openURL("https://watchfolio.com.br/"); // Substitua pelo seu perfil no TikTok
+  };
+
+  const {translation, language } = useConfiguration();
   const [activeTab, setActiveTab] = useState("configuration"); // 'ratedMovies' ou 'toWatchMovies'
+
+  // Definindo logos para diferentes temas
+  const logos = {
+    default: logoDefault,
+    dark:  logoDefault,
+    light:   logoDefault,
+    blue:  logoBlue,
+    orange:  logoOrange,
+    pink:  logoPink,
+    lightpink:  logoPink,
+    green: logoGreen,
+    deepPurple:  logoDefault,
+    red:  logoRed,
+  };
+
+  // Selecionar logo com base no tema atual
+  const logo = logos[themeName] || logos.default;
 
   return (
     <SafeAreaView
@@ -207,7 +182,7 @@ export default function TabTwoScreen() {
       {activeTab === "configuration" ? (
         <View style={styles.StatsPage}>
           <Text style={[styles.title, { color: theme.text }]}>
-            {translations[language].ESTATÍSTICAS}
+            {translation.ESTATÍSTICAS}
           </Text>
           <View style={styles.fullcontainer}>
             <ScrollView style={styles.contentScroll}>
@@ -216,7 +191,7 @@ export default function TabTwoScreen() {
                   <View style={styles.progessBars}>
                     <View style={styles.progessBarStyle}>
                       <Text style={[styles.subtitle, { color: theme.text }]}>
-                        {translations[language].Year}{" "}
+                        {translation.Year}{" "}
                         {totalMoviesWatchedThisYear}
                       </Text>
                       <View style={styles.progressBarContainer}>
@@ -239,7 +214,7 @@ export default function TabTwoScreen() {
 
                     <View style={styles.progessBarStyle}>
                       <Text style={[styles.subtitle, { color: theme.text }]}>
-                        {translations[language].Month}{" "}
+                        {translation.Month}{" "}
                         {totalMoviesWatchedThisMonth}
                       </Text>
                       <View style={styles.progressBarContainer}>
@@ -262,7 +237,7 @@ export default function TabTwoScreen() {
 
                     <View style={styles.progessBarStyle}>
                       <Text style={[styles.subtitle, { color: theme.text }]}>
-                        {translations[language].Week}{" "}
+                        {translation.Week}{" "}
                         {totalMoviesWatchedThisWeek}
                       </Text>
                       <View style={styles.progressBarContainer}>
@@ -284,6 +259,17 @@ export default function TabTwoScreen() {
                     </View>
                   </View>
                 </View>
+                {/* <BannerAd
+                      unitId={adUnitId}
+                      size="BANNER"
+                      onAdLoaded={() => {}}
+                      onAdFailedToLoad={(error) => {
+                        console.error("Ad failed to load", error);
+                      }}
+                      requestOptions={{
+                        requestNonPersonalizedAdsOnly: true,
+                      }}
+                    /> */}
               </View>
             </ScrollView>
           </View>
@@ -299,18 +285,78 @@ export default function TabTwoScreen() {
         </View>
       ) : (
         <View style={styles.settingsPage}>
+          <View
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              width: "100%",
+              justifyContent: "space-between",
+            }}
+          >
+            <TouchableOpacity
+              style={[
+                styles.socialMediaButton,
+                { backgroundColor: theme.borderRed },
+              ]}
+              onPress={openInstagramProfile}
+            >
+              <Icon
+                name="instagram"
+                size={25}
+                color={theme.text}
+                style={styles.icon}
+              />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.socialMediaButton,
+                { backgroundColor: theme.borderRed },
+              ]}
+              onPress={openTwitterProfile}
+            >
+              <Icon
+                name="twitter"
+                size={25}
+                color={theme.text}
+                style={styles.icon}
+              />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.socialMediaButton,
+                { backgroundColor: theme.borderRed },
+              ]}
+              onPress={openThreadsProfile}
+            >
+              <Icon
+                name="threads"
+                size={25}
+                color={theme.text}
+                style={styles.icon}
+              />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.socialMediaButton,
+                { backgroundColor: theme.borderRed },
+              ]}
+              onPress={openTiktokProfile}
+            >
+              <Icon
+                name="tiktok"
+                size={25}
+                color={theme.text}
+                style={styles.icon}
+              />
+            </TouchableOpacity>
+          </View>
+
           <LanguageButton />
 
-          <TouchableOpacity
-            style={[styles.button, { backgroundColor: theme.borderRed }]}
-            onPress={handleResetMovies}
-          >
-            <Text style={{ color: theme.text, fontWeight: "bold" }}>
-            {translations[language].redefinir}
-            </Text>
-          </TouchableOpacity>
-
-          <View style={styles.switchContainer}>
+          {/* <View style={styles.switchContainer}>
             <Text
               style={{
                 color: theme.text,
@@ -318,11 +364,10 @@ export default function TabTwoScreen() {
                 marginRight: 10,
               }}
             >
-              {translations[language].tema}
+              {translation.tema}
             </Text>
             <Switch
               trackColor={{
-                false: "red",
                 true: theme.modalBackgroundSecondary,
               }}
               thumbColor={
@@ -331,10 +376,36 @@ export default function TabTwoScreen() {
               onValueChange={toggleTheme}
               value={themeName === "dark"}
             />
-          </View>
+          </View> */}
+            <ThemeButton />
 
           <TouchableOpacity
             style={[styles.button, { backgroundColor: theme.borderRed }]}
+            onPress={openWebVersion}
+          >
+            <Text style={{ color: theme.text, fontWeight: "bold" }}>
+              {translation.VersaoWeb}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.button, { backgroundColor: theme.borderRed }]}
+            onPress={handleResetMovies}
+          >
+            <Text style={{ color: theme.text, fontWeight: "bold" }}>
+              {translation.redefinir}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.button,
+              {
+                backgroundColor: theme.background,
+                borderColor: theme.borderRed,
+                borderWidth: 3,
+              },
+            ]}
             onPress={() =>
               setActiveTab(
                 activeTab === "configuration" ? "stats" : "configuration"
@@ -342,9 +413,44 @@ export default function TabTwoScreen() {
             }
           >
             <Text style={{ color: theme.text, fontWeight: "bold" }}>
-            {translations[language].voltar}
+              {translation.voltar}
             </Text>
           </TouchableOpacity>
+
+          <View
+            style={{
+              justifyContent: "center",
+              alignContent: "center",
+              display: "flex",
+              flexDirection: "column",
+              gap: 10,
+              width: "100%",
+            }}
+          >
+            {/* <BannerAd
+                      unitId={adUnitId}
+                      size="BANNER"
+                      onAdLoaded={() => {}}
+                      onAdFailedToLoad={(error) => {
+                        console.error("Ad failed to load", error);
+                      }}
+                      requestOptions={{
+                        requestNonPersonalizedAdsOnly: true,
+                      }}
+                    /> */}
+
+            {/* <BannerAd
+                      unitId={adUnitId}
+                      size="BANNER"
+                      onAdLoaded={() => {}}
+                      onAdFailedToLoad={(error) => {
+                        console.error("Ad failed to load", error);
+                      }}
+                      requestOptions={{
+                        requestNonPersonalizedAdsOnly: true,
+                      }}
+                    /> */}
+          </View>
         </View>
       )}
     </SafeAreaView>
@@ -394,7 +500,7 @@ const styles = StyleSheet.create({
   settingsContainer: {
     position: "absolute",
     top: -100,
-    right: 30
+    right: 30,
   },
 
   buttonsContainer: {
@@ -495,5 +601,16 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 30,
     paddingHorizontal: 10,
+  },
+  socialMediaButton: {
+    textAlign: "center",
+    alignItems: "center",
+    alignContent: "center",
+    padding: 15,
+    borderRadius: 100,
+  },
+  icon: {
+    alignSelf: "center",
+    textAlign: "center",
   },
 });

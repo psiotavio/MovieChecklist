@@ -19,7 +19,12 @@ import {
 } from "react-native";
 import { useUser } from "../../contexts/UserContext"; // Certifique-se de que esta é a importação correta
 import StarRating from "../../components/starComponent/starComponent";
-import logo from "../../assets/images/logo.png";
+import logoDefault from "../../assets/images/logo.png";
+import logoBlue from "../../assets/images/logoBlue.png";
+import logoPink from "../../assets/images/logoPink.png";
+import logoGreen from "../../assets/images/logoGreen.png";
+import logoRed from "../../assets/images/logoRed.png";
+import logoOrange from "../../assets/images/logoOrange.png";
 import { useTheme } from "../../constants/temas/ThemeContext";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ActivityIndicator } from "react-native-paper";
@@ -54,6 +59,19 @@ type Actor = {
   id: number;
   name: string;
   profilePath?: string; // URL para a foto do perfil do ator, se disponível
+
+  biography?: string;
+  birthYear?: string;
+  movies?: Movie[];
+};
+
+type ActorDetails = {
+  id: number;
+  name: string;
+  biography: string;
+  birthYear: string;
+  profilePath?: string;
+  movies: Movie[];
 };
 
 interface Movie {
@@ -68,6 +86,7 @@ interface Movie {
   alternateImageUrl?: string; // Nova propriedade para o banner do filme
   description?: string; // Descrição do filme
   actors?: Actor[]; // Novo
+  similarMovies?: Movie[];
 }
 
 type StreamingPlatform = {
@@ -119,12 +138,35 @@ export default function TabFourScreen() {
     addMovieReview,
     addMovieRecommend,
     fetchMovieDetails,
+    fetchActorDetails,
+    addToWatchList,
   } = useUser(); // Adicione toWatchMovies aqui
-  const { theme } = useTheme();
+  const { theme, themeName } = useTheme();
+
+    // Definindo logos para diferentes temas
+    const logos = {
+      default: logoDefault,
+      dark:  logoDefault,
+      light:   logoDefault,
+      blue:  logoBlue,
+      orange:  logoOrange,
+      pink:  logoPink,
+      lightpink:  logoPink,
+      green: logoGreen,
+      deepPurple:  logoDefault,
+      red:  logoRed,
+    };
+  
+    // Selecionar logo com base no tema atual
+    const logo = logos[themeName] || logos.default;
 
   const [showModal, setShowModal] = useState(false);
+  const [showModalActor, setShowModalActor] = useState(false); // Estado para controlar a visibilidade do modal
   const [showModalMovie, setShowModalMovie] = useState(false);
+  const [showModalMovie2, setShowModalMovie2] = useState(false);
   const [selectedMovieId, setSelectedMovieId] = useState<Movie | null>(null);
+  const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
+  const [selectedActor, setSelectedActor] = useState<Actor | null>(null);
 
   // const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
 
@@ -139,10 +181,67 @@ export default function TabFourScreen() {
     });
   };
 
+  const openModalMovie2 = (movie: Movie) => {
+    setSelectedMovie(movie);
+    setIsDetailsLoading(true); // Inicia o loading
+    setShowModalMovie2(true);
+
+    fetchMovieDetails(movie.id, 0, (movieDetails) => {
+      setIsDetailsLoading(false); // Inicia o loading
+      setSelectedMovie(movieDetails);
+    });
+  };
+
+  const handleAddToList = () => {
+    if (selectedMovie) {
+      const toWatch: Movie = {
+        id: selectedMovie.id,
+        title: selectedMovie.title,
+        date: new Date().toLocaleDateString(),
+        rating: 0,
+        imageUrl: selectedMovie.imageUrl,
+        rank: selectedMovie.rank,
+
+        streamingPlatforms: selectedMovie.streamingPlatforms, // Adicionado aqui
+
+        genreId: selectedMovie.genreId,
+        alternateImageUrl: selectedMovie.alternateImageUrl, // Nova propriedade para o banner do filme
+        description: selectedMovie.description, // Descrição do filme
+        actors: selectedMovie.actors, // Novo
+      };
+
+      // if (counter === 2) {
+      //   setTimeout(() => {
+      //     if (interstitialLoaded) {
+      //       anuncio
+      //         .show()
+      //         .then(() => {
+      //           // Recarregar o anúncio para a próxima exibição
+      //           anuncio.load();
+      //         })
+      //         .catch((error) => {
+      //           console.error("Erro ao tentar exibir o anúncio: ", error);
+      //         });
+      //       // Resetar o estado de carregamento do anúncio
+      //       setInterstitialLoaded(false);
+      //       setCounter(0);
+      //     }
+      //   }, 2000); // 2000 milissegundos = 2 segundos
+      // }
+
+      addToWatchList(toWatch);
+      // setCounter(counter + 1);
+      closeModalMovie2();
+      setSelectedMovie(null);
+    }
+  };
+
+
+
   const handleShare = () => {
     if (!selectedMovieId) return; // Certifique-se de que há um filme selecionado
 
-    const message = `>  ${translations[language].recomendo}\n\n*${selectedMovieId.title}* \n${selectedMovieId.description}
+    const message = `>  ${translation.RecommendMovie}\n\n*${selectedMovieId.title}* \n${selectedMovieId.description}
 
     \nLINK: watchfolio.com.br/movie/${selectedMovieId.id}/?popup=true`;
     Share.share({
@@ -165,6 +264,12 @@ export default function TabFourScreen() {
     setShowModalMovie(false);
     setSelectedMovieId(null); // Limpa o filme selecionado ao fechar o modal
   };
+
+  const closeModalMovie2 = () => {
+    setShowModalMovie2(false);
+    setSelectedMovieId(null); // Limpa o filme selecionado ao fechar o modal
+  };
+
   const closeModal = () => {
     setShowModal(false);
     setSelectedMovieId(null); // Limpa o filme selecionado ao fechar o modal
@@ -220,98 +325,75 @@ export default function TabFourScreen() {
     return `${year}`;
   };
 
-  const moviesSortedByRating = [...movies].sort((a, b) => b.rating - a.rating);
+  
+  const parseDate = (dateString: string) => {
+    const [day, month, year] = dateString.split('/').map(Number);
+    return new Date(year, month - 1, day).getTime();
+  };
+  
+  const moviesSortedByRating = [...movies].sort((a, b) => {
+    const ratingDiff = b.rating - a.rating;
+    if (ratingDiff === 0) {
+      return parseDate(b.date) - parseDate(a.date);
+    }
+    return ratingDiff;
+  });
+
   const scrollY = useRef(new Animated.Value(0)).current;
 
-  const { language } = useConfiguration();
+  const { translation, language } = useConfiguration();
 
-  const translations = {
-    english: {
-      Avaliados: "Rated",
-      SeusAvaliados: "YOUR RATED MOVIES",
-      ParaAssistir: "To Watch",
-      SemAssistir:
-        "You have no movies in your list. Add a movie to watch later by searching in the Recommendations tab.",
-      SemAvaliados: "You have not rated any movie.",
-      recomendo: "I recommend this movie:",
-      compartilhar: "Share",
-      fechar: "Close",
-      descricao: "Description",
-      atores: "Actors",
-      javiu: "Have you watched this movie?",
-      removeLista: "Remove from list",
-      sim: "Yes",
-      nao: "No",
-    },
-    portuguese: {
-      Avaliados: "Avaliados",
-      SeusAvaliados: "SEUS FILMES AVALIADOS",
-      ParaAssistir: "Para Assistir",
-      SemAssistir:
-        "Você não tem nenhum filme na lista. Adicione um filme para assistir mais tarde procurando na aba Recomendações.",
-      SemAvaliados: "Você não avaliou nenhum filme.",
-      recomendo: "Recomendo esse filme:",
-      compartilhar: "Compartilhar",
-      fechar: "Fechar",
-      descricao: "Descrição",
-      atores: "Atores",
-      javiu: "Já assistiu esse filme?",
-      removeLista: "Remover da lista",
-      sim: "Sim",
-      nao: "Não",
-    },
-    spanish: {
-      Avaliados: "Evaluados",
-      SeusAvaliados: "TUS PELÍCULAS EVALUADAS",
-      ParaAssistir: "Para Ver",
-      SemAssistir:
-        "No tienes ninguna película en tu lista. Añade una película para ver más tarde buscando en la pestaña Recomendaciones.",
-      SemAvaliados: "No has evaluado ninguna película.",
-      recomendo: "Recomiendo esta película:",
-      compartilhar: "Compartir",
-      fechar: "Cerrar",
-      descricao: "Descripción",
-      atores: "Actores",
-      javiu: "¿Ya viste esta película?",
-      removeLista: "Quitar de la lista",
-      sim: "Sí",
-      nao: "No",
-    },
-    french: {
-      Avaliados: "Évalués",
-      SeusAvaliados: "VOS FILMS ÉVALUÉS",
-      ParaAssistir: "À Regarder",
-      SemAssistir:
-        "Vous n'avez aucun film dans votre liste. Ajoutez un film à regarder plus tard en cherchant dans l'onglet Recommandations.",
-      SemAvaliados: "Vous n'avez évalué aucun film.",
-      recomendo: "Je recommande ce film :",
-      compartilhar: "Partager",
-      fechar: "Fermer",
-      descricao: "Description",
-      atores: "Acteurs",
-      javiu: "Avez-vous vu ce film ?",
-      removeLista: "Retirer de la liste",
-      sim: "Oui",
-      nao: "Non",
-    },
-    german: {
-      Avaliados: "Bewertet",
-      SeusAvaliados: "IHRE BEWERTETEN FILME",
-      ParaAssistir: "Zum Anschauen",
-      SemAssistir:
-        "Sie haben keine Filme auf Ihrer Liste. Fügen Sie einen Film hinzu, den Sie später sehen möchten, indem Sie im Empfehlungen-Tab suchen.",
-      SemAvaliados: "Sie haben keinen Film bewertet.",
-      recomendo: "Ich empfehle diesen Film:",
-      compartilhar: "Teilen",
-      fechar: "Schließen",
-      descricao: "Beschreibung",
-      atores: "Schauspieler",
-      javiu: "Haben Sie diesen Film schon gesehen?",
-      removeLista: "Von der Liste entfernen",
-      sim: "Ja",
-      nao: "Nein",
-    },
+
+
+  const openModalActor = (actorID: number) => {
+    setSelectedActor(null); // Reseta o filme selecionado
+    setIsDetailsLoading(true); // Inicia o loading
+    setShowModalActor(true); // Abre o modal
+
+    // Chamada para fetchMovieDetails sem a verificação de showModal
+    fetchActorDetails(actorID, (actorDetails) => {
+      setSelectedActor(actorDetails);
+      setIsDetailsLoading(false);
+    });
   };
+
+  const handlePressItemModalType = (item: any) => {
+    setShowModalMovie(false); // Feche o modal atual
+    setTimeout(() => {
+      fetchMovieDetails(item.id, 0, (movieDetails) => {
+        setSelectedMovieId(movieDetails);
+        setIsDetailsLoading(false); // Carregamento concluído
+      openModalMovie(movieDetails.id, movieDetails);
+      });
+    }, 300); // Adicione um pequeno atraso para garantir que o modal foi fechado
+  };
+
+  const handlePressItemModalType2 = (item: any) => {
+    setShowModalMovie2(false); // Feche o modal atual
+    setTimeout(() => {
+
+      fetchMovieDetails(item.id, 0, (movieDetails) => {
+        setSelectedMovieId(movieDetails);
+        setIsDetailsLoading(false); // Carregamento concluído
+      openModalMovie2(movieDetails);
+
+      });
+
+    }, 300); // Adicione um pequeno atraso para garantir que o modal foi fechado
+  };
+
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (!isDetailsLoading) {
+      fadeAnim.setValue(0);
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 1000,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [isDetailsLoading]);
 
   return (
     <SafeAreaView
@@ -334,10 +416,10 @@ export default function TabFourScreen() {
               style={
                 activeTab === "ratedMovies"
                   ? [styles.tabText, { color: theme.textButtons }]
-                  : styles.tabText
+                  : [styles.tabText, { color: theme.textButtons }]
               }
             >
-              {translations[language].Avaliados}
+              {translation.Avaliados}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -352,11 +434,11 @@ export default function TabFourScreen() {
             <Text
               style={
                 activeTab === "toWatchMovies"
-                  ? [styles.tabText, { color: theme.text }]
-                  : styles.tabText
+                  ? [styles.tabText, { color: theme.textButtons }]
+                  : [styles.tabText, { color: theme.textButtons }]
               }
             >
-              {translations[language].ParaAssistir}
+              {translation.ParaAssistir}
             </Text>
           </TouchableOpacity>
         </View>
@@ -365,7 +447,7 @@ export default function TabFourScreen() {
           moviesSortedByRating.length > 0 ? (
             <>
               <Text style={[styles.movieListTitle, { color: theme.text }]}>
-                {translations[language].SeusAvaliados}
+                {translation.SeusAvaliados}
               </Text>
               <FlatList
                 style={styles.flatlist}
@@ -414,7 +496,7 @@ export default function TabFourScreen() {
             </>
           ) : (
             <Text style={{ color: theme.text, marginTop: 20 }}>
-              {translations[language].SemAvaliados}
+              {translation.SemAvaliados}
             </Text>
           )
         ) : toWatchMovies.length > 0 ? (
@@ -422,6 +504,8 @@ export default function TabFourScreen() {
             data={toWatchMovies}
             keyExtractor={(movie) => movie.id.toString()}
             numColumns={isTablet ? 4 : 3}
+            initialNumToRender={6}  // Ajuste conforme necessário
+            maxToRenderPerBatch={5}  // Ajuste conforme necessário
             showsHorizontalScrollIndicator={false}
             showsVerticalScrollIndicator={false}
             renderItem={({ item }) => (
@@ -453,7 +537,7 @@ export default function TabFourScreen() {
               paddingHorizontal: 20,
             }}
           >
-            {translations[language].SemAssistir}
+            {translation.SemAssistir}
           </Text>
         )}
       </View>
@@ -492,6 +576,7 @@ export default function TabFourScreen() {
                   flex: 1,
                   width: "100%",
                   backgroundColor: theme.modalBackground,
+                  opacity: fadeAnim,
                 }}
                 onScroll={Animated.event(
                   [{ nativeEvent: { contentOffset: { y: scrollY } } }],
@@ -581,7 +666,7 @@ export default function TabFourScreen() {
                               textAlign: "center",
                             }}
                           >
-                            {translations[language].compartilhar}
+                            {translation.compartilhar}
                           </Text>
                         </TouchableHighlight>
 
@@ -598,7 +683,7 @@ export default function TabFourScreen() {
                               textAlign: "center",
                             }}
                           >
-                            {translations[language].removeLista}
+                            {translation.removeLista}
                           </Text>
                         </TouchableOpacity>
                       </View>
@@ -612,7 +697,7 @@ export default function TabFourScreen() {
                       }}
                     >
                       <Text style={{ fontWeight: "bold", fontSize: 16 }}>
-                        {translations[language].descricao}{" "}
+                        {translation.descricao}{" "}
                       </Text>
                       <Text
                         style={[
@@ -632,7 +717,7 @@ export default function TabFourScreen() {
                           fontSize: 16,
                         }}
                       >
-                        {translations[language].atores}:
+                        {translation.atores}:
                       </Text>
                       <ScrollView
                         horizontal={true}
@@ -640,31 +725,82 @@ export default function TabFourScreen() {
                         style={styles.actorsContainer}
                       >
                         {selectedMovieId?.actors?.map((actor, index) => (
-                          <View key={index} style={styles.actorCard}>
-                            <View
-                              style={[
-                                styles.imageShadowContainerActor,
-                                { backgroundColor: theme.modalBackground },
-                              ]}
-                            >
-                              <Image
-                                source={{ uri: actor.profilePath! }}
-                                style={styles.actorImage}
-                                resizeMode="cover"
-                              />
+                          <TouchableOpacity
+                            key={index}
+                            onPress={() => {
+                              openModalActor(actor.id);
+                              setShowModal(false);
+                            }}
+                          >
+                            <View key={index} style={styles.actorCard}>
+                              <View
+                                style={[
+                                  styles.imageShadowContainerActor,
+                                  { backgroundColor: theme.modalBackground },
+                                ]}
+                              >
+                                <Image
+                                  source={{ uri: actor.profilePath! }}
+                                  style={styles.actorImage}
+                                  resizeMode="cover"
+                                />
+                              </View>
+                              <Text
+                                style={[
+                                  styles.modalMovieTitleTextActors,
+                                  { color: theme.text },
+                                ]}
+                              >
+                                {actor.name}
+                              </Text>
                             </View>
-                            <Text
-                              style={[
-                                styles.modalMovieTitleTextActors,
-                                { color: theme.text },
-                              ]}
-                            >
-                              {actor.name}
-                            </Text>
-                          </View>
+                          </TouchableOpacity>
                         ))}
                       </ScrollView>
                     </View>
+
+                    <View style={{ marginTop: 30 }}>
+                            <Text
+                              style={{
+                                color: theme.text,
+                                fontWeight: "bold",
+                                fontSize: 16,
+                              }}
+                            >
+                              SEMELHANTES:
+                            </Text>
+                            <ScrollView
+                              horizontal={true}
+                              showsHorizontalScrollIndicator={false}
+                              style={styles.actorsContainer}
+                            >
+                               {selectedMovieId?.similarMovies?.map((movie, index) => (
+                              <View key={index} style={styles.movieCard}>
+                                <TouchableOpacity
+                                  onPress={() => {
+                                    closeModal();
+                                    handlePressItemModalType(movie);
+                                  }}
+                                >
+                                  <View
+                                    style={[
+                                      styles.imageShadowContainerMovies,
+                                      {
+                                        backgroundColor: theme.modalBackground,
+                                      },
+                                    ]}
+                                  >
+                                    <Image
+                                      source={{ uri: movie.imageUrl }}
+                                      style={styles.MovieImage}
+                                      resizeMode="cover"
+                                    />
+                                  </View>
+                                </TouchableOpacity>
+                              </View>
+                            ))}
+                            </ScrollView>
+                          </View>
 
                     <View
                       style={{
@@ -709,7 +845,7 @@ export default function TabFourScreen() {
                         paddingTop: 20,
                       }}
                     >
-                      {translations[language].javiu}
+                      {translation.javiu}
                     </Text>
                     <View style={{ marginBottom: 50 }}>
                       <View style={styles.modalButtons}>
@@ -720,8 +856,10 @@ export default function TabFourScreen() {
                           ]}
                           onPress={confirmRemoveMovie}
                         >
-                          <Text style={[styles.textStyle, { color: theme.text }]}>
-                            {translations[language].sim}
+                          <Text
+                            style={[styles.textStyle, { color: theme.text }]}
+                          >
+                            {translation.sim}
                           </Text>
                         </TouchableOpacity>
                         <TouchableOpacity
@@ -731,8 +869,10 @@ export default function TabFourScreen() {
                           ]}
                           onPress={closeModal}
                         >
-                          <Text style={[styles.textStyle, { color: theme.text }]}>
-                            {translations[language].nao}
+                          <Text
+                            style={[styles.textStyle, { color: theme.text }]}
+                          >
+                            {translation.nao}
                           </Text>
                         </TouchableOpacity>
                       </View>
@@ -789,6 +929,8 @@ export default function TabFourScreen() {
                   flex: 1,
                   width: "100%",
                   backgroundColor: theme.modalBackground,
+                  opacity: fadeAnim,
+
                 }}
                 onScroll={Animated.event(
                   [{ nativeEvent: { contentOffset: { y: scrollY } } }],
@@ -884,7 +1026,7 @@ export default function TabFourScreen() {
                               textAlign: "center",
                             }}
                           >
-                            {translations[language].compartilhar}
+                            {translation.compartilhar}
                           </Text>
                         </TouchableHighlight>
                       </View>
@@ -898,7 +1040,7 @@ export default function TabFourScreen() {
                       }}
                     >
                       <Text style={{ fontWeight: "bold", fontSize: 16 }}>
-                        {translations[language].descricao}{" "}
+                        {translation.descricao}{" "}
                       </Text>
                       <Text
                         style={[
@@ -918,7 +1060,7 @@ export default function TabFourScreen() {
                           fontSize: 16,
                         }}
                       >
-                        {translations[language].atores}:
+                        {translation.atores}:
                       </Text>
                       <ScrollView
                         horizontal={true}
@@ -926,31 +1068,82 @@ export default function TabFourScreen() {
                         style={styles.actorsContainer}
                       >
                         {selectedMovieId?.actors?.map((actor, index) => (
-                          <View key={index} style={styles.actorCard}>
-                            <View
-                              style={[
-                                styles.imageShadowContainerActor,
-                                { backgroundColor: theme.modalBackground },
-                              ]}
-                            >
-                              <Image
-                                source={{ uri: actor.profilePath! }}
-                                style={styles.actorImage}
-                                resizeMode="cover"
-                              />
+                          <TouchableOpacity
+                            key={index}
+                            onPress={() => {
+                              openModalActor(actor.id);
+                              setShowModalMovie(false);
+                            }}
+                          >
+                            <View key={index} style={styles.actorCard}>
+                              <View
+                                style={[
+                                  styles.imageShadowContainerActor,
+                                  { backgroundColor: theme.modalBackground },
+                                ]}
+                              >
+                                <Image
+                                  source={{ uri: actor.profilePath! }}
+                                  style={styles.actorImage}
+                                  resizeMode="cover"
+                                />
+                              </View>
+                              <Text
+                                style={[
+                                  styles.modalMovieTitleTextActors,
+                                  { color: theme.text },
+                                ]}
+                              >
+                                {actor.name}
+                              </Text>
                             </View>
-                            <Text
-                              style={[
-                                styles.modalMovieTitleTextActors,
-                                { color: theme.text },
-                              ]}
-                            >
-                              {actor.name}
-                            </Text>
-                          </View>
+                          </TouchableOpacity>
                         ))}
                       </ScrollView>
                     </View>
+
+                    <View style={{ marginTop: 30 }}>
+                            <Text
+                              style={{
+                                color: theme.text,
+                                fontWeight: "bold",
+                                fontSize: 16,
+                              }}
+                            >
+                              SEMELHANTES:
+                            </Text>
+                            <ScrollView
+                              horizontal={true}
+                              showsHorizontalScrollIndicator={false}
+                              style={styles.actorsContainer}
+                            >
+                               {selectedMovieId?.similarMovies?.map((movie, index) => (
+                              <View key={index} style={styles.movieCard}>
+                                <TouchableOpacity
+                                  onPress={() => {
+                                    closeModal();
+                                    handlePressItemModalType(movie);
+                                  }}
+                                >
+                                  <View
+                                    style={[
+                                      styles.imageShadowContainerMovies,
+                                      {
+                                        backgroundColor: theme.modalBackground,
+                                      },
+                                    ]}
+                                  >
+                                    <Image
+                                      source={{ uri: movie.imageUrl }}
+                                      style={styles.MovieImage}
+                                      resizeMode="cover"
+                                    />
+                                  </View>
+                                </TouchableOpacity>
+                              </View>
+                            ))}
+                            </ScrollView>
+                          </View>
 
                     <View
                       style={{
@@ -993,7 +1186,557 @@ export default function TabFourScreen() {
                             { color: theme.textButtons, fontSize: 18 },
                           ]}
                         >
-                          {translations[language].fechar}
+                          {translation.Fechar}
+                        </Text>
+                      </TouchableHighlight>
+                    </View>
+                  </View>
+
+                  <View
+                    style={{
+                      justifyContent: "center",
+                      alignContent: "center",
+                      alignItems: "center",
+                      paddingVertical: 5,
+                      marginVertical: 5,
+                    }}
+                  >
+                    {/* <BannerAd
+                      unitId={adUnitId}
+                      size="BANNER"
+                      onAdLoaded={() => {}}
+                      onAdFailedToLoad={(error) => {
+                        console.error("Ad failed to load", error);
+                      }}
+                      requestOptions={{
+                        requestNonPersonalizedAdsOnly: true,
+                      }}
+                    /> */}
+                  </View>
+                </View>
+              </Animated.ScrollView>
+            </View>
+          )}
+        </View>
+      </Modal>
+
+      <Modal
+        animationType="slide"
+        visible={showModalActor}
+        onRequestClose={() => setShowModalActor(false)}
+        presentationStyle="pageSheet"
+      >
+        <View style={styles.modalContainerMovie}>
+          {isDetailsLoading ? (
+            <View
+              style={[
+                styles.modalContentMovie,
+                { backgroundColor: theme.modalBackground },
+              ]}
+            >
+              <ActivityIndicator
+                size="large"
+                color={theme.borderRed}
+                style={{ alignSelf: "center" }}
+              />
+            </View>
+          ) : (
+            <View
+              style={[
+                styles.modalContentMovie,
+                { backgroundColor: theme.modalThemeMode },
+              ]}
+            >
+              <Animated.ScrollView
+                style={{
+                  flex: 1,
+                  width: "100%",
+                  backgroundColor: theme.modalBackground,
+                  opacity: fadeAnim,
+
+                }}
+              >
+                <View style={styles.modalInfoContent}>
+                  <View style={styles.modalActorInfo}>
+                    <View style={styles.modalActorTitle}>
+                      <View
+                        style={[
+                          styles.imageActorShadowContainer,
+                          { backgroundColor: theme.modalBackground },
+                        ]}
+                      >
+                        <Image
+                          style={styles.actorImageDetails}
+                          source={{ uri: selectedActor?.profilePath }}
+                        />
+                      </View>
+                      <View style={styles.titleAndDate}>
+                        <Text
+                          style={[
+                            styles.modalMovieTitleText,
+                            { color: theme.text },
+                          ]}
+                        >
+                          {selectedActor?.name}
+                        </Text>
+
+                        <View
+                          style={{
+                            display: "flex",
+                            flexDirection: "row",
+                            gap: 10,
+                            marginVertical: 10,
+                            alignItems: "center",
+                            alignContent: "center",
+                          }}
+                        >
+                          <Text
+                            style={{
+                              color: theme.text,
+                              fontWeight: "bold",
+                              fontSize: 16,
+                            }}
+                          >
+                            {translation.NasceuEm}
+                          </Text>
+                          <Text style={[{ color: theme.text }]}>
+                            {selectedActor?.birthYear}
+                          </Text>
+                        </View>
+
+                        <Text
+                          style={{
+                            color: theme.text,
+                            fontWeight: "bold",
+                            fontSize: 16,
+                          }}
+                        >
+                          {translation.Biografia}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.modalActorBiography,
+                            { color: theme.text },
+                          ]}
+                        >
+                          {selectedActor?.biography}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+                  <View style={{ marginTop: 30 }}>
+                    <Text
+                      style={{
+                        color: theme.text,
+                        fontWeight: "bold",
+                        fontSize: 16,
+                      }}
+                    >
+                      {translation.ConhecidoPor}
+                    </Text>
+                    <ScrollView
+                      horizontal={true}
+                      showsHorizontalScrollIndicator={false}
+                      style={styles.moviesContainer}
+                    >
+                      {selectedActor?.movies?.map((movie, index) => (
+                        <View key={index} style={styles.movieCard}>
+                          <TouchableOpacity
+                            onPress={() => {
+                              openModalMovie2(movie);
+                              setShowModalActor(false);
+                            }}
+                          >
+                            <View
+                              style={[
+                                styles.imageShadowContainerMovies,
+                                {
+                                  backgroundColor: theme.modalBackground,
+                                },
+                              ]}
+                            >
+                              <Image
+                                source={{ uri: movie.imageUrl }}
+                                style={styles.MovieImage}
+                                resizeMode="cover"
+                              />
+                            </View>
+                            <Text
+                              style={[
+                                styles.modalActorsMovies,
+                                { color: theme.text },
+                              ]}
+                            >
+                              {movie.title}
+                            </Text>
+                          </TouchableOpacity>
+                        </View>
+                      ))}
+                    </ScrollView>
+                  </View>
+                </View>
+
+                <View
+                  style={{
+                    marginBottom: 50,
+                    alignSelf: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <View
+                    style={{
+                      ...styles.modalButtons,
+                      alignSelf: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <TouchableHighlight
+                      style={{
+                        ...styles.modalButton,
+                        backgroundColor: theme.modalBackgroundSecondary,
+                        width: "65%",
+                        alignSelf: "center",
+                        justifyContent: "center",
+                      }}
+                      onPress={() => {
+                        setShowModalActor(false);
+                      }}
+                    >
+                      <Text style={styles.textStyle}>
+                        {translation.Fechar}
+                      </Text>
+                    </TouchableHighlight>
+                  </View>
+                </View>
+                {/* <BannerAd
+                      unitId={adUnitId}
+                      size="BANNER"
+                      onAdLoaded={() => {}}
+                      onAdFailedToLoad={(error) => {
+                        console.error("Ad failed to load", error);
+                      }}
+                      requestOptions={{
+                        requestNonPersonalizedAdsOnly: true,
+                      }}
+                    /> */}
+              </Animated.ScrollView>
+            </View>
+          )}
+        </View>
+      </Modal>
+
+
+
+      {/* MODAL 2 */}
+      <Modal
+        animationType="slide"
+        visible={showModalMovie2}
+        onRequestClose={closeModalMovie2}
+        presentationStyle="pageSheet"
+      >
+        <View style={styles.modalContainerMovie}>
+          {isDetailsLoading ? (
+            <View
+              style={[
+                styles.modalContentMovie,
+                { backgroundColor: theme.modalBackground },
+              ]}
+            >
+              <ActivityIndicator
+                size="large"
+                color={theme.borderRed}
+                style={{ alignSelf: "center" }}
+              />
+            </View>
+          ) : (
+            <View
+              style={[
+                styles.modalContentMovie,
+                { backgroundColor: theme.modalThemeMode },
+              ]}
+            >
+              <Animated.ScrollView
+                style={{
+                  flex: 1,
+                  width: "100%",
+                  backgroundColor: theme.modalBackground,
+                  opacity: fadeAnim,
+
+                }}
+                onScroll={Animated.event(
+                  [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+                  { useNativeDriver: true }
+                )}
+                scrollEventThrottle={16} // Defina a frequência de eventos de rolagem
+              >
+                <View
+                  style={[
+                    {
+                      display: "flex",
+                      flexDirection: "column",
+                      height: BANNER_H,
+                      backgroundColor: theme.modalBackground,
+                    },
+                    styles.imageShadowContainerBanner,
+                  ]}
+                >
+                  <Animated.Image
+                    style={[
+                      styles.movieImageBanner,
+                      {
+                        width: "100%",
+                        flex: 1,
+                        height: BANNER_H,
+                        transform: [
+                          {
+                            translateY: scrollY.interpolate({
+                              inputRange: [-BANNER_H, 0, BANNER_H],
+                              outputRange: [-BANNER_H / 2, 0, 0], // Previne movimento para cima
+                            }),
+                          },
+                          {
+                            scale: scrollY.interpolate({
+                              inputRange: [-BANNER_H, 0],
+                              outputRange: [2, 1], // Permite expansão ao puxar para baixo
+                              extrapolateRight: "clamp", // Previne que a escala se ajuste além do especificado
+                            }),
+                          },
+                        ],
+                      },
+                    ]}
+                    source={{ uri: selectedMovie?.alternateImageUrl }}
+                  />
+                </View>
+
+                <View style={styles.modalInfoContent}>
+                  <View style={styles.modalMovieInfo}>
+                    <View style={styles.modalMovieTitle}>
+                      <View
+                        style={[
+                          styles.imageShadowContainer,
+                          { backgroundColor: theme.modalBackground },
+                        ]}
+                      >
+                        <Image
+                          style={styles.movieImage}
+                          source={{ uri: selectedMovie?.imageUrl }}
+                        />
+                      </View>
+                      <View style={styles.titleAndDate}>
+                        <Text
+                          style={[
+                            styles.modalMovieTitleText,
+                            { color: theme.text },
+                          ]}
+                        >
+                          {selectedMovie?.title}
+                        </Text>
+                        <Text
+                          style={[styles.modalMovieDate, { color: theme.text }]}
+                        >
+                          {formatDate(selectedMovie?.date)}
+                        </Text>
+
+                        <TouchableHighlight
+                          style={{
+                            ...styles.modalButton,
+                            marginBottom: 10,
+                            backgroundColor: "#4caf50", // Cor verde para diferenciar
+                          }}
+                          onPress={handleShare}
+                        >
+                          <Text
+                            style={{
+                              color: theme.textButtons,
+                              textAlign: "center",
+                            }}
+                          >
+                            {translation.compartilhar}
+                          </Text>
+                        </TouchableHighlight>
+                      </View>
+                    </View>
+
+                    <Text
+                      style={{
+                        color: theme.text,
+                        marginTop: 30,
+                        textAlign: "justify",
+                      }}
+                    >
+                      <Text style={{ fontWeight: "bold", fontSize: 16 }}>
+                        {translation.descricao}:{" "}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.modalText,
+                          {
+                            color: theme.text,
+                            marginBottom: 30,
+                            textAlign: "justify",
+                          },
+                        ]}
+                      >
+                        {selectedMovie?.description}
+                      </Text>
+                    </Text>
+
+                    <View style={{ marginTop: 30 }}>
+                      <Text
+                        style={{
+                          color: theme.text,
+                          fontWeight: "bold",
+                          fontSize: 16,
+                        }}
+                      >
+                        {translation.atores}:
+                      </Text>
+                      <ScrollView
+                        horizontal={true}
+                        showsHorizontalScrollIndicator={false}
+                        style={styles.actorsContainer}
+                      >
+                        {selectedMovie?.actors?.map((actor, index) => (
+                          <TouchableOpacity
+                            onPress={() => {
+                              openModalActor(actor.id);
+                              setShowModalMovie2(false);
+                            }}
+                          >
+                            <View key={index} style={styles.actorCard}>
+                              <View
+                                style={[
+                                  styles.imageShadowContainerActor,
+                                  { backgroundColor: theme.modalBackground },
+                                ]}
+                              >
+                                <Image
+                                  source={{ uri: actor.profilePath! }}
+                                  style={styles.actorImage}
+                                  resizeMode="cover"
+                                />
+                              </View>
+                              <Text
+                                style={[
+                                  styles.modalMovieTitleTextActors,
+                                  { color: theme.text },
+                                ]}
+                              >
+                                {actor.name}
+                              </Text>
+                            </View>
+                          </TouchableOpacity>
+                        ))}
+                      </ScrollView>
+                    </View>
+
+
+                    <View style={{ marginTop: 30 }}>
+                            <Text
+                              style={{
+                                color: theme.text,
+                                fontWeight: "bold",
+                                fontSize: 16,
+                              }}
+                            >
+                              SEMELHANTES:
+                            </Text>
+                            <ScrollView
+                              horizontal={true}
+                              showsHorizontalScrollIndicator={false}
+                              style={styles.actorsContainer}
+                            >
+                               {selectedMovieId?.similarMovies?.map((movie, index) => (
+                              <View key={index} style={styles.movieCard}>
+                                <TouchableOpacity
+                                  onPress={() => {
+                                    closeModal();
+                                    handlePressItemModalType2(movie);
+                                  }}
+                                >
+                                  <View
+                                    style={[
+                                      styles.imageShadowContainerMovies,
+                                      {
+                                        backgroundColor: theme.modalBackground,
+                                      },
+                                    ]}
+                                  >
+                                    <Image
+                                      source={{ uri: movie.imageUrl }}
+                                      style={styles.MovieImage}
+                                      resizeMode="cover"
+                                    />
+                                  </View>
+                                </TouchableOpacity>
+                              </View>
+                            ))}
+                            </ScrollView>
+                          </View>
+
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        flexWrap: "wrap",
+                        marginTop: 30,
+                      }}
+                    >
+                      {selectedMovie?.streamingPlatforms
+                        ?.filter((streaming) => streaming.name !== "HBO Max") // Supondo que 'name' seja uma propriedade identificadora
+                        .map((streaming, index) => (
+                          <Image
+                            key={index}
+                            source={{ uri: streaming.logoPath }}
+                            style={{
+                              width: 50, // Defina a largura conforme necessário
+                              height: 50, // Defina a altura conforme necessário
+                              marginRight: 10, // Espaço à direita de cada imagem
+                              borderRadius: 30,
+                            }}
+                            resizeMode="contain"
+                          />
+                        ))}
+                    </View>
+                  </View>
+
+                  <View style={styles.modalButtonsContainerAll}>
+                    <Text style={[styles.modalText, { color: theme.text }]}>
+                      {translation.AddPrompt}
+                    </Text>
+
+                    <View style={styles.modalButtonsContainer}>
+                      <TouchableHighlight
+                        style={{
+                          ...styles.modalButton,
+                          backgroundColor: theme.borderRed,
+                        }}
+                        onPress={handleAddToList}
+                      >
+                        <Text
+                          style={[
+                            styles.textStyle,
+                            { color: theme.textButtons },
+                          ]}
+                        >
+                          {translation.AddToList}
+                        </Text>
+                      </TouchableHighlight>
+
+                      <TouchableHighlight
+                        style={{
+                          ...styles.modalButton,
+                          backgroundColor: theme.modalBackgroundSecondary,
+                        }}
+                        onPress={() => setShowModalMovie2(false)}
+                      >
+                        <Text
+                          style={[
+                            styles.textStyle,
+                            { color: theme.textButtons },
+                          ]}
+                        >
+                          {translation.Fechar}
                         </Text>
                       </TouchableHighlight>
                     </View>
@@ -1370,4 +2113,70 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginBottom: 10,
   },
+
+  //MODAL ATOR
+  modalActorInfo: {},
+  modalActorTitle: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 10,
+    justifyContent: "center",
+    alignItems: "center",
+    alignContent: "center",
+    marginTop: 35,
+  },
+  imageActorShadowContainer: {
+    width: isTablet ? 250 : 200,
+    height: isTablet ? 360 : 280,
+    marginBottom: 5,
+    borderRadius: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 3,
+    elevation: 5,
+  },
+  actorImageDetails: {
+    width: isTablet ? 250 : 200,
+    height: isTablet ? 360 : 280,
+    resizeMode: "cover",
+    borderRadius: 10,
+  },
+  modalActorBiography: {
+    fontSize: 14,
+    marginTop: 10,
+    textAlign: "justify",
+  },
+  moviesContainer: {
+    width: "100%",
+  },
+  movieCard: {
+    padding: 10,
+    alignItems: "center",
+  },
+  imageShadowContainerMovies: {
+    width: 120,
+    height: 175,
+    marginBottom: 5,
+    borderRadius: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 3,
+    elevation: 5,
+  },
+  MovieImage: {
+    width: 120,
+    height: 175,
+    objectFit: "cover",
+    borderRadius: 10,
+    marginBottom: 10,
+  },
+  modalActorsMovies: {
+    width: 110,
+    fontSize: 14,
+    textAlign: "center",
+    flexWrap: "wrap",
+  },
 });
+

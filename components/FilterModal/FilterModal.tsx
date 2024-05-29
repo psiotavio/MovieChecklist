@@ -19,6 +19,7 @@ import { formatDate } from "date-fns";
 import { useTheme } from "../../constants/temas/ThemeContext";
 import Icon from "react-native-vector-icons/FontAwesome6";
 import { FontAwesome } from "@expo/vector-icons";
+import { useConfiguration } from "../../contexts/ConfigurationContext";
 
 // import { BannerAd } from "react-native-google-mobile-ads";
 
@@ -83,6 +84,200 @@ const FilterModal = () => {
 
   const adUnitId = "ca-app-pub-1771446730721916/1536500762";
 
+  const translation = {
+    english: {
+      Action: "Action",
+      Adventure: "Adventure",
+      Animation: "Animation",
+      Comedy: "Comedy",
+      Drama: "Drama",
+      Family: "Family",
+      Fantasy: "Fantasy",
+      Horror: "Horror",
+      Music: "Music",
+      Mystery: "Mystery",
+      ScienceFiction: "Science Fiction",
+      All: "All",
+      Romance: "Romance",
+      RecommendMovie: "I recommend this movie:",
+      SelectFilters: "Select Filters",
+      Genres: "Genres",
+      Platforms: "Platforms",
+      SearchMovie: "Search Movie",
+      Share: "Share",
+      WatchLater: "Watch Later",
+      Description: "Description:",
+      Actors: "Actors:",
+      YouWatchedThisMovie: "You have watched this movie",
+      DrawAgain: "Draw Again",
+      Cancel: "Cancel",
+    },
+    portuguese: {
+      Action: "Ação",
+      Adventure: "Aventura",
+      Animation: "Animação",
+      Comedy: "Comédia",
+      Drama: "Drama",
+      Family: "Família",
+      Fantasy: "Fantasia",
+      Horror: "Terror",
+      Music: "Música",
+      Mystery: "Mistério",
+      ScienceFiction: "Ficção científica",
+      All: "Todos",
+      Romance: "Romance",
+      RecommendMovie: "Recomendo esse filme:",
+      SelectFilters: "Selecione os Filtros",
+      Genres: "Gêneros",
+      Platforms: "Plataformas",
+      SearchMovie: "Buscar Filme",
+      Share: "Compartilhar",
+      WatchLater: "Assistir mais tarde",
+      Description: "Descrição:",
+      Actors: "Atores:",
+      YouWatchedThisMovie: "Você assistiu esse filme?",
+      DrawAgain: "Sortear Novamente",
+      Cancel: "Cancelar",
+    },
+    spanish: {
+      Action: "Acción",
+      Adventure: "Aventura",
+      Animation: "Animación",
+      Comedy: "Comedia",
+      Drama: "Drama",
+      Family: "Familia",
+      Fantasy: "Fantasía",
+      Horror: "Terror",
+      Music: "Música",
+      Mystery: "Misterio",
+      ScienceFiction: "Ciencia ficción",
+      All: "Todos",
+      Romance: "Romance",
+      RecommendMovie: "Recomiendo esta película:",
+      SelectFilters: "Seleccionar Filtros",
+      Genres: "Géneros",
+      Platforms: "Plataformas",
+      SearchMovie: "Buscar Película",
+      Share: "Compartir",
+      WatchLater: "Ver Más Tarde",
+      Description: "Descripción:",
+      Actors: "Actores:",
+      YouWatchedThisMovie: "Has visto esta película",
+      DrawAgain: "Sortear Nuevamente",
+      Cancel: "Cancelar",
+    },
+    french: {
+      Action: "Action",
+      Adventure: "Aventure",
+      Animation: "Animation",
+      Comedy: "Comédie",
+      Drama: "Drame",
+      Family: "Famille",
+      Fantasy: "Fantaisie",
+      Horror: "Horreur",
+      Music: "Musique",
+      Mystery: "Mystère",
+      ScienceFiction: "Science-fiction",
+      All: "Tous",
+      Romance: "Romance",
+      RecommendMovie: "Je recommande ce film:",
+      SelectFilters: "Sélectionner les Filtres",
+      Genres: "Genres",
+      Platforms: "Plateformes",
+      SearchMovie: "Rechercher Film",
+      Share: "Partager",
+      WatchLater: "Regarder Plus Tard",
+      Description: "Description:",
+      Actors: "Acteurs:",
+      YouWatchedThisMovie: "Vous avez regardé ce film",
+      DrawAgain: "Tirer à Nouveau",
+      Cancel: "Annuler",
+    },
+    german: {
+      Action: "Aktion",
+      Adventure: "Abenteuer",
+      Animation: "Animation",
+      Comedy: "Komödie",
+      Drama: "Drama",
+      Family: "Familie",
+      Fantasy: "Fantasie",
+      Horror: "Horror",
+      Music: "Musik",
+      Mystery: "Geheimnis",
+      ScienceFiction: "Wissenschaftsfiktion",
+      All: "Alle",
+      Romance: "Romantik",
+      RecommendMovie: "Ich empfehle diesen Film:",
+      SelectFilters: "Filter Auswählen",
+      Genres: "Genres",
+      Platforms: "Plattformen",
+      SearchMovie: "Film Suchen",
+      Share: "Teilen",
+      WatchLater: "Später Ansehen",
+      Description: "Beschreibung:",
+      Actors: "Schauspieler:",
+      YouWatchedThisMovie: "Sie haben diesen Film gesehen",
+      DrawAgain: "Erneut Ziehen",
+      Cancel: "Abbrechen",
+    },
+    italian: {
+      Action: "Azione",
+      Adventure: "Avventura",
+      Animation: "Animazione",
+      Comedy: "Commedia",
+      Drama: "Dramma",
+      Family: "Famiglia",
+      Fantasy: "Fantasia",
+      Horror: "Horror",
+      Music: "Musica",
+      Mystery: "Mistero",
+      ScienceFiction: "Fantascienza",
+      All: "Tutti",
+      Romance: "Romantico",
+      RecommendMovie: "Raccomando questo film:",
+      SelectFilters: "Seleziona Filtri",
+      Genres: "Generi",
+      Platforms: "Piattaforme",
+      SearchMovie: "Cerca Film",
+      Share: "Condividi",
+      WatchLater: "Guarda Più Tardi",
+      Description: "Descrizione:",
+      Actors: "Attori:",
+      YouWatchedThisMovie: "Hai visto questo film",
+      DrawAgain: "Sorteggia di Nuovo",
+      Cancel: "Annulla",
+    },
+    chinese: {
+      Action: "动作",
+      Adventure: "冒险",
+      Animation: "动画",
+      Comedy: "喜剧",
+      Drama: "戏剧",
+      Family: "家庭",
+      Fantasy: "幻想",
+      Horror: "恐怖",
+      Music: "音乐",
+      Mystery: "神秘",
+      ScienceFiction: "科幻",
+      All: "所有",
+      Romance: "浪漫",
+      RecommendMovie: "我推荐这部电影：",
+      SelectFilters: "选择过滤器",
+      Genres: "类型",
+      Platforms: "平台",
+      SearchMovie: "搜索电影",
+      Share: "分享",
+      WatchLater: "稍后观看",
+      Description: "描述：",
+      Actors: "演员：",
+      YouWatchedThisMovie: "你看过这部电影",
+      DrawAgain: "再次抽奖",
+      Cancel: "取消",
+    },
+  };
+  
+  
+
   // Exemplo de uso
   const platforms = {
     "384": "Max",
@@ -93,19 +288,40 @@ const FilterModal = () => {
     "350": "Apple TV Plus",
   };
 
-  const generosFiltro = {
-    "28": "Ação",
-    "12": "Aventura",
-    "16": "Animação",
-    "35": "Comédia",
-    "18": "Drama",
-    "10751": "Família",
-    "14": "Fantasia",
-    "27": "Terror",
-    "10402": "Música",
-    "9648": "Mistério",
-    "10749": "Romance",
-    "878": "Ficção científica",
+  // const generosFiltro = {
+  //   "28": "Ação",
+  //   "12": "Aventura",
+  //   "16": "Animação",
+  //   "35": "Comédia",
+  //   "18": "Drama",
+  //   "10751": "Família",
+  //   "14": "Fantasia",
+  //   "27": "Terror",
+  //   "10402": "Música",
+  //   "9648": "Mistério",
+  //   "10749": "Romance",
+  //   "878": "Ficção científica",
+  // };
+
+  const { language } = useConfiguration();
+
+  interface GenreMappings {
+    [key: string]: string;
+  }
+
+  const generosFiltro: GenreMappings = {
+    "28": translation[language].Action,
+    "12": translation[language].Adventure,
+    "16": translation[language].Animation,
+    "35": translation[language].Comedy,
+    "18": translation[language].Drama,
+    "10751": translation[language].Family,
+    "14": translation[language].Fantasy,
+    "27": translation[language].Horror,
+    "10402": translation[language].Music,
+    "9648": translation[language].Mystery,
+    "10749": translation[language].Romance,
+    "878": translation[language].ScienceFiction,
   };
 
   const formatDate = (dateString: any) => {
@@ -191,25 +407,6 @@ const FilterModal = () => {
         actors: selectedMovie.actors, // Novo
       };
 
-      // if (counter === 2) {
-      //   setTimeout(() => {
-      //     if (interstitialLoaded) {
-      //       anuncio
-      //         .show()
-      //         .then(() => {
-      //           // Recarregar o anúncio para a próxima exibição
-      //           anuncio.load();
-      //         })
-      //         .catch((error) => {
-      //           console.error("Erro ao tentar exibir o anúncio: ", error);
-      //         });
-      //       // Resetar o estado de carregamento do anúncio
-      //       setInterstitialLoaded(false);
-      //       setCounter(0);
-      //     }
-      //   }, 2000); // 2000 milissegundos = 2 segundos
-      // }
-
       addToWatchList(toWatch);
       setModalVisible(false);
       setSelectedMovie(null);
@@ -219,7 +416,7 @@ const FilterModal = () => {
   const handleShare = () => {
     if (!selectedMovie) return; // Certifique-se de que há um filme selecionado
 
-    const message = `> Recomendo esse filme:\n\n*${selectedMovie.title}* \n${selectedMovie.description}
+    const message = `> ${translation[language].RecommendMovie}\n\n*${selectedMovie.title}* \n${selectedMovie.description}
 
     \nLINK: watchfolio.com.br/movie/${selectedMovie.id}/?popup=true`;
     Share.share({
@@ -234,7 +431,7 @@ const FilterModal = () => {
         onPress={() => setModalVisible(true)}
       >
         <View style={styles.fabTextAligner}>
-          <Icon name="dice" size={26} color="white" />
+          <Icon name="dice" size={26} color={theme.text} />
         </View>
       </TouchableOpacity>
 
@@ -261,10 +458,10 @@ const FilterModal = () => {
                   { color: theme.text, textAlign: "center" },
                 ]}
               >
-                Selecione os Filtros
+                {translation[language].SelectFilters} 
               </Text>
               <Text style={[styles.subHeader, { color: theme.text }]}>
-                Gêneros
+              {translation[language].Genres} 
               </Text>
               <View style={styles.chips}>
                 {Object.entries(generosFiltro).map(([key, value]) => (
@@ -291,7 +488,7 @@ const FilterModal = () => {
               </View>
 
               <Text style={[styles.subHeader, { color: theme.text }]}>
-                Plataformas
+              {translation[language].Platforms} 
               </Text>
               <View style={styles.chips}>
                 {Object.entries(platforms).map(([id, name]) => (
@@ -329,7 +526,7 @@ const FilterModal = () => {
                   }
                   onPress={toggleAllPlatforms}
                 >
-                  Todos
+                  {translation[language].All} 
                 </Chip>
               </View>
 
@@ -344,7 +541,7 @@ const FilterModal = () => {
                   <Text
                     style={{ color: theme.textButtons, textAlign: "center" }}
                   >
-                    Buscar Filme
+                    {translation[language].SearchMovie} 
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -494,7 +691,7 @@ const FilterModal = () => {
                           }}
                           onPress={handleShare}
                         >
-                          <Text style={styles.textStyle}>Compartilhar</Text>
+                          <Text style={styles.textStyle}>{translation[language].Share} </Text>
                         </TouchableHighlight>
                         <TouchableOpacity
                           style={[
@@ -506,7 +703,7 @@ const FilterModal = () => {
                           <Text
                             style={{ color: theme.text, textAlign: "center" }}
                           >
-                            Assistir mais tarde
+                            {translation[language].WatchLater} 
                           </Text>
                         </TouchableOpacity>
                       </View>
@@ -520,7 +717,7 @@ const FilterModal = () => {
                       }}
                     >
                       <Text style={{ fontWeight: "bold", fontSize: 16 }}>
-                        Descrição:{" "}
+                      {translation[language].Description}{" "}
                       </Text>
                       <Text
                         style={[
@@ -540,7 +737,7 @@ const FilterModal = () => {
                           fontSize: 16,
                         }}
                       >
-                        Atores:
+                        {translation[language].Actors} 
                       </Text>
                       <ScrollView
                         horizontal={true}
@@ -617,7 +814,7 @@ const FilterModal = () => {
                         paddingTop: 20,
                       }}
                     >
-                      Você assistiu esse filme?
+                      {translation[language].YouWatchedThisMovie} 
                     </Text>
                     <View style={{ marginBottom: 50 }}>
                       <View style={styles.modalButtons}>
@@ -629,7 +826,7 @@ const FilterModal = () => {
                           onPress={handleFetchMovie}
                         >
                           <Text style={styles.textStyle}>
-                            Sortear novamente
+                          {translation[language].DrawAgain} 
                           </Text>
                         </TouchableHighlight>
 
@@ -643,7 +840,7 @@ const FilterModal = () => {
                             setSelectedMovie(null);
                           }}
                         >
-                          <Text style={styles.textStyle}>Cancelar</Text>
+                          <Text style={styles.textStyle}>{translation[language].Cancel}</Text>
                         </TouchableHighlight>
                       </View>
                     </View>

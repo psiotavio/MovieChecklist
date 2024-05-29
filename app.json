@@ -2,7 +2,7 @@
   "expo": {
     "name": "Watchfolio",
     "slug": "MovieChecklist",
-    "version": "2.0",
+    "version": "2.0.6",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "yourapp",
@@ -10,7 +10,7 @@
     "splash": {
       "image": "./assets/images/splash.png",
       "resizeMode": "cover",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#250737"
     },
     "assetBundlePatterns": [
       "**/*"
@@ -21,7 +21,7 @@
       "bitcode": false
     },
     "android": {
-      "versionCode": 2,
+      "versionCode": 7,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/Adaptive-Icon-foreground.png",
         "backgroundColor": "#250737"

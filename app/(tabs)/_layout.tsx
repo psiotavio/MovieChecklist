@@ -33,6 +33,8 @@ export default function TabLayout() {
       spanish: { inicio: "Inicio", Listas: "Listas", Paravoce: "Para ti", Perfil: "Perfil" },
       french: { inicio: "Accueil", Listas: "Listes", Paravoce: "Pour vous", Perfil: "Profil" },
       german: { inicio: "Startseite", Listas: "Listen", Paravoce: "Für Sie", Perfil: "Profil" },
+      italian: { inicio: "Home", Listas: "Liste", Paravoce: "Per te", Perfil: "Profilo" },
+      chinese: { inicio: "首页", Listas: "列表", Paravoce: "为你推荐", Perfil: "个人资料" },
     };
 
     setRoutes([
