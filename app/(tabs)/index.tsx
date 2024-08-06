@@ -49,13 +49,14 @@ import { MaterialIcons } from "@expo/vector-icons";
 //   BannerAd,
 // } from "react-native-google-mobile-ads";
 
-// let adUnitId: string;
+let adUnitId: string;
 
-// if (Platform.OS === 'ios') {
-//     adUnitId = "ca-app-pub-1771446730721916/1536500762"; // Coloque o ID do iOS aqui
-// } else if (Platform.OS === 'android') {
-//     adUnitId = "ca-app-pub-1771446730721916/6230272284"; // Coloque o ID do Android aqui
-// }
+
+if (Platform.OS === "ios") {
+  adUnitId = "ca-app-pub-4303499199669342/6006099901"; // Coloque o ID do iOS aqui
+} else if (Platform.OS === "android") {
+  adUnitId = "ca-app-pub-4303499199669342/1108657138"; // Coloque o ID do Android aqui
+}
 
 const { width, height } = Dimensions.get("window");
 
@@ -205,35 +206,48 @@ export default function HomeScreen() {
 
   const { theme, themeName } = useTheme();
 
-    // Definindo logos para diferentes temas
-    const logos = {
-      default: logoDefault,
-      dark:  logoDefault,
-      light:   logoDefault,
-      blue:  logoBlue,
-      orange:  logoOrange,
-      pink:  logoPink,
-      lightpink:  logoPink,
-      green: logoGreen,
-      deepPurple:  logoDefault,
-      red:  logoRed,
-    };
-  
-    // Selecionar logo com base no tema atual
-    const logo = logos[themeName] || logos.default;
+  // Definindo logos para diferentes temas
+  const logos = {
+    default: logoDefault,
+    dark: logoDefault,
+    light: logoDefault,
+    dune: logoDefault,
+    cosmicDusk: logoDefault,
+    lilacNebula: logoDefault,
+    shadowOfMordor: logoDefault,
+    darkSide: logoDefault,
+    neonTwilight: logoDefault,
+    dracula: logoDefault,
+    bladeRunner: logoDefault,
+    violetWitch:logoDefault,
+    thanos:logoDefault,
+    jediTemple:logoDefault,
+    hungerGames:logoDefault,
+    neoMatrix:logoDefault,
 
-    const fadeAnim = useRef(new Animated.Value(0)).current;
+    // blue: logoBlue,
+    // orange: logoOrange,
+    // pink: logoPink,
+    // lightpink: logoPink,
+    // green: logoGreen,
+    // red: logoRed,
+  };
 
-    useEffect(() => {
-      if (!isDetailsLoading) {
-        fadeAnim.setValue(0);
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 1000,
-          useNativeDriver: true,
-        }).start();
-      }
-    }, [isDetailsLoading]);
+  // Selecionar logo com base no tema atual
+  const logo = logos[themeName] || logos.default;
+
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (!isDetailsLoading) {
+      fadeAnim.setValue(0);
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 1000,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [isDetailsLoading]);
 
   const { translation, language } = useConfiguration();
 
@@ -248,8 +262,6 @@ export default function HomeScreen() {
   };
 
   const tmdbLanguage = languageMapping[language]; // Obtém o código de idioma correto para a API
-
-  
 
   const [datePickerVisible, setDatePickerVisible] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -270,8 +282,6 @@ export default function HomeScreen() {
         setDatePickerVisible(false); // Fechar o DatePicker se o usuário cancelar
       }
     }
-
-    
   };
 
   const searchMovies = async (query: string) => {
@@ -604,38 +614,41 @@ export default function HomeScreen() {
       };
     });
 
-    const dismissKeyboardAndResults = () => {
-      Keyboard.dismiss();
-      setSearchResults([]); // Fecha os resultados da busca imediatamente ao clicar na tela
-    };
-    
+  const dismissKeyboardAndResults = () => {
+    Keyboard.dismiss();
+    setSearchResults([]); // Fecha os resultados da busca imediatamente ao clicar na tela
+  };
 
-    const handlePressItemModalType = (item: any) => {
-      setModalVisible(false); // Feche o modal atual
-      setTimeout(() => {
-        if (item.type === "movie" || (item && typeof item.title === "string" && typeof item.date === "string")) {
-          setSelectedMovie(item);
-          setModalType("movie");
-          setIsDetailsLoading(true); // Indica que os detalhes estão carregando
-    
-          fetchMovieDetails(item.id, 0, (movieDetails) => {
-            setSelectedMovie(movieDetails);
-            setIsDetailsLoading(false); // Carregamento concluído
-          });
-        } else {
-          setSelectedActor(item);
-          setModalType("actor");
-          setIsDetailsLoading(true); // Indica que os detalhes estão carregando
-    
-          fetchActorDetails(item.id, (actorDetails) => {
-            setSelectedActor(actorDetails);
-            setIsDetailsLoading(false); // Carregamento concluído
-          });
-        }
-        setModalVisible(true); // Reabra o modal
-      }, 300); // Adicione um pequeno atraso para garantir que o modal foi fechado
-    };
-    
+  const handlePressItemModalType = (item: any) => {
+    setModalVisible(false); // Feche o modal atual
+    setTimeout(() => {
+      if (
+        item.type === "movie" ||
+        (item &&
+          typeof item.title === "string" &&
+          typeof item.date === "string")
+      ) {
+        setSelectedMovie(item);
+        setModalType("movie");
+        setIsDetailsLoading(true); // Indica que os detalhes estão carregando
+
+        fetchMovieDetails(item.id, 0, (movieDetails) => {
+          setSelectedMovie(movieDetails);
+          setIsDetailsLoading(false); // Carregamento concluído
+        });
+      } else {
+        setSelectedActor(item);
+        setModalType("actor");
+        setIsDetailsLoading(true); // Indica que os detalhes estão carregando
+
+        fetchActorDetails(item.id, (actorDetails) => {
+          setSelectedActor(actorDetails);
+          setIsDetailsLoading(false); // Carregamento concluído
+        });
+      }
+      setModalVisible(true); // Reabra o modal
+    }, 300); // Adicione um pequeno atraso para garantir que o modal foi fechado
+  };
 
   const handleAddToList = () => {
     if (selectedMovie) {
@@ -691,13 +704,12 @@ export default function HomeScreen() {
         setKeyboardVisible(false);
       }
     );
-  
+
     return () => {
       keyboardDidShowListener.remove();
       keyboardDidHideListener.remove();
     };
   }, []);
-  
 
   const combinedArray = combineLists(organizedMoviesArray, bestMoviesArray);
 
@@ -863,6 +875,7 @@ export default function HomeScreen() {
                       renderItem={({ item }) => (
                         <View style={[styles.movieItem, { marginLeft: 9 }]}>
                           <TouchableOpacity
+                            key={item.id}
                             onPress={() => {
                               setRating(item.rating);
                               setSelectedMovieRating(item);
@@ -919,6 +932,7 @@ export default function HomeScreen() {
                       renderItem={({ item, index }) => (
                         <View style={[styles.movieItem, { marginLeft: 9 }]}>
                           <TouchableOpacity
+                            key={item.id}
                             onPress={() => {
                               setRating(item.rating);
                               setSelectedMovieRating(item);
@@ -1072,6 +1086,7 @@ export default function HomeScreen() {
                               </Text>
 
                               <TouchableHighlight
+                                key={selectedMovie?.id}
                                 style={{
                                   ...styles.modalButton,
                                   marginBottom: 10,
@@ -1140,6 +1155,7 @@ export default function HomeScreen() {
                             >
                               {selectedMovie?.actors?.map((actor, index) => (
                                 <TouchableOpacity
+                                  key={index}
                                   onPress={() =>
                                     handlePressItemModalType(actor)
                                   }
@@ -1174,7 +1190,6 @@ export default function HomeScreen() {
                             </ScrollView>
                           </View>
 
-
                           <View style={{ marginTop: 30 }}>
                             <Text
                               style={{
@@ -1183,37 +1198,41 @@ export default function HomeScreen() {
                                 fontSize: 16,
                               }}
                             >
-                             {translation.Recomendado}:
+                              {translation.VocePodeGostar}
                             </Text>
                             <ScrollView
                               horizontal={true}
                               showsHorizontalScrollIndicator={false}
                               style={styles.actorsContainer}
                             >
-                               {selectedMovie?.similarMovies?.map((movie, index) => (
-                              <View key={index} style={styles.movieCard}>
-                                <TouchableOpacity
-                                  onPress={() =>
-                                    handlePressItemModalType(movie)
-                                  }
-                                >
-                                  <View
-                                    style={[
-                                      styles.imageShadowContainerMovies,
-                                      {
-                                        backgroundColor: theme.modalBackground,
-                                      },
-                                    ]}
-                                  >
-                                    <Image
-                                      source={{ uri: movie.imageUrl }}
-                                      style={styles.MovieImage}
-                                      resizeMode="cover"
-                                    />
+                              {selectedMovie?.similarMovies?.map(
+                                (movie, index) => (
+                                  <View key={index} style={styles.movieCard}>
+                                    <TouchableOpacity
+                                      key={index + 1}
+                                      onPress={() =>
+                                        handlePressItemModalType(movie)
+                                      }
+                                    >
+                                      <View
+                                        style={[
+                                          styles.imageShadowContainerMovies,
+                                          {
+                                            backgroundColor:
+                                              theme.modalBackground,
+                                          },
+                                        ]}
+                                      >
+                                        <Image
+                                          source={{ uri: movie.imageUrl }}
+                                          style={styles.MovieImage}
+                                          resizeMode="cover"
+                                        />
+                                      </View>
+                                    </TouchableOpacity>
                                   </View>
-                                </TouchableOpacity>
-                              </View>
-                            ))}
+                                )
+                              )}
                             </ScrollView>
                           </View>
 
@@ -1267,6 +1286,7 @@ export default function HomeScreen() {
                           <View style={{ marginBottom: 50 }}>
                             <View style={styles.modalButtons}>
                               <TouchableHighlight
+                                key={1}
                                 style={{
                                   ...styles.modalButton,
                                   backgroundColor:
@@ -1284,6 +1304,7 @@ export default function HomeScreen() {
                                 </Text>
                               </TouchableHighlight>
                               <TouchableHighlight
+                                key={2}
                                 style={{
                                   ...styles.modalButton,
                                   backgroundColor: theme.borderRed,
@@ -1297,16 +1318,16 @@ export default function HomeScreen() {
                             </View>
                           </View>
                           {/* <BannerAd
-                      unitId={adUnitId}
-                      size="BANNER"
-                      onAdLoaded={() => {}}
-                      onAdFailedToLoad={(error) => {
-                        console.error("Ad failed to load", error);
-                      }}
-                      requestOptions={{
-                        requestNonPersonalizedAdsOnly: true,
-                      }}
-                    /> */}
+                            unitId={adUnitId}
+                            size="BANNER"
+                            onAdLoaded={() => {}}
+                            onAdFailedToLoad={(error) => {
+                              console.error("Ad failed to load", error);
+                            }}
+                            requestOptions={{
+                              requestNonPersonalizedAdsOnly: true,
+                            }}
+                          /> */}
                         </View>
                       </View>
                     </Animated.ScrollView>
@@ -1344,13 +1365,13 @@ export default function HomeScreen() {
                     ]}
                   >
                     <Animated.ScrollView
-              style={{
-                flex: 1,
-                width: "100%",
-                backgroundColor: theme.modalBackground,
-                opacity: fadeAnim,
-              }}
-            >
+                      style={{
+                        flex: 1,
+                        width: "100%",
+                        backgroundColor: theme.modalBackground,
+                        opacity: fadeAnim,
+                      }}
+                    >
                       <View style={styles.modalInfoContent}>
                         <View style={styles.modalActorInfo}>
                           <View style={styles.modalActorTitle}>
@@ -1437,6 +1458,7 @@ export default function HomeScreen() {
                             {selectedActor?.movies?.map((movie, index) => (
                               <View key={index} style={styles.movieCard}>
                                 <TouchableOpacity
+                                  key={index}
                                   onPress={() =>
                                     handlePressItemModalType(movie)
                                   }
@@ -1485,6 +1507,7 @@ export default function HomeScreen() {
                           }}
                         >
                           <TouchableHighlight
+                            key={4}
                             style={{
                               ...styles.modalButton,
                               backgroundColor: theme.modalBackgroundSecondary,
@@ -1503,18 +1526,28 @@ export default function HomeScreen() {
                             </Text>
                           </TouchableHighlight>
                         </View>
+                        <View
+                          style={{
+                            justifyContent: "center",
+                            alignContent: "center",
+                            alignItems: "center",
+                            paddingVertical: 5,
+                            marginVertical: 5,
+                          }}
+                        >
+                          {/* <BannerAd
+                            unitId={adUnitId}
+                            size="BANNER"
+                            onAdLoaded={() => {}}
+                            onAdFailedToLoad={(error) => {
+                              console.error("Ad failed to load", error);
+                            }}
+                            requestOptions={{
+                              requestNonPersonalizedAdsOnly: true,
+                            }}
+                          /> */}
+                        </View>
                       </View>
-                      {/* <BannerAd
-                      unitId={adUnitId}
-                      size="BANNER"
-                      onAdLoaded={() => {}}
-                      onAdFailedToLoad={(error) => {
-                        console.error("Ad failed to load", error);
-                      }}
-                      requestOptions={{
-                        requestNonPersonalizedAdsOnly: true,
-                      }}
-                    /> */}
                     </Animated.ScrollView>
                   </View>
                 )}
@@ -1572,9 +1605,7 @@ export default function HomeScreen() {
                           }
                         }}
                       >
-                        <Text style={styles.textStyle}>
-                          {translation.hoje}
-                        </Text>
+                        <Text style={styles.textStyle}>{translation.hoje}</Text>
                       </TouchableHighlight>
                       <TouchableHighlight
                         style={{
@@ -1751,8 +1782,7 @@ export default function HomeScreen() {
                           thumbTintColor={theme.text}
                         />
                         <Text style={{ color: theme.text, marginTop: 10 }}>
-                          {translation.avaliacao}:{" "}
-                          {rating.toFixed(1)}
+                          {translation.avaliacao}: {rating.toFixed(1)}
                         </Text>
                       </View>
                     </View>
@@ -2282,5 +2312,4 @@ const styles = StyleSheet.create({
     borderWidth: 0,
     padding: 0,
   },
-
 });

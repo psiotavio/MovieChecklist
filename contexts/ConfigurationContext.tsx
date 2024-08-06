@@ -71,6 +71,9 @@ const translations = {
     chooseLanguage: "Choose a Language:",
     Recomendado: "Recommended",
     VocePodeGostar: "You might like:",
+    shareOnInstagramStories: "Share on Instagram",
+    shareOnSocialMedia: "Share on social networks:",
+    saveAndShare: "Save and share"
   },
   portuguese: {
     digiteNomeFilme: "Digite o nome do filme",
@@ -141,6 +144,9 @@ const translations = {
     chooseLanguage: "Escolha um Idioma:",
     Recomendado: "Recomendado",
     VocePodeGostar: "Você pode gostar de:",
+    shareOnInstagramStories: "Compartilhar no Instagram",
+    shareOnSocialMedia: "Compartilhe nas redes sociais:",
+    saveAndShare: "Salvar e compartilhar"
   },
   spanish: {
     digiteNomeFilme: "Escribe el nombre de la película",
@@ -211,6 +217,9 @@ const translations = {
     chooseLanguage: "Elige un Idioma:",
     Recomendado: "Recomendado",
     VocePodeGostar: "Te puede gustar:",
+    shareOnInstagramStories: "Compartir en Instagram",
+    shareOnSocialMedia: "Compartir en redes sociales:",
+    saveAndShare: "Guardar y compartir"
   },
   french: {
     digiteNomeFilme: "Entrez le nom du film",
@@ -281,6 +290,9 @@ const translations = {
     chooseLanguage: "Choisir une Langue :",
     Recomendado: "Recommandé",
     VocePodeGostar: "Vous pourriez aimer :",
+    shareOnInstagramStories: "Partager sur les Instagram",
+    shareOnSocialMedia: "Partagez sur les réseaux sociaux :",
+    saveAndShare: "Enregistrer et partager"
   },
     german: {
     digiteNomeFilme: "Geben Sie den Namen des Films ein",
@@ -351,6 +363,9 @@ const translations = {
     chooseLanguage: "Wählen Sie eine Sprache:",
     Recomendado: "Empfohlen",
     VocePodeGostar: "Das könnte Ihnen gefallen:",
+    shareOnInstagramStories: "In Instagram teilen",
+    shareOnSocialMedia: "Auf sozialen Netzwerken teilen:",
+    saveAndShare: "Speichern und teilen"
   },  
   italian: {
     digiteNomeFilme: "Digita il nome del film",
@@ -421,6 +436,9 @@ const translations = {
     chooseLanguage: "Scegli una lingua:",
     Recomendado: "Raccomandato",
     VocePodeGostar: "Potrebbe piacerti:",
+    shareOnInstagramStories: "Condividi nelle Instagram",
+    shareOnSocialMedia: "Condividi sui social network:",
+    saveAndShare: "Salva e condividi"
   },
   chinese: {
     digiteNomeFilme: "输入电影名称",
@@ -491,7 +509,10 @@ const translations = {
     chooseLanguage: "选择语言：",
     Recomendado: "推荐",
     VocePodeGostar: "你可能喜欢：",
-    voltar: "返回"
+    voltar: "返回",
+    shareOnInstagramStories: "分享至Instagram",
+    shareOnSocialMedia: "在社交网络上分享：",
+    saveAndShare: "保存并分享"
   }// Adicione as traduções para os outros idiomas (francês, alemão, italiano, chinês) usando o mesmo esquema.
 };
 

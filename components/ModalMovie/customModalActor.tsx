@@ -11,31 +11,30 @@ import {
   TouchableHighlight,
   Dimensions,
   Platform,
-  Animated
+  Animated,
 } from "react-native";
 import ImageContainer from "../imageContainer/imageContainer";
 import { useTheme } from "../../constants/temas/ThemeContext";
 import { useConfiguration } from "../../contexts/ConfigurationContext";
 const { width } = Dimensions.get("window");
-const isTablet = width >= 768; 
+const isTablet = width >= 768;
 // import {
 //   AdEventType,
+//   BannerAd,
 //   InterstitialAd,
 //   TestIds,
-//   BannerAd,
+// } from "react-native-google-mobile-ads";
+
+//  // ANUNCIOS
+let adUnitId: string;
 
 
-// const anuncio = InterstitialAd.createForAdRequest(TestIds.INTERSTITIAL, {
-//   requestNonPersonalizedAdsOnly: true,
-// });
+if (Platform.OS === "ios") {
+  adUnitId = "ca-app-pub-4303499199669342/6006099901"; // Coloque o ID do iOS aqui
+} else if (Platform.OS === "android") {
+  adUnitId = "ca-app-pub-4303499199669342/1108657138"; // Coloque o ID do Android aqui
+}
 
-// let adUnitId: string;
-
-// if (Platform.OS === 'ios') {
-//     adUnitId = "ca-app-pub-1771446730721916/1536500762"; // Coloque o ID do iOS aqui
-// } else if (Platform.OS === 'android') {
-//     adUnitId = "ca-app-pub-1771446730721916/6230272284"; // Coloque o ID do Android aqui
-// }
 
 interface ActorDetails {
   id: number;
@@ -69,11 +68,8 @@ const CustomModalActor: React.FC<CustomModalActorProps> = ({
   closeModal,
   openModal,
 }) => {
-
-
   const { theme } = useTheme();
   const { translation, language } = useConfiguration();
-
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -87,7 +83,6 @@ const CustomModalActor: React.FC<CustomModalActorProps> = ({
       }).start();
     }
   }, [isDetailsLoading]);
-
 
   return (
     <Modal
@@ -211,6 +206,7 @@ const CustomModalActor: React.FC<CustomModalActorProps> = ({
                     {selectedActor?.movies?.map((movie, index) => (
                       <View key={index} style={styles.movieCard}>
                         <TouchableOpacity
+                          key={index}
                           onPress={() => {
                             openModal(movie.id);
                             closeModal();
@@ -247,6 +243,7 @@ const CustomModalActor: React.FC<CustomModalActorProps> = ({
                   }}
                 >
                   <TouchableHighlight
+                    key={1}
                     style={{
                       ...styles.modalButton,
                       backgroundColor: theme.modalBackgroundSecondary,
@@ -256,10 +253,29 @@ const CustomModalActor: React.FC<CustomModalActorProps> = ({
                     }}
                     onPress={closeModal}
                   >
-                    <Text style={styles.textStyle}>
-                      {translation.Fechar}
-                    </Text>
+                    <Text style={styles.textStyle}>{translation.Fechar}</Text>
                   </TouchableHighlight>
+                </View>
+              <View
+                  style={{
+                    justifyContent: "center",
+                    alignContent: "center",
+                    alignItems: "center",
+                    paddingVertical: 5,
+                    marginVertical: 5,
+                  }}
+                >
+                  {/* <BannerAd
+                    unitId={adUnitId}
+                    size="BANNER"
+                    onAdLoaded={() => {}}
+                    onAdFailedToLoad={(error) => {
+                      console.error("Ad failed to load", error);
+                    }}
+                    requestOptions={{
+                      requestNonPersonalizedAdsOnly: true,
+                    }}
+                  /> */}
                 </View>
               </View>
             </Animated.ScrollView>

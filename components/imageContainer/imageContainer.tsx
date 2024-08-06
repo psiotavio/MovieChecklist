@@ -37,6 +37,11 @@ const ImageContainer: React.FC<ImageContainerProps> = ({ uri, type }) => {
           ...styles.imageShadowContainerMovies,
           backgroundColor: theme.modalBackground,
         };
+      case 4:
+        return {
+          ...styles.imageShadowContainerMoviesPNG,
+          backgroundColor: theme.modalBackground,
+        };
       default:
         return {};
     }
@@ -50,6 +55,8 @@ const ImageContainer: React.FC<ImageContainerProps> = ({ uri, type }) => {
         return styles.actorImage;
       case 3:
         return styles.movieImageSimilar;
+      case 4:
+        return styles.movieImagePNG;
       default:
         return {};
     }
@@ -79,6 +86,17 @@ const styles = StyleSheet.create({
     width: 120,
     height: 175,
     marginBottom: 5,
+    borderRadius: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 3,
+    elevation: 5,
+  },
+  imageShadowContainerMoviesPNG: {
+    width: 120/1.3,
+    height: 175/1.3,
+    marginBottom: 10,
     borderRadius: 10,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
@@ -117,6 +135,13 @@ const styles = StyleSheet.create({
   movieImageSimilar: {
     width: 120,
     height: 175,
+    objectFit: "cover",
+    borderRadius: 10,
+    marginBottom: 10,
+  },
+  movieImagePNG: {
+    width: 120/1.3,
+    height: 175/1.3,
     objectFit: "cover",
     borderRadius: 10,
     marginBottom: 10,

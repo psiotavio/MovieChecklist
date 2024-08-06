@@ -1,4 +1,4 @@
-import React, { useState, useContext, useRef } from "react";
+import React, { useState, useContext, useRef, useEffect } from "react";
 import {
   Modal,
   View,
@@ -20,18 +20,21 @@ import { useTheme } from "../../constants/temas/ThemeContext";
 import Icon from "react-native-vector-icons/FontAwesome6";
 import { FontAwesome } from "@expo/vector-icons";
 import { useConfiguration } from "../../contexts/ConfigurationContext";
+import CustomModalActor from "../ModalMovie/customModalActor";
+import CustomModalMovie from "../ModalMovie/customModalMovie";
 
-// import { BannerAd } from "react-native-google-mobile-ads";
+// import { BannerAd, TestIds } from "react-native-google-mobile-ads";
 
+//  // ANUNCIOS
 let adUnitId: string;
 
 if (Platform.OS === "ios") {
-  adUnitId = "ca-app-pub-1771446730721916/1536500762"; // Coloque o ID do iOS aqui
+  adUnitId = "ca-app-pub-4303499199669342/6006099901"; // Coloque o ID do iOS aqui
 } else if (Platform.OS === "android") {
-  adUnitId = "ca-app-pub-1771446730721916/6230272284"; // Coloque o ID do Android aqui
+  adUnitId = "ca-app-pub-4303499199669342/1108657138"; // Coloque o ID do Android aqui
 }
 
-const { width, height } = Dimensions.get('window');
+const { width, height } = Dimensions.get("window");
 
 const isTablet = width >= 768; // Um critério comum para tablets
 
@@ -63,6 +66,9 @@ interface Movie {
 }
 
 const FilterModal = () => {
+  const [showModalMovie, setShowModalMovie] = useState(false); // Estado para controlar a visibilidade do modal
+  const [showModalActor, setShowModalActor] = useState(false); // Estado para controlar a visibilidade do modal
+  const [selectedActor, setSelectedActor] = useState<Actor | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
@@ -70,10 +76,7 @@ const FilterModal = () => {
   const [movieDetails, setMovieDetails] = useState(false);
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
   const {
-    movies,
-    addMovieReview,
-    recommendedMovies,
-    removeFromList,
+    fetchActorDetails,
     fetchMovieDetails,
     addToWatchList,
     fetchRandomMovie,
@@ -81,8 +84,6 @@ const FilterModal = () => {
   const { theme } = useTheme();
 
   const scrollY = useRef(new Animated.Value(0)).current;
-
-  const adUnitId = "ca-app-pub-1771446730721916/1536500762";
 
   const translation = {
     english: {
@@ -275,8 +276,6 @@ const FilterModal = () => {
       Cancel: "取消",
     },
   };
-  
-  
 
   // Exemplo de uso
   const platforms = {
@@ -329,6 +328,18 @@ const FilterModal = () => {
     const year = date.getFullYear();
 
     return `${year}`;
+  };
+
+  const openModalActor = (actorID: number) => {
+    setSelectedActor(null); // Reseta o filme selecionado
+    setIsDetailsLoading(true); // Inicia o loading
+    setShowModalActor(true); // Abre o modal
+
+    // Chamada para fetchMovieDetails sem a verificação de showModal
+    fetchActorDetails(actorID, (actorDetails) => {
+      setSelectedActor(actorDetails);
+      setIsDetailsLoading(false);
+    });
   };
 
   const availablePlatformIds = Object.keys(platforms).filter(
@@ -413,6 +424,29 @@ const FilterModal = () => {
     }
   };
 
+  const openModalMovie = (movieId: number) => {
+    setSelectedMovie(null); // Reseta o filme selecionado
+    setIsDetailsLoading(true); // Inicia o loading
+    setModalVisible(true); // Abre o modal
+
+    // Chamada para fetchMovieDetails sem a verificação de showModal
+    fetchMovieDetails(movieId, 0, (movieDetails) => {
+      setSelectedMovie(movieDetails);
+      setIsDetailsLoading(false);
+    });
+  };
+
+  const handlePressItemModalType = (item: any) => {
+    setModalVisible(false); // Feche o modal atual
+    setTimeout(() => {
+      fetchMovieDetails(item.id, 0, (movieDetails) => {
+        setSelectedMovie(movieDetails);
+        setIsDetailsLoading(false); // Carregamento concluído
+        openModalMovie(movieDetails.id);
+      });
+    }, 300); // Adicione um pequeno atraso para garantir que o modal foi fechado
+  };
+
   const handleShare = () => {
     if (!selectedMovie) return; // Certifique-se de que há um filme selecionado
 
@@ -424,9 +458,14 @@ const FilterModal = () => {
     }).catch((error) => console.error("Error sharing:", error));
   };
 
+  useEffect(() => {
+    console.log(selectedMovie?.title);
+  }, [selectedMovie]);
+
   return (
     <>
       <TouchableOpacity
+        key={1}
         style={[styles.fab, { backgroundColor: theme.borderRed }]}
         onPress={() => setModalVisible(true)}
       >
@@ -458,10 +497,10 @@ const FilterModal = () => {
                   { color: theme.text, textAlign: "center" },
                 ]}
               >
-                {translation[language].SelectFilters} 
+                {translation[language].SelectFilters}
               </Text>
               <Text style={[styles.subHeader, { color: theme.text }]}>
-              {translation[language].Genres} 
+                {translation[language].Genres}
               </Text>
               <View style={styles.chips}>
                 {Object.entries(generosFiltro).map(([key, value]) => (
@@ -488,7 +527,7 @@ const FilterModal = () => {
               </View>
 
               <Text style={[styles.subHeader, { color: theme.text }]}>
-              {translation[language].Platforms} 
+                {translation[language].Platforms}
               </Text>
               <View style={styles.chips}>
                 {Object.entries(platforms).map(([id, name]) => (
@@ -526,12 +565,13 @@ const FilterModal = () => {
                   }
                   onPress={toggleAllPlatforms}
                 >
-                  {translation[language].All} 
+                  {translation[language].All}
                 </Chip>
               </View>
 
               <View style={{ marginVertical: 40 }}>
                 <TouchableOpacity
+                  key={2}
                   style={[
                     styles.modalButton,
                     { backgroundColor: theme.borderRed },
@@ -541,51 +581,12 @@ const FilterModal = () => {
                   <Text
                     style={{ color: theme.textButtons, textAlign: "center" }}
                   >
-                    {translation[language].SearchMovie} 
+                    {translation[language].SearchMovie}
                   </Text>
                 </TouchableOpacity>
               </View>
 
               <View style={styles.ads}>
-                <View>
-                  {/* <BannerAd
-                      unitId={adUnitId}
-                      size="BANNER"
-                      onAdLoaded={() => {}}
-                      onAdFailedToLoad={(error) => {
-                        console.error("Ad failed to load", error);
-                      }}
-                      requestOptions={{
-                        requestNonPersonalizedAdsOnly: true,
-                      }}
-                    /> */}
-                </View>
-                <View>
-                  {/* <BannerAd
-                      unitId={adUnitId}
-                      size="BANNER"
-                      onAdLoaded={() => {}}
-                      onAdFailedToLoad={(error) => {
-                        console.error("Ad failed to load", error);
-                      }}
-                      requestOptions={{
-                        requestNonPersonalizedAdsOnly: true,
-                      }}
-                    /> */}
-                </View>
-                <View>
-                  {/* <BannerAd
-                      unitId={adUnitId}
-                      size="BANNER"
-                      onAdLoaded={() => {}}
-                      onAdFailedToLoad={(error) => {
-                        console.error("Ad failed to load", error);
-                      }}
-                      requestOptions={{
-                        requestNonPersonalizedAdsOnly: true,
-                      }}
-                    /> */}
-                </View>
                 <View>
                   {/* <BannerAd
                       unitId={adUnitId}
@@ -684,6 +685,7 @@ const FilterModal = () => {
                         </Text>
 
                         <TouchableHighlight
+                          key={5}
                           style={{
                             ...styles.modalButton,
                             marginBottom: 10,
@@ -691,9 +693,12 @@ const FilterModal = () => {
                           }}
                           onPress={handleShare}
                         >
-                          <Text style={styles.textStyle}>{translation[language].Share} </Text>
+                          <Text style={styles.textStyle}>
+                            {translation[language].Share}{" "}
+                          </Text>
                         </TouchableHighlight>
                         <TouchableOpacity
+                          key={3}
                           style={[
                             styles.modalButton,
                             { backgroundColor: theme.borderRed },
@@ -703,7 +708,7 @@ const FilterModal = () => {
                           <Text
                             style={{ color: theme.text, textAlign: "center" }}
                           >
-                            {translation[language].WatchLater} 
+                            {translation[language].WatchLater}
                           </Text>
                         </TouchableOpacity>
                       </View>
@@ -717,7 +722,7 @@ const FilterModal = () => {
                       }}
                     >
                       <Text style={{ fontWeight: "bold", fontSize: 16 }}>
-                      {translation[language].Description}{" "}
+                        {translation[language].Description}{" "}
                       </Text>
                       <Text
                         style={[
@@ -737,7 +742,7 @@ const FilterModal = () => {
                           fontSize: 16,
                         }}
                       >
-                        {translation[language].Actors} 
+                        {translation[language].Actors}
                       </Text>
                       <ScrollView
                         horizontal={true}
@@ -745,28 +750,37 @@ const FilterModal = () => {
                         style={styles.actorsContainer}
                       >
                         {selectedMovie?.actors?.map((actor, index) => (
-                          <View key={index} style={styles.actorCard}>
-                            <View
-                              style={[
-                                styles.imageShadowContainerActor,
-                                { backgroundColor: theme.modalBackground },
-                              ]}
-                            >
-                              <Image
-                                source={{ uri: actor.profilePath! }}
-                                style={styles.actorImage}
-                                resizeMode="cover"
-                              />
+                          <TouchableOpacity
+                            key={index}
+                            onPress={() => {
+                              openModalActor(actor.id);
+                              setModalVisible(false);
+                              setSelectedMovie(null);
+                            }}
+                          >
+                            <View key={index} style={styles.actorCard}>
+                              <View
+                                style={[
+                                  styles.imageShadowContainerActor,
+                                  { backgroundColor: theme.modalBackground },
+                                ]}
+                              >
+                                <Image
+                                  source={{ uri: actor.profilePath! }}
+                                  style={styles.actorImage}
+                                  resizeMode="cover"
+                                />
+                              </View>
+                              <Text
+                                style={[
+                                  styles.modalMovieTitleTextActors,
+                                  { color: theme.text },
+                                ]}
+                              >
+                                {actor.name}
+                              </Text>
                             </View>
-                            <Text
-                              style={[
-                                styles.modalMovieTitleTextActors,
-                                { color: theme.text },
-                              ]}
-                            >
-                              {actor.name}
-                            </Text>
-                          </View>
+                          </TouchableOpacity>
                         ))}
                       </ScrollView>
                     </View>
@@ -814,11 +828,12 @@ const FilterModal = () => {
                         paddingTop: 20,
                       }}
                     >
-                      {translation[language].YouWatchedThisMovie} 
+                      {translation[language].YouWatchedThisMovie}
                     </Text>
                     <View style={{ marginBottom: 50 }}>
                       <View style={styles.modalButtons}>
                         <TouchableHighlight
+                          key={6}
                           style={{
                             ...styles.modalButton,
                             backgroundColor: theme.borderRed,
@@ -826,11 +841,12 @@ const FilterModal = () => {
                           onPress={handleFetchMovie}
                         >
                           <Text style={styles.textStyle}>
-                          {translation[language].DrawAgain} 
+                            {translation[language].DrawAgain}
                           </Text>
                         </TouchableHighlight>
 
                         <TouchableHighlight
+                          key={7}
                           style={{
                             ...styles.modalButton,
                             backgroundColor: theme.modalBackgroundSecondary,
@@ -840,12 +856,14 @@ const FilterModal = () => {
                             setSelectedMovie(null);
                           }}
                         >
-                          <Text style={styles.textStyle}>{translation[language].Cancel}</Text>
+                          <Text style={styles.textStyle}>
+                            {translation[language].Cancel}
+                          </Text>
                         </TouchableHighlight>
                       </View>
                     </View>
-                    {/* 
-                    <BannerAd
+
+                    {/* <BannerAd
                       unitId={adUnitId}
                       size="BANNER"
                       onAdLoaded={() => {}}
@@ -863,9 +881,31 @@ const FilterModal = () => {
           )}
         </ScrollView>
       </Modal>
+
+      <CustomModalActor
+        showModalActor={showModalActor}
+        isDetailsLoading={isDetailsLoading}
+        selectedActor={selectedActor!}
+        closeModal={() => setShowModalActor(false)}
+        openModal={openModalMovie}
+      ></CustomModalActor>
+
+      <CustomModalMovie
+        showModal={(showModalMovie)}
+        isDetailsLoading={isDetailsLoading}
+        selectedMovie={selectedMovie!}
+        closeModal={() => setShowModalMovie(false)}
+        handleShare={handleShare}
+        handleAddToList={handleAddToList}
+        openModalActor={openModalActor}
+        handlePressItemModalType={handlePressItemModalType}
+        formatDate={formatDate}
+      />
     </>
   );
 };
+
+
 
 export default FilterModal;
 
@@ -1080,6 +1120,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     alignContent: "center",
     marginVertical: 15,
-    gap: 5
+    gap: 5,
   },
 });

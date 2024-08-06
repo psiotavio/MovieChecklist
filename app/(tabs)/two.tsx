@@ -10,6 +10,7 @@ import {
   Alert,
   Button,
   Linking,
+  Platform,
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { useUser } from "../../contexts/UserContext";
@@ -37,20 +38,20 @@ import logoOrange from "../../assets/images/logoOrange.png";
 //   TestIds,
 // } from "react-native-google-mobile-ads";
 
+//  // ANUNCIOS
+let adUnitId: string;
+
+
+if (Platform.OS === "ios") {
+  adUnitId = "ca-app-pub-4303499199669342/6006099901"; // Coloque o ID do iOS aqui
+} else if (Platform.OS === "android") {
+  adUnitId = "ca-app-pub-4303499199669342/1108657138"; // Coloque o ID do Android aqui
+}
+// const anuncio = InterstitialAd.createForAdRequest(TestIds.INTERSTITIAL, {
+//   requestNonPersonalizedAdsOnly: true,
+// });
+
 export default function TabTwoScreen() {
-  //  // ANUNCIOS
-  // let adUnitId: string;
-
-  // if (Platform.OS === 'ios') {
-  //     adUnitId = "ca-app-pub-1771446730721916/1536500762"; // Coloque o ID do iOS aqui
-  // } else if (Platform.OS === 'android') {
-  //     adUnitId = "ca-app-pub-1771446730721916/6230272284"; // Coloque o ID do Android aqui
-  // }
-
-  // const anuncio = InterstitialAd.createForAdRequest(TestIds.INTERSTITIAL, {
-  //   requestNonPersonalizedAdsOnly: true,
-  // });
-
   const {
     movies,
     setMovies,
@@ -59,7 +60,6 @@ export default function TabTwoScreen() {
     setToWatchMovies,
   } = useUser();
   const { theme, themeName } = useTheme();
-  
 
   const goalMovies = 365;
   const goalMoviesMonth = 30;
@@ -71,8 +71,6 @@ export default function TabTwoScreen() {
     useState(0);
   const [totalMoviesWatchedThisWeek, setTotalMoviesWatchedThisWeek] =
     useState(0);
-
-    
 
   useFocusEffect(
     React.useCallback(() => {
@@ -152,21 +150,33 @@ export default function TabTwoScreen() {
     Linking.openURL("https://watchfolio.com.br/"); // Substitua pelo seu perfil no TikTok
   };
 
-  const {translation, language } = useConfiguration();
+  const { translation, language } = useConfiguration();
   const [activeTab, setActiveTab] = useState("configuration"); // 'ratedMovies' ou 'toWatchMovies'
 
   // Definindo logos para diferentes temas
   const logos = {
     default: logoDefault,
-    dark:  logoDefault,
-    light:   logoDefault,
-    blue:  logoBlue,
-    orange:  logoOrange,
-    pink:  logoPink,
-    lightpink:  logoPink,
+    dark: logoDefault,
+    light: logoDefault,
+    blue: logoBlue,
+    orange: logoOrange,
+    pink: logoPink,
+    lightpink: logoPink,
     green: logoGreen,
-    deepPurple:  logoDefault,
-    red:  logoRed,
+    dune: logoDefault,
+    red: logoRed,
+    cosmicDusk: logoDefault,
+    lilacNebula: logoDefault,
+    shadowOfMordor: logoDefault,
+    darkSide: logoDefault,
+    neonTwilight: logoDefault,
+    dracula: logoDefault,
+    bladeRunner: logoDefault,
+    violetWitch:logoDefault,
+    thanos:logoDefault,
+    jediTemple:logoDefault,
+    hungerGames:logoDefault,
+    neoMatrix:logoDefault,
   };
 
   // Selecionar logo com base no tema atual
@@ -191,8 +201,7 @@ export default function TabTwoScreen() {
                   <View style={styles.progessBars}>
                     <View style={styles.progessBarStyle}>
                       <Text style={[styles.subtitle, { color: theme.text }]}>
-                        {translation.Year}{" "}
-                        {totalMoviesWatchedThisYear}
+                        {translation.Year} {totalMoviesWatchedThisYear}
                       </Text>
                       <View style={styles.progressBarContainer}>
                         <View
@@ -214,8 +223,7 @@ export default function TabTwoScreen() {
 
                     <View style={styles.progessBarStyle}>
                       <Text style={[styles.subtitle, { color: theme.text }]}>
-                        {translation.Month}{" "}
-                        {totalMoviesWatchedThisMonth}
+                        {translation.Month} {totalMoviesWatchedThisMonth}
                       </Text>
                       <View style={styles.progressBarContainer}>
                         <View
@@ -237,8 +245,7 @@ export default function TabTwoScreen() {
 
                     <View style={styles.progessBarStyle}>
                       <Text style={[styles.subtitle, { color: theme.text }]}>
-                        {translation.Week}{" "}
-                        {totalMoviesWatchedThisWeek}
+                        {translation.Week} {totalMoviesWatchedThisWeek}
                       </Text>
                       <View style={styles.progressBarContainer}>
                         <View
@@ -259,18 +266,32 @@ export default function TabTwoScreen() {
                     </View>
                   </View>
                 </View>
-                {/* <BannerAd
-                      unitId={adUnitId}
-                      size="BANNER"
-                      onAdLoaded={() => {}}
-                      onAdFailedToLoad={(error) => {
-                        console.error("Ad failed to load", error);
-                      }}
-                      requestOptions={{
-                        requestNonPersonalizedAdsOnly: true,
-                      }}
-                    /> */}
               </View>
+                <View
+                  style={{
+                    justifyContent: "center",
+                    alignContent: "center",
+                    alignSelf: 'center',
+                    alignItems: 'center',
+                    margin: 'auto',
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 10,
+                    width: "100%",
+                  }}
+                >
+                  {/* <BannerAd
+                    unitId={adUnitId}
+                    size="BANNER"
+                    onAdLoaded={() => {}}
+                    onAdFailedToLoad={(error) => {
+                      console.error("Ad failed to load", error);
+                    }}
+                    requestOptions={{
+                      requestNonPersonalizedAdsOnly: true,
+                    }}
+                  /> */}
+                </View>
             </ScrollView>
           </View>
           <View style={styles.settingsContainer}>
@@ -294,6 +315,7 @@ export default function TabTwoScreen() {
             }}
           >
             <TouchableOpacity
+              key={1}
               style={[
                 styles.socialMediaButton,
                 { backgroundColor: theme.borderRed },
@@ -309,6 +331,7 @@ export default function TabTwoScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity
+              key={2}
               style={[
                 styles.socialMediaButton,
                 { backgroundColor: theme.borderRed },
@@ -324,6 +347,7 @@ export default function TabTwoScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity
+              key={3}
               style={[
                 styles.socialMediaButton,
                 { backgroundColor: theme.borderRed },
@@ -339,6 +363,7 @@ export default function TabTwoScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity
+              key={4}
               style={[
                 styles.socialMediaButton,
                 { backgroundColor: theme.borderRed },
@@ -377,9 +402,10 @@ export default function TabTwoScreen() {
               value={themeName === "dark"}
             />
           </View> */}
-            <ThemeButton />
+          <ThemeButton />
 
           <TouchableOpacity
+            key={5}
             style={[styles.button, { backgroundColor: theme.borderRed }]}
             onPress={openWebVersion}
           >
@@ -389,6 +415,7 @@ export default function TabTwoScreen() {
           </TouchableOpacity>
 
           <TouchableOpacity
+            key={6}
             style={[styles.button, { backgroundColor: theme.borderRed }]}
             onPress={handleResetMovies}
           >
@@ -398,6 +425,7 @@ export default function TabTwoScreen() {
           </TouchableOpacity>
 
           <TouchableOpacity
+            key={7}
             style={[
               styles.button,
               {
@@ -428,28 +456,17 @@ export default function TabTwoScreen() {
             }}
           >
             {/* <BannerAd
-                      unitId={adUnitId}
-                      size="BANNER"
-                      onAdLoaded={() => {}}
-                      onAdFailedToLoad={(error) => {
-                        console.error("Ad failed to load", error);
-                      }}
-                      requestOptions={{
-                        requestNonPersonalizedAdsOnly: true,
-                      }}
-                    /> */}
+              unitId={adUnitId}
+              size="BANNER"
+              onAdLoaded={() => {}}
+              onAdFailedToLoad={(error) => {
+                console.error("Ad failed to load", error);
+              }}
+              requestOptions={{
+                requestNonPersonalizedAdsOnly: true,
+              }}
+            /> */}
 
-            {/* <BannerAd
-                      unitId={adUnitId}
-                      size="BANNER"
-                      onAdLoaded={() => {}}
-                      onAdFailedToLoad={(error) => {
-                        console.error("Ad failed to load", error);
-                      }}
-                      requestOptions={{
-                        requestNonPersonalizedAdsOnly: true,
-                      }}
-                    /> */}
           </View>
         </View>
       )}
@@ -526,7 +543,7 @@ const styles = StyleSheet.create({
     justifyContent: "center", // Centraliza os itens internos do content verticalmente se eles não ocuparem todo o espaço
     alignItems: "center", // Isso centraliza o conteúdo horizontalmente
     padding: 10, // Mantém um padding para o conteúdo não tocar nas bordas
-    minHeight: "80%",
+    minHeight: '80%'
   },
 
   content: {

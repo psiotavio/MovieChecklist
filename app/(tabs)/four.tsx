@@ -29,6 +29,8 @@ import { useTheme } from "../../constants/temas/ThemeContext";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ActivityIndicator } from "react-native-paper";
 import { useConfiguration } from "../../contexts/ConfigurationContext";
+import ShareImageButton from "../../components/ShareMovieImage/shareMovieImage";
+import ImageContainer from "../../components/imageContainer/imageContainer";
 
 // import {
 //   AdEventType,
@@ -43,17 +45,16 @@ const isTablet = width >= 768; // Um critério comum para tablets
 
 const BANNER_H = isTablet ? 400 : 250;
 
-// let adUnitId: string;
+let adUnitId: string;
 
-// if (Platform.OS === 'ios') {
-//     adUnitId = "ca-app-pub-1771446730721916/1536500762"; // Coloque o ID do iOS aqui
-// } else if (Platform.OS === 'android') {
-//     adUnitId = "ca-app-pub-1771446730721916/6230272284"; // Coloque o ID do Android aqui
-// }
 
-// const anuncio = InterstitialAd.createForAdRequest(TestIds.INTERSTITIAL, {
-//   requestNonPersonalizedAdsOnly: true,
-// });
+
+if (Platform.OS === "ios") {
+  adUnitId = "ca-app-pub-4303499199669342/6006099901"; // Coloque o ID do iOS aqui
+} else if (Platform.OS === "android") {
+  adUnitId = "ca-app-pub-4303499199669342/1108657138"; // Coloque o ID do Android aqui
+}
+
 
 type Actor = {
   id: number;
@@ -143,30 +144,42 @@ export default function TabFourScreen() {
   } = useUser(); // Adicione toWatchMovies aqui
   const { theme, themeName } = useTheme();
 
-    // Definindo logos para diferentes temas
-    const logos = {
-      default: logoDefault,
-      dark:  logoDefault,
-      light:   logoDefault,
-      blue:  logoBlue,
-      orange:  logoOrange,
-      pink:  logoPink,
-      lightpink:  logoPink,
-      green: logoGreen,
-      deepPurple:  logoDefault,
-      red:  logoRed,
-    };
-  
-    // Selecionar logo com base no tema atual
-    const logo = logos[themeName] || logos.default;
+  // Definindo logos para diferentes temas
+  const logos = {
+    default: logoDefault,
+    dark: logoDefault,
+    light: logoDefault,
+    blue: logoBlue,
+    orange: logoOrange,
+    pink: logoPink,
+    lightpink: logoPink,
+    green: logoGreen,
+    dune: logoDefault,
+    red: logoRed,
+    cosmicDusk: logoDefault,
+    lilacNebula: logoDefault,
+    shadowOfMordor: logoDefault,
+    darkSide: logoDefault,
+    neonTwilight: logoDefault,
+    dracula: logoDefault,
+    bladeRunner: logoDefault,
+    violetWitch:logoDefault,
+    thanos:logoDefault,
+    jediTemple:logoDefault,
+    hungerGames:logoDefault,
+    neoMatrix:logoDefault,
+  };
+
+  // Selecionar logo com base no tema atual
+  const logo = logos[themeName] || logos.default;
 
   const [showModal, setShowModal] = useState(false);
   const [showModalActor, setShowModalActor] = useState(false); // Estado para controlar a visibilidade do modal
+  const [selectedActor, setSelectedActor] = useState<Actor | null>(null);
   const [showModalMovie, setShowModalMovie] = useState(false);
   const [showModalMovie2, setShowModalMovie2] = useState(false);
   const [selectedMovieId, setSelectedMovieId] = useState<Movie | null>(null);
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
-  const [selectedActor, setSelectedActor] = useState<Actor | null>(null);
 
   // const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
 
@@ -235,8 +248,6 @@ export default function TabFourScreen() {
       setSelectedMovie(null);
     }
   };
-
-
 
   const handleShare = () => {
     if (!selectedMovieId) return; // Certifique-se de que há um filme selecionado
@@ -325,12 +336,11 @@ export default function TabFourScreen() {
     return `${year}`;
   };
 
-  
   const parseDate = (dateString: string) => {
-    const [day, month, year] = dateString.split('/').map(Number);
+    const [day, month, year] = dateString.split("/").map(Number);
     return new Date(year, month - 1, day).getTime();
   };
-  
+
   const moviesSortedByRating = [...movies].sort((a, b) => {
     const ratingDiff = b.rating - a.rating;
     if (ratingDiff === 0) {
@@ -342,8 +352,6 @@ export default function TabFourScreen() {
   const scrollY = useRef(new Animated.Value(0)).current;
 
   const { translation, language } = useConfiguration();
-
-
 
   const openModalActor = (actorID: number) => {
     setSelectedActor(null); // Reseta o filme selecionado
@@ -363,7 +371,7 @@ export default function TabFourScreen() {
       fetchMovieDetails(item.id, 0, (movieDetails) => {
         setSelectedMovieId(movieDetails);
         setIsDetailsLoading(false); // Carregamento concluído
-      openModalMovie(movieDetails.id, movieDetails);
+        openModalMovie(movieDetails.id, movieDetails);
       });
     }, 300); // Adicione um pequeno atraso para garantir que o modal foi fechado
   };
@@ -371,14 +379,11 @@ export default function TabFourScreen() {
   const handlePressItemModalType2 = (item: any) => {
     setShowModalMovie2(false); // Feche o modal atual
     setTimeout(() => {
-
       fetchMovieDetails(item.id, 0, (movieDetails) => {
         setSelectedMovieId(movieDetails);
         setIsDetailsLoading(false); // Carregamento concluído
-      openModalMovie2(movieDetails);
-
+        openModalMovie2(movieDetails);
       });
-
     }, 300); // Adicione um pequeno atraso para garantir que o modal foi fechado
   };
 
@@ -404,6 +409,7 @@ export default function TabFourScreen() {
       <View style={styles.containerSecondaryy}>
         <View style={styles.tabsContainer}>
           <TouchableOpacity
+            key={1}
             style={[
               styles.tabButton,
               activeTab === "ratedMovies"
@@ -423,6 +429,7 @@ export default function TabFourScreen() {
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
+            key={2}
             style={[
               styles.tabButton,
               activeTab === "toWatchMovies"
@@ -457,6 +464,7 @@ export default function TabFourScreen() {
                 renderItem={({ item, index }) => (
                   <View style={styles.movieItem}>
                     <TouchableOpacity
+                      key={item.id}
                       style={[
                         styles.movieList,
                         { borderBottomColor: theme.borderBottom },
@@ -487,7 +495,7 @@ export default function TabFourScreen() {
                         >
                           {item.title}
                         </Text>
-                        <StarRating rating={item.rating}></StarRating>
+                        <StarRating rating={item.rating} />
                       </View>
                     </TouchableOpacity>
                   </View>
@@ -504,13 +512,14 @@ export default function TabFourScreen() {
             data={toWatchMovies}
             keyExtractor={(movie) => movie.id.toString()}
             numColumns={isTablet ? 4 : 3}
-            initialNumToRender={6}  // Ajuste conforme necessário
-            maxToRenderPerBatch={5}  // Ajuste conforme necessário
+            initialNumToRender={6} // Ajuste conforme necessário
+            maxToRenderPerBatch={5} // Ajuste conforme necessário
             showsHorizontalScrollIndicator={false}
             showsVerticalScrollIndicator={false}
             renderItem={({ item }) => (
               <View style={styles.toWatchmovieItem}>
                 <TouchableOpacity
+                  key={item.id}
                   style={styles.toWatch}
                   onPress={() => openModal(item)}
                 >
@@ -626,17 +635,10 @@ export default function TabFourScreen() {
                 <View style={styles.modalInfoContent}>
                   <View style={styles.modalMovieInfo}>
                     <View style={styles.modalMovieTitle}>
-                      <View
-                        style={[
-                          styles.imageShadowContainer,
-                          { backgroundColor: theme.modalBackground },
-                        ]}
-                      >
-                        <Image
-                          style={styles.movieImage}
-                          source={{ uri: selectedMovieId?.imageUrl }}
-                        />
-                      </View>
+                      <ImageContainer
+                        uri={selectedMovieId?.imageUrl!}
+                        type={1}
+                      />
                       <View style={styles.titleAndDate}>
                         <Text
                           style={[
@@ -653,6 +655,7 @@ export default function TabFourScreen() {
                         </Text>
 
                         <TouchableHighlight
+                          key={selectedMovie?.id}
                           style={{
                             ...styles.modalButton,
                             marginBottom: 10,
@@ -671,6 +674,7 @@ export default function TabFourScreen() {
                         </TouchableHighlight>
 
                         <TouchableOpacity
+                          key={3}
                           style={[
                             styles.modalButton,
                             { backgroundColor: theme.errorColor },
@@ -760,47 +764,48 @@ export default function TabFourScreen() {
                     </View>
 
                     <View style={{ marginTop: 30 }}>
-                            <Text
-                              style={{
-                                color: theme.text,
-                                fontWeight: "bold",
-                                fontSize: 16,
+                      <Text
+                        style={{
+                          color: theme.text,
+                          fontWeight: "bold",
+                          fontSize: 16,
+                        }}
+                      >
+                        {translation.VocePodeGostar}
+                      </Text>
+                      <ScrollView
+                        horizontal={true}
+                        showsHorizontalScrollIndicator={false}
+                        style={styles.actorsContainer}
+                      >
+                        {selectedMovieId?.similarMovies?.map((movie, index) => (
+                          <View key={index} style={styles.movieCard}>
+                            <TouchableOpacity
+                              key={index}
+                              onPress={() => {
+                                closeModal();
+                                handlePressItemModalType(movie);
                               }}
                             >
-                              SEMELHANTES:
-                            </Text>
-                            <ScrollView
-                              horizontal={true}
-                              showsHorizontalScrollIndicator={false}
-                              style={styles.actorsContainer}
-                            >
-                               {selectedMovieId?.similarMovies?.map((movie, index) => (
-                              <View key={index} style={styles.movieCard}>
-                                <TouchableOpacity
-                                  onPress={() => {
-                                    closeModal();
-                                    handlePressItemModalType(movie);
-                                  }}
-                                >
-                                  <View
-                                    style={[
-                                      styles.imageShadowContainerMovies,
-                                      {
-                                        backgroundColor: theme.modalBackground,
-                                      },
-                                    ]}
-                                  >
-                                    <Image
-                                      source={{ uri: movie.imageUrl }}
-                                      style={styles.MovieImage}
-                                      resizeMode="cover"
-                                    />
-                                  </View>
-                                </TouchableOpacity>
+                              <View
+                                style={[
+                                  styles.imageShadowContainerMovies,
+                                  {
+                                    backgroundColor: theme.modalBackground,
+                                  },
+                                ]}
+                              >
+                                <Image
+                                  source={{ uri: movie.imageUrl }}
+                                  style={styles.MovieImage}
+                                  resizeMode="cover"
+                                />
                               </View>
-                            ))}
-                            </ScrollView>
+                            </TouchableOpacity>
                           </View>
+                        ))}
+                      </ScrollView>
+                    </View>
 
                     <View
                       style={{
@@ -850,6 +855,7 @@ export default function TabFourScreen() {
                     <View style={{ marginBottom: 50 }}>
                       <View style={styles.modalButtons}>
                         <TouchableOpacity
+                          key={4}
                           style={[
                             styles.modalButton,
                             { backgroundColor: theme.borderRed },
@@ -863,6 +869,7 @@ export default function TabFourScreen() {
                           </Text>
                         </TouchableOpacity>
                         <TouchableOpacity
+                          key={5}
                           style={[
                             styles.modalButton,
                             { backgroundColor: theme.modalBackgroundSecondary },
@@ -930,7 +937,6 @@ export default function TabFourScreen() {
                   width: "100%",
                   backgroundColor: theme.modalBackground,
                   opacity: fadeAnim,
-
                 }}
                 onScroll={Animated.event(
                   [{ nativeEvent: { contentOffset: { y: scrollY } } }],
@@ -980,17 +986,10 @@ export default function TabFourScreen() {
                 <View style={styles.modalInfoContent}>
                   <View style={styles.modalMovieInfo}>
                     <View style={styles.modalMovieTitle}>
-                      <View
-                        style={[
-                          styles.imageShadowContainer,
-                          { backgroundColor: theme.modalBackground },
-                        ]}
-                      >
-                        <Image
-                          style={styles.movieImage}
-                          source={{ uri: selectedMovieId?.imageUrl }}
-                        />
-                      </View>
+                      <ImageContainer
+                        uri={selectedMovieId?.imageUrl!}
+                        type={3}
+                      />
                       <View style={styles.titleAndDate}>
                         <Text
                           style={[
@@ -1001,9 +1000,10 @@ export default function TabFourScreen() {
                           {selectedMovieId?.title}
                         </Text>
                         <View style={{ marginBottom: 10 }}>
-                          <StarRating
-                            rating={selectedMovieId?.rating}
-                          ></StarRating>
+                          {selectedMovieId?.rating! !== undefined &&
+                            selectedMovieId?.rating! > 0.0 && (
+                              <StarRating rating={selectedMovieId?.rating!} />
+                            )}
                         </View>
 
                         <Text
@@ -1013,6 +1013,7 @@ export default function TabFourScreen() {
                         </Text>
 
                         <TouchableHighlight
+                          key={6}
                           style={{
                             ...styles.modalButton,
                             marginBottom: 10,
@@ -1029,6 +1030,11 @@ export default function TabFourScreen() {
                             {translation.compartilhar}
                           </Text>
                         </TouchableHighlight>
+                        <ShareImageButton
+                          title={selectedMovieId?.title!}
+                          imageUrl={selectedMovieId?.imageUrl!}
+                          rating={selectedMovieId?.rating!}
+                        ></ShareImageButton>
                       </View>
                     </View>
 
@@ -1103,47 +1109,48 @@ export default function TabFourScreen() {
                     </View>
 
                     <View style={{ marginTop: 30 }}>
-                            <Text
-                              style={{
-                                color: theme.text,
-                                fontWeight: "bold",
-                                fontSize: 16,
+                      <Text
+                        style={{
+                          color: theme.text,
+                          fontWeight: "bold",
+                          fontSize: 16,
+                        }}
+                      >
+                        {translation.VocePodeGostar}
+                      </Text>
+                      <ScrollView
+                        horizontal={true}
+                        showsHorizontalScrollIndicator={false}
+                        style={styles.actorsContainer}
+                      >
+                        {selectedMovieId?.similarMovies?.map((movie, index) => (
+                          <View key={index} style={styles.movieCard}>
+                            <TouchableOpacity
+                              key={index + 1}
+                              onPress={() => {
+                                closeModal();
+                                handlePressItemModalType(movie);
                               }}
                             >
-                              SEMELHANTES:
-                            </Text>
-                            <ScrollView
-                              horizontal={true}
-                              showsHorizontalScrollIndicator={false}
-                              style={styles.actorsContainer}
-                            >
-                               {selectedMovieId?.similarMovies?.map((movie, index) => (
-                              <View key={index} style={styles.movieCard}>
-                                <TouchableOpacity
-                                  onPress={() => {
-                                    closeModal();
-                                    handlePressItemModalType(movie);
-                                  }}
-                                >
-                                  <View
-                                    style={[
-                                      styles.imageShadowContainerMovies,
-                                      {
-                                        backgroundColor: theme.modalBackground,
-                                      },
-                                    ]}
-                                  >
-                                    <Image
-                                      source={{ uri: movie.imageUrl }}
-                                      style={styles.MovieImage}
-                                      resizeMode="cover"
-                                    />
-                                  </View>
-                                </TouchableOpacity>
+                              <View
+                                style={[
+                                  styles.imageShadowContainerMovies,
+                                  {
+                                    backgroundColor: theme.modalBackground,
+                                  },
+                                ]}
+                              >
+                                <Image
+                                  source={{ uri: movie.imageUrl }}
+                                  style={styles.MovieImage}
+                                  resizeMode="cover"
+                                />
                               </View>
-                            ))}
-                            </ScrollView>
+                            </TouchableOpacity>
                           </View>
+                        ))}
+                      </ScrollView>
+                    </View>
 
                     <View
                       style={{
@@ -1174,6 +1181,7 @@ export default function TabFourScreen() {
                   <View style={styles.modalButtonsContainerAll}>
                     <View style={styles.modalButtonsContainer}>
                       <TouchableHighlight
+                        key={7}
                         style={{
                           ...styles.modalButton,
                           backgroundColor: theme.modalBackgroundSecondary,
@@ -1253,7 +1261,6 @@ export default function TabFourScreen() {
                   width: "100%",
                   backgroundColor: theme.modalBackground,
                   opacity: fadeAnim,
-
                 }}
               >
                 <View style={styles.modalInfoContent}>
@@ -1342,6 +1349,7 @@ export default function TabFourScreen() {
                       {selectedActor?.movies?.map((movie, index) => (
                         <View key={index} style={styles.movieCard}>
                           <TouchableOpacity
+                            key={index}
                             onPress={() => {
                               openModalMovie2(movie);
                               setShowModalActor(false);
@@ -1391,6 +1399,7 @@ export default function TabFourScreen() {
                     }}
                   >
                     <TouchableHighlight
+                      key={8}
                       style={{
                         ...styles.modalButton,
                         backgroundColor: theme.modalBackgroundSecondary,
@@ -1402,13 +1411,20 @@ export default function TabFourScreen() {
                         setShowModalActor(false);
                       }}
                     >
-                      <Text style={styles.textStyle}>
-                        {translation.Fechar}
-                      </Text>
+                      <Text style={styles.textStyle}>{translation.Fechar}</Text>
                     </TouchableHighlight>
                   </View>
-                </View>
-                {/* <BannerAd
+                  <View
+                    style={{
+                      justifyContent: "center",
+                      alignContent: "center",
+                      alignItems: "center",
+                      paddingVertical: 5,
+                      marginVertical: 5,
+                    }}
+                  >
+                    {/* <BannerAd
+                      // unitId={TestIds.BANNER}
                       unitId={adUnitId}
                       size="BANNER"
                       onAdLoaded={() => {}}
@@ -1419,13 +1435,13 @@ export default function TabFourScreen() {
                         requestNonPersonalizedAdsOnly: true,
                       }}
                     /> */}
+                  </View>
+                </View>
               </Animated.ScrollView>
             </View>
           )}
         </View>
       </Modal>
-
-
 
       {/* MODAL 2 */}
       <Modal
@@ -1461,7 +1477,6 @@ export default function TabFourScreen() {
                   width: "100%",
                   backgroundColor: theme.modalBackground,
                   opacity: fadeAnim,
-
                 }}
                 onScroll={Animated.event(
                   [{ nativeEvent: { contentOffset: { y: scrollY } } }],
@@ -1538,6 +1553,7 @@ export default function TabFourScreen() {
                         </Text>
 
                         <TouchableHighlight
+                          key={9}
                           style={{
                             ...styles.modalButton,
                             marginBottom: 10,
@@ -1598,6 +1614,7 @@ export default function TabFourScreen() {
                       >
                         {selectedMovie?.actors?.map((actor, index) => (
                           <TouchableOpacity
+                            key={index}
                             onPress={() => {
                               openModalActor(actor.id);
                               setShowModalMovie2(false);
@@ -1630,49 +1647,49 @@ export default function TabFourScreen() {
                       </ScrollView>
                     </View>
 
-
                     <View style={{ marginTop: 30 }}>
-                            <Text
-                              style={{
-                                color: theme.text,
-                                fontWeight: "bold",
-                                fontSize: 16,
+                      <Text
+                        style={{
+                          color: theme.text,
+                          fontWeight: "bold",
+                          fontSize: 16,
+                        }}
+                      >
+                        SEMELHANTES:
+                      </Text>
+                      <ScrollView
+                        horizontal={true}
+                        showsHorizontalScrollIndicator={false}
+                        style={styles.actorsContainer}
+                      >
+                        {selectedMovieId?.similarMovies?.map((movie, index) => (
+                          <View key={index} style={styles.movieCard}>
+                            <TouchableOpacity
+                              key={index}
+                              onPress={() => {
+                                closeModal();
+                                handlePressItemModalType2(movie);
                               }}
                             >
-                              SEMELHANTES:
-                            </Text>
-                            <ScrollView
-                              horizontal={true}
-                              showsHorizontalScrollIndicator={false}
-                              style={styles.actorsContainer}
-                            >
-                               {selectedMovieId?.similarMovies?.map((movie, index) => (
-                              <View key={index} style={styles.movieCard}>
-                                <TouchableOpacity
-                                  onPress={() => {
-                                    closeModal();
-                                    handlePressItemModalType2(movie);
-                                  }}
-                                >
-                                  <View
-                                    style={[
-                                      styles.imageShadowContainerMovies,
-                                      {
-                                        backgroundColor: theme.modalBackground,
-                                      },
-                                    ]}
-                                  >
-                                    <Image
-                                      source={{ uri: movie.imageUrl }}
-                                      style={styles.MovieImage}
-                                      resizeMode="cover"
-                                    />
-                                  </View>
-                                </TouchableOpacity>
+                              <View
+                                style={[
+                                  styles.imageShadowContainerMovies,
+                                  {
+                                    backgroundColor: theme.modalBackground,
+                                  },
+                                ]}
+                              >
+                                <Image
+                                  source={{ uri: movie.imageUrl }}
+                                  style={styles.MovieImage}
+                                  resizeMode="cover"
+                                />
                               </View>
-                            ))}
-                            </ScrollView>
+                            </TouchableOpacity>
                           </View>
+                        ))}
+                      </ScrollView>
+                    </View>
 
                     <View
                       style={{
@@ -1707,6 +1724,7 @@ export default function TabFourScreen() {
 
                     <View style={styles.modalButtonsContainer}>
                       <TouchableHighlight
+                        key={10}
                         style={{
                           ...styles.modalButton,
                           backgroundColor: theme.borderRed,
@@ -1724,6 +1742,7 @@ export default function TabFourScreen() {
                       </TouchableHighlight>
 
                       <TouchableHighlight
+                        key={11}
                         style={{
                           ...styles.modalButton,
                           backgroundColor: theme.modalBackgroundSecondary,
@@ -2055,6 +2074,7 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
     width: "100%",
   },
+
   modalButtonsContainerAll: {
     flexDirection: "column",
     gap: 10,
@@ -2179,4 +2199,3 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
   },
 });
-

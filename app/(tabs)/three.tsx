@@ -75,8 +75,20 @@ export default function TabThreeScreen() {
     pink:  logoPink,
     lightpink:  logoPink,
     green: logoGreen,
-    deepPurple:  logoDefault,
+    dune:  logoDefault,
     red:  logoRed,
+    cosmicDusk: logoDefault,
+    lilacNebula: logoDefault,
+    shadowOfMordor: logoDefault,
+    darkSide: logoDefault,
+    neonTwilight: logoDefault,
+    dracula: logoDefault,
+    bladeRunner: logoDefault,
+    violetWitch:logoDefault,
+    thanos:logoDefault,
+    jediTemple:logoDefault,
+    hungerGames:logoDefault,
+    neoMatrix:logoDefault,
   };
 
   // Selecionar logo com base no tema atual
@@ -163,31 +175,24 @@ export default function TabThreeScreen() {
   }, [selectedGenre, language]); // Dependências do useEffect
 
   const getFilteredMovies = () => {
-    let allMovies = [];
-
+    let allMovies: Movie[] = [];
+  
     if (selectedGenre === translation.RecommendedForYou) {
-      // Se for "Recomendado para você", usar a lista geral de recomendados
       allMovies = [...recommendedMovies];
     } else {
       const recommendedBySelectedGenre = recommendedMovies.filter((movie) =>
-        movie.genreId?.split(",").some((genreId) => genreId === selectedGenre)
+        movie.genreId?.split(",").some((genreId) => generosFiltro[genreId] === selectedGenre)
       );
-
-      // Combina filmes recomendados do gênero selecionado com os filmes populares do mesmo gênero
+  
       allMovies = [
         ...recommendedBySelectedGenre,
         ...(recommendedByGenre[selectedGenre] || []),
       ];
-
-      //  allMovies.map((moviesS) => console.log(moviesS.title));
     }
-
-    // Remove duplicatas
-    allMovies = Array.from(
-      new Map(allMovies.map((movie) => [movie.id, movie])).values()
-    );
-
-    // Filtrar por plataforma, se necessário
+  
+    allMovies = Array.from(new Map(allMovies.map((movie) => [movie.id, movie])).values());
+    console.log('All Movies before Platform Filter:', allMovies);
+  
     if (selectedPlatform !== translation.All) {
       allMovies = allMovies.filter((movie) =>
         movie.streamingPlatforms?.some(
@@ -195,9 +200,14 @@ export default function TabThreeScreen() {
         )
       );
     }
-
+  
+    console.log('Filtered Movies by Platform:', allMovies);
     return allMovies;
   };
+  
+  
+  
+  
 
   const formatDate = (dateString: any) => {
     const date = new Date(dateString);
@@ -294,33 +304,24 @@ export default function TabThreeScreen() {
 
 
   const handleLoadMore = async () => {
-    if (
-      selectedGenre != translation.RecommendedForYou &&
-      selectedPlatform == translation.All
-    ) {
-      const currentGenreId =
-        Object.keys(generosFiltro).find(
-          (key) => generosFiltro[key] === selectedGenre
-        ) || ""; // Isso converte o nome do gênero de volta para seu ID correspondente
-      // console.log(currentGenreId);
+    if (selectedGenre !== translation.RecommendedForYou) {
+      const currentGenreId = Object.keys(generosFiltro).find(
+        (key) => generosFiltro[key] === selectedGenre
+      ) || "";
+  
       const currentPage = paginationState[currentGenreId]?.page || 0;
-      await fetchMoviesByGenreAndPage(currentGenreId, currentPage + 1);
-    } else if (
-      selectedGenre != translation.RecommendedForYou &&
-      selectedPlatform != translation.All
-    ) {
-      const currentGenreId =
-        Object.keys(generosFiltro).find(
-          (key) => generosFiltro[key] === selectedGenre
-        ) || ""; // Isso converte o nome do gênero de volta para seu ID correspondente
-      // console.log(currentGenreId);
-      const currentPage = paginationState[currentGenreId]?.page || 0;
-
-      setTimeout(() => {
-        fetchMoviesByGenreAndPage(currentGenreId, currentPage + 1);
-      }, 3000);
+      const nextPage = currentPage + 1;
+  
+      console.log('Loading more movies for Genre:', currentGenreId, 'Page:', nextPage);
+      await fetchMoviesByGenreAndPage(currentGenreId, nextPage);
     }
   };
+  
+  
+  
+  
+  
+
 
   const handlePressItemModalType = (item: any) => {
     setShowModal(false); // Feche o modal atual
@@ -337,183 +338,170 @@ export default function TabThreeScreen() {
     setSelectedMovie(null);
     setShowModal(false);
   };
-  return (
-    <SafeAreaView
-      edges={["top"]}
-      style={[styles.container, { backgroundColor: theme.background }]}
-    >
-      <Image source={logo} style={styles.logo} />
-      <TouchableOpacity
-        style={[styles.dropdownButton, { borderColor: theme.borderRed }]}
-        onPress={() => setShowDropdown(true)}
+    return (
+      <SafeAreaView
+        edges={["top"]}
+        style={[styles.container, { backgroundColor: theme.background }]}
       >
-        <Text style={[styles.dropdownButtonText, { color: theme.text }]}>
-          {selectedGenre}
-        </Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={[styles.dropdownButton, { borderColor: theme.borderRed }]}
-        onPress={() => setShowPlatformDropdown(true)} // Use um novo estado para controlar a visibilidade do dropdown de plataformas
-      >
-        <Text style={[styles.dropdownButtonText, { color: theme.text }]}>
-          {selectedPlatform === translation.All
-            ? translation.Todas
-            : selectedPlatform}
-        </Text>
-      </TouchableOpacity>
-
-      {/* Modal para Seleção de Plataforma */}
-      <Modal
-        visible={showPlatformDropdown} // Este é o novo estado para controle do dropdown de plataformas
-        transparent={true}
-        animationType="none"
-        onRequestClose={() => setShowPlatformDropdown(false)}
-      >
+        <Image source={logo} style={styles.logo} />
         <TouchableOpacity
-          style={styles.dropdownOverlay}
-          activeOpacity={1}
-          onPressOut={() => setShowPlatformDropdown(false)}
+          key={1}
+          style={[styles.dropdownButton, { borderColor: theme.borderRed }]}
+          onPress={() => setShowDropdown(true)}
         >
-          <View
-            style={[
-              styles.dropdown,
-              {
-                backgroundColor: theme.modalBackground,
-                borderColor: theme.borderRed,
-              },
-            ]}
-          >
-            <ScrollView>
-              {platforms.map((platform) => (
-                <TouchableOpacity
-                  key={platform}
-                  style={[
-                    styles.dropdownItem,
-                    { backgroundColor: theme.modalBackground },
-                  ]}
-                  onPress={() => {
-                    if (platform === translation.All) {
-                      setSelectedPlatform(translation.All);
-                    } else {
-                      setSelectedPlatform(platform);
-                    }
-                    setShowPlatformDropdown(false); 
-                  }}
-                >
-                  <Text
-                    style={[
-                      styles.dropdownItemText,
-                      { color: theme.text, borderBottomColor: theme.borderRed },
-                    ]}
-                  >
-                    {platform}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
+          <Text style={[styles.dropdownButtonText, { color: theme.text }]}>
+            {selectedGenre}
+          </Text>
         </TouchableOpacity>
-      </Modal>
-
-      <Modal
-        visible={showDropdown}
-        transparent={true}
-        animationType="none"
-        onRequestClose={() => setShowDropdown(false)}
-      >
+    
         <TouchableOpacity
-          style={styles.dropdownOverlay}
-          activeOpacity={1}
-          onPressOut={() => setShowDropdown(false)}
+          key={2}
+          style={[styles.dropdownButton, { borderColor: theme.borderRed }]}
+          onPress={() => setShowPlatformDropdown(true)}
         >
-          <View
-            style={[
-              styles.dropdown,
-              ,
-              {
-                backgroundColor: theme.modalBackground,
-                borderColor: theme.borderRed,
-              },
-            ]}
-          >
-            <ScrollView>
-              {genres.map((genre) => (
-                <TouchableOpacity
-                  key={genre}
-                  style={[
-                    styles.dropdownItem,
-                    { backgroundColor: theme.modalBackground },
-                  ]}
-                  onPress={() => {
-                    setSelectedGenre(genre);
-                    setShowDropdown(false);
-                  }}
-                >
-                  <Text
-                    style={[
-                      styles.dropdownItemText,
-                      { color: theme.text, borderBottomColor: theme.borderRed },
-                    ]}
-                  >
-                    {genre}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
+          <Text style={[styles.dropdownButtonText, { color: theme.text }]}>
+            {selectedPlatform === translation.All
+              ? translation.Todas
+              : selectedPlatform}
+          </Text>
         </TouchableOpacity>
-      </Modal>
-
-      <Text style={[styles.movieListTitle, { color: theme.text }]}>
-        {selectedGenre.toUpperCase()}
-      </Text>
-      {isLoading ? (
-        <ActivityIndicator size="large" color={theme.borderRed} />
-      ) : getFilteredMovies().length > 0 ? (
-        <FlatList
-          data={getFilteredMovies()}
-          keyExtractor={(item) => item.id.toString()}
-          numColumns={isTablet ? 4 : 3}
-          showsVerticalScrollIndicator={false}
-          onEndReached={handleLoadMore}
-          initialNumToRender={6} // Ajuste conforme necessário
-          maxToRenderPerBatch={2} // Ajuste conforme necessário
-          onEndReachedThreshold={0.5}
-          renderItem={({ item }) => (
-            <View style={styles.movieItem}>
-              <TouchableOpacity onPress={() => openModal(item.id)}>
-                <ImageContainer uri={item.imageUrl!} type={1} />
-              </TouchableOpacity>
+    
+        {/* Modal para Seleção de Plataforma */}
+        <Modal
+          visible={showPlatformDropdown}
+          transparent={true}
+          animationType="none"
+          onRequestClose={() => setShowPlatformDropdown(false)}
+        >
+          <TouchableOpacity
+            style={styles.dropdownOverlay}
+            activeOpacity={1}
+            onPressOut={() => setShowPlatformDropdown(false)}
+          >
+            <View
+              style={[
+                styles.dropdown,
+                { backgroundColor: theme.modalBackground, borderColor: theme.borderRed },
+              ]}
+            >
+              <ScrollView>
+                {platforms.map((platform) => (
+                  <TouchableOpacity
+                    key={platform}
+                    style={[styles.dropdownItem, { backgroundColor: theme.modalBackground }]}
+                    onPress={() => {
+                      if (platform === translation.All) {
+                        setSelectedPlatform(translation.All);
+                      } else {
+                        setSelectedPlatform(platform);
+                      }
+                      setShowPlatformDropdown(false);
+                    }}
+                  >
+                    <Text
+                      style={[
+                        styles.dropdownItemText,
+                        { color: theme.text, borderBottomColor: theme.borderRed },
+                      ]}
+                    >
+                      {platform}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
             </View>
-          )}
-        />
-      ) : (
-        <Text
-          style={[styles.movieListTitle, { color: theme.text, marginTop: 50 }]}
+          </TouchableOpacity>
+        </Modal>
+    
+        <Modal
+          visible={showDropdown}
+          transparent={true}
+          animationType="none"
+          onRequestClose={() => setShowDropdown(false)}
         >
-          {translation.NoRecommendations}
+          <TouchableOpacity
+            style={styles.dropdownOverlay}
+            activeOpacity={1}
+            onPressOut={() => setShowDropdown(false)}
+          >
+            <View
+              style={[
+                styles.dropdown,
+                { backgroundColor: theme.modalBackground, borderColor: theme.borderRed },
+              ]}
+            >
+              <ScrollView>
+                {genres.map((genre) => (
+                  <TouchableOpacity
+                    key={genre}
+                    style={[styles.dropdownItem, { backgroundColor: theme.modalBackground }]}
+                    onPress={() => {
+                      setSelectedGenre(genre);
+                      setShowDropdown(false);
+                    }}
+                  >
+                    <Text
+                      style={[
+                        styles.dropdownItemText,
+                        { color: theme.text, borderBottomColor: theme.borderRed },
+                      ]}
+                    >
+                      {genre}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          </TouchableOpacity>
+        </Modal>
+    
+        <Text style={[styles.movieListTitle, { color: theme.text }]}>
+          {selectedGenre.toUpperCase()}
         </Text>
-      )}
-      <CustomModalMovie
-        showModal={showModal}
-        isDetailsLoading={isDetailsLoading}
-        selectedMovie={selectedMovie!}
-        closeModal={closeModal}
-        handleShare={handleShare}
-        handleAddToList={handleAddToList}
-        openModalActor={openModalActor}
-        handlePressItemModalType={handlePressItemModalType}
-        formatDate={formatDate}
-      />
-      <CustomModalActor
-        showModalActor={showModalActor}
-        isDetailsLoading={isDetailsLoading}
-        selectedActor={selectedActor!}
-        closeModal={() => setShowModalActor(false)}
-        openModal={openModal}
-      />
-    </SafeAreaView>
+        {isLoading ? (
+          <ActivityIndicator size="large" color={theme.borderRed} />
+        ) : getFilteredMovies().length > 0 ? (
+          <FlatList
+            data={getFilteredMovies()}
+            keyExtractor={(item) => item.id.toString()}
+            numColumns={isTablet ? 4 : 3}
+            showsVerticalScrollIndicator={false}
+            onEndReached={handleLoadMore}
+            initialNumToRender={6}
+            maxToRenderPerBatch={2}
+            onEndReachedThreshold={0.5}
+            renderItem={({ item }) => (
+              <View style={styles.movieItem}>
+                <TouchableOpacity onPress={() => openModal(item.id)}>
+                  <ImageContainer uri={item.imageUrl!} type={1} />
+                </TouchableOpacity>
+              </View>
+            )}
+          />
+        ) : (
+          <Text style={[styles.movieListTitle, { color: theme.text, marginTop: 50 }]}>
+            {translation.NoRecommendations}
+          </Text>
+        )}
+        <CustomModalMovie
+          showModal={showModal}
+          isDetailsLoading={isDetailsLoading}
+          selectedMovie={selectedMovie!}
+          closeModal={closeModal}
+          handleShare={handleShare}
+          handleAddToList={handleAddToList}
+          openModalActor={openModalActor}
+          handlePressItemModalType={handlePressItemModalType}
+          formatDate={formatDate}
+        />
+        <CustomModalActor
+          showModalActor={showModalActor}
+          isDetailsLoading={isDetailsLoading}
+          selectedActor={selectedActor!}
+          closeModal={() => setShowModalActor(false)}
+          openModal={openModal}
+        />
+      </SafeAreaView>
   );
 }
 const styles = StyleSheet.create({

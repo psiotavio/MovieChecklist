@@ -47,7 +47,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
       setIsFocused(false);
     }}>
       <View style={styles.container}>
-        <TouchableOpacity onPress={() => inputRef.current?.focus()}>
+        <TouchableOpacity key={"searchbar"} onPress={() => inputRef.current?.focus()}>
           <AntDesign name="search1" size={24} color="black" />
         </TouchableOpacity>
         <View style={styles.inputContainer}>

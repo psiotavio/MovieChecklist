@@ -444,21 +444,21 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     } catch (error: unknown) {
       const isAxiosError = (error: unknown): error is AxiosError =>
         axios.isAxiosError(error);
-
-      let message = "Unknown error";
+  
+      let message = 'Unknown error';
       let status = null;
-
+  
       if (isAxiosError(error)) {
         message = error.message;
         status = error.response ? error.response.status : null;
       } else if (error instanceof Error) {
         message = error.message;
       }
-
+  
       console.log(
         `Attempt failed with error: ${message} - Retrying in ${delay}ms`
       );
-
+  
       if (
         retries > 0 &&
         (status === null || ![401, 403, 404].includes(status))
@@ -470,6 +470,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       }
     }
   }
+  
 
   // Um objeto simples para atuar como nosso cache
   const cache: {
@@ -479,35 +480,35 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   };
 
   const fetchMoviePlatforms = async (movieId: number) => {
+    console.log('Fetching platforms for movie:', movieId);
     if (cache.moviePlatforms[movieId]) {
+      console.log('Platforms found in cache for movie:', movieId, cache.moviePlatforms[movieId]);
       return cache.moviePlatforms[movieId];
     }
-
+  
     const url = `https://api.themoviedb.org/3/movie/${movieId}/watch/providers?api_key=${TMDB_API_KEY}`;
     try {
       const response = await makeApiRequestWithRetry(url);
-      const platformsInBrazil = response.results?.tmdbRegion;
-
+      const platformsInBrazil = response.results?.BR;
+  
       const streamingPlatforms =
         platformsInBrazil?.flatrate?.map(
-          (provider: {
-            provider_id: any;
-            provider_name: any;
-            logo_path: any;
-          }) => ({
+          (provider: { provider_id: any; provider_name: any; logo_path: any }) => ({
             id: provider.provider_id,
             name: provider.provider_name,
             logoPath: `https://image.tmdb.org/t/p/w500${provider.logo_path}.svg`,
           })
         ) || [];
-
+  
       cache.moviePlatforms[movieId] = streamingPlatforms;
+      console.log('Fetched platforms for movie:', movieId, streamingPlatforms);
       return streamingPlatforms;
     } catch (error) {
-      console.error("Erro ao buscar plataformas para o filme:", error);
+      console.error('Erro ao buscar plataformas para o filme:', error);
       return [];
     }
   };
+  
 
   const fetchMovieDetails = async (
     movieId: number,
@@ -773,6 +774,21 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       });
     });
   };
+
+  // Função para remover filmes já assistidos das recomendações
+  const updateRecommendedMovies = () => {
+    setRecommendedMovies((currentRecommendedMovies) =>
+      currentRecommendedMovies.filter(
+        (recommendedMovie) =>
+          !movies.some((movie) => movie.id === recommendedMovie.id)
+      )
+    );
+  };
+
+  // useEffect que atualiza as recomendações sempre que a lista de filmes assistidos muda
+  useEffect(() => {
+    updateRecommendedMovies();
+  }, [movies]); // Dependência na lista de filmes assistidos
 
   useEffect(() => {
     const loadRecommendedMovies = async () => {

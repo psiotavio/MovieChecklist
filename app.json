@@ -2,7 +2,7 @@
   "expo": {
     "name": "Watchfolio",
     "slug": "MovieChecklist",
-    "version": "2.0.6",
+    "version": "2.1.3",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "yourapp",
@@ -21,7 +21,7 @@
       "bitcode": false
     },
     "android": {
-      "versionCode": 7,
+      "versionCode": 10,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/Adaptive-Icon-foreground.png",
         "backgroundColor": "#250737"
@@ -50,7 +50,8 @@
     }
   },
   "react-native-google-mobile-ads": {
-    "android_app_id": "ca-app-pub-1771446730721916~1104022395",
-    "ios_app_id": "ca-app-pub-1771446730721916~5599351931"
+    "android_app_id": "ca-app-pub-4303499199669342~9669673439",
+    "ios_app_id": "ca-app-pub-4303499199669342~5922000112"
   }
+
 }

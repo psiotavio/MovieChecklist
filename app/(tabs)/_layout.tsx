@@ -52,12 +52,13 @@ export default function TabLayout() {
     profile: TabTwoScreen,
   });
 
-  const statusBarStyle = themeName === 'dark' ? 'light' : 'dark';
+  const statusBarStyle = themeName === 'light' ? 'dark' : 'light';
 
   return (
     <>
       <StatusBar style={statusBarStyle} />
       <BottomNavigation
+      key={"bottomNavigation"}
         navigationState={{ index, routes }}
         onIndexChange={setIndex}
         renderScene={renderScene}

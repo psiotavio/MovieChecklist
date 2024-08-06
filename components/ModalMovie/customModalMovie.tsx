@@ -16,24 +16,22 @@ import {
 import ImageContainer from "../imageContainer/imageContainer";
 import { useConfiguration } from "../../contexts/ConfigurationContext";
 import { useTheme } from "../../constants/temas/ThemeContext";
+import ShareImageButton from "../ShareMovieImage/shareMovieImage";
 // import {
 //   AdEventType,
 //   InterstitialAd,
 //   TestIds,
 //   BannerAd,
-
 // } from "react-native-google-mobile-ads";
-// const anuncio = InterstitialAd.createForAdRequest(TestIds.INTERSTITIAL, {
-//   requestNonPersonalizedAdsOnly: true,
-// });
 
-// let adUnitId: string;
+let adUnitId: string;
 
-// if (Platform.OS === 'ios') {
-//     adUnitId = "ca-app-pub-1771446730721916/1536500762"; // Coloque o ID do iOS aqui
-// } else if (Platform.OS === 'android') {
-//     adUnitId = "ca-app-pub-1771446730721916/6230272284"; // Coloque o ID do Android aqui
-// }
+
+if (Platform.OS === "ios") {
+  adUnitId = "ca-app-pub-4303499199669342/6006099901"; // Coloque o ID do iOS aqui
+} else if (Platform.OS === "android") {
+  adUnitId = "ca-app-pub-4303499199669342/1108657138"; // Coloque o ID do Android aqui
+}
 
 
 type Actor = {
@@ -208,6 +206,7 @@ const CustomModalMovie: React.FC<CustomModalMovieProps> = ({
                       </Text>
 
                       <TouchableHighlight
+                      key={1}
                         style={{
                           ...styles.modalButton,
                           marginBottom: 10,
@@ -298,7 +297,7 @@ const CustomModalMovie: React.FC<CustomModalMovieProps> = ({
                         fontSize: 16,
                       }}
                     >
-                      {translation.Recomendado}
+                         {translation.VocePodeGostar}
                     </Text>
                     <ScrollView
                       horizontal={true}
@@ -308,6 +307,7 @@ const CustomModalMovie: React.FC<CustomModalMovieProps> = ({
                       {selectedMovie?.similarMovies?.map((movie, index) => (
                         <View key={index} style={styles.movieCard}>
                           <TouchableOpacity
+                          key={index}
                             onPress={() => {
                               closeModal();
                               handlePressItemModalType(movie);
@@ -353,6 +353,7 @@ const CustomModalMovie: React.FC<CustomModalMovieProps> = ({
 
                   <View style={styles.modalButtonsContainer}>
                     <TouchableHighlight
+                    key={3}
                       style={{
                         ...styles.modalButton,
                         backgroundColor: theme.borderRed,
@@ -367,6 +368,7 @@ const CustomModalMovie: React.FC<CustomModalMovieProps> = ({
                     </TouchableHighlight>
 
                     <TouchableHighlight
+                    key={4}
                       style={{
                         ...styles.modalButton,
                         backgroundColor: theme.modalBackgroundSecondary,
