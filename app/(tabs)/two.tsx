@@ -31,12 +31,12 @@ import logoGreen from "../../assets/images/logoGreen.png";
 import logoRed from "../../assets/images/logoRed.png";
 import logoOrange from "../../assets/images/logoOrange.png";
 
-// import {
-//   AdEventType,
-//   BannerAd,
-//   InterstitialAd,
-//   TestIds,
-// } from "react-native-google-mobile-ads";
+import {
+  AdEventType,
+  BannerAd,
+  InterstitialAd,
+  TestIds,
+} from "react-native-google-mobile-ads";
 
 //  // ANUNCIOS
 let adUnitId: string;
@@ -280,7 +280,7 @@ export default function TabTwoScreen() {
                     width: "100%",
                   }}
                 >
-                  {/* <BannerAd
+                  <BannerAd
                     unitId={adUnitId}
                     size="BANNER"
                     onAdLoaded={() => {}}
@@ -290,7 +290,7 @@ export default function TabTwoScreen() {
                     requestOptions={{
                       requestNonPersonalizedAdsOnly: true,
                     }}
-                  /> */}
+                  />
                 </View>
             </ScrollView>
           </View>
@@ -455,7 +455,7 @@ export default function TabTwoScreen() {
               width: "100%",
             }}
           >
-            {/* <BannerAd
+            <BannerAd
               unitId={adUnitId}
               size="BANNER"
               onAdLoaded={() => {}}
@@ -465,7 +465,7 @@ export default function TabTwoScreen() {
               requestOptions={{
                 requestNonPersonalizedAdsOnly: true,
               }}
-            /> */}
+            />
 
           </View>
         </View>

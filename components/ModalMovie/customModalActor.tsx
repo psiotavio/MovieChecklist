@@ -18,12 +18,12 @@ import { useTheme } from "../../constants/temas/ThemeContext";
 import { useConfiguration } from "../../contexts/ConfigurationContext";
 const { width } = Dimensions.get("window");
 const isTablet = width >= 768;
-// import {
-//   AdEventType,
-//   BannerAd,
-//   InterstitialAd,
-//   TestIds,
-// } from "react-native-google-mobile-ads";
+import {
+  AdEventType,
+  BannerAd,
+  InterstitialAd,
+  TestIds,
+} from "react-native-google-mobile-ads";
 
 //  // ANUNCIOS
 let adUnitId: string;
@@ -265,7 +265,7 @@ const CustomModalActor: React.FC<CustomModalActorProps> = ({
                     marginVertical: 5,
                   }}
                 >
-                  {/* <BannerAd
+                  <BannerAd
                     unitId={adUnitId}
                     size="BANNER"
                     onAdLoaded={() => {}}
@@ -275,7 +275,7 @@ const CustomModalActor: React.FC<CustomModalActorProps> = ({
                     requestOptions={{
                       requestNonPersonalizedAdsOnly: true,
                     }}
-                  /> */}
+                  />
                 </View>
               </View>
             </Animated.ScrollView>

@@ -23,7 +23,7 @@ import { useConfiguration } from "../../contexts/ConfigurationContext";
 import CustomModalActor from "../ModalMovie/customModalActor";
 import CustomModalMovie from "../ModalMovie/customModalMovie";
 
-// import { BannerAd, TestIds } from "react-native-google-mobile-ads";
+import { BannerAd, TestIds } from "react-native-google-mobile-ads";
 
 //  // ANUNCIOS
 let adUnitId: string;
@@ -63,6 +63,7 @@ interface Movie {
   alternateImageUrl?: string;
   description?: string;
   actors?: Actor[];
+  comment: string;
 }
 
 const FilterModal = () => {
@@ -372,7 +373,7 @@ const FilterModal = () => {
     fetchRandomMovie({ genres: genreIds, platforms: platformIds })
       .then((movie: Movie | null) => {
         if (movie) {
-          fetchMovieDetails(movie.id, 0, (movieDetails) => {
+          fetchMovieDetails(movie.id, 0, " " ,(movieDetails) => {
             setIsDetailsLoading(false); // Termina o loading
             setSelectedMovie(movieDetails);
             console.log(selectedMovie?.actors);
@@ -409,7 +410,7 @@ const FilterModal = () => {
         date: new Date().toLocaleDateString(),
         rating: 0,
         imageUrl: selectedMovie.imageUrl,
-
+        comment: " ",
         streamingPlatforms: selectedMovie.streamingPlatforms, // Adicionado aqui
 
         genreId: selectedMovie.genreId,
@@ -430,7 +431,7 @@ const FilterModal = () => {
     setModalVisible(true); // Abre o modal
 
     // Chamada para fetchMovieDetails sem a verificação de showModal
-    fetchMovieDetails(movieId, 0, (movieDetails) => {
+    fetchMovieDetails(movieId, 0, " " ,(movieDetails) => {
       setSelectedMovie(movieDetails);
       setIsDetailsLoading(false);
     });
@@ -439,7 +440,7 @@ const FilterModal = () => {
   const handlePressItemModalType = (item: any) => {
     setModalVisible(false); // Feche o modal atual
     setTimeout(() => {
-      fetchMovieDetails(item.id, 0, (movieDetails) => {
+      fetchMovieDetails(item.id, 0, " " ,(movieDetails) => {
         setSelectedMovie(movieDetails);
         setIsDetailsLoading(false); // Carregamento concluído
         openModalMovie(movieDetails.id);
@@ -588,7 +589,7 @@ const FilterModal = () => {
 
               <View style={styles.ads}>
                 <View>
-                  {/* <BannerAd
+                  <BannerAd
                       unitId={adUnitId}
                       size="BANNER"
                       onAdLoaded={() => {}}
@@ -598,7 +599,7 @@ const FilterModal = () => {
                       requestOptions={{
                         requestNonPersonalizedAdsOnly: true,
                       }}
-                    /> */}
+                    />
                 </View>
               </View>
             </View>
@@ -863,7 +864,7 @@ const FilterModal = () => {
                       </View>
                     </View>
 
-                    {/* <BannerAd
+                    <BannerAd
                       unitId={adUnitId}
                       size="BANNER"
                       onAdLoaded={() => {}}
@@ -873,7 +874,7 @@ const FilterModal = () => {
                       requestOptions={{
                         requestNonPersonalizedAdsOnly: true,
                       }}
-                    /> */}
+                    />
                   </View>
                 </View>
               </Animated.ScrollView>

@@ -17,12 +17,12 @@ import ImageContainer from "../imageContainer/imageContainer";
 import { useConfiguration } from "../../contexts/ConfigurationContext";
 import { useTheme } from "../../constants/temas/ThemeContext";
 import ShareImageButton from "../ShareMovieImage/shareMovieImage";
-// import {
-//   AdEventType,
-//   InterstitialAd,
-//   TestIds,
-//   BannerAd,
-// } from "react-native-google-mobile-ads";
+import {
+  AdEventType,
+  InterstitialAd,
+  TestIds,
+  BannerAd,
+} from "react-native-google-mobile-ads";
 
 let adUnitId: string;
 
@@ -393,7 +393,7 @@ const CustomModalMovie: React.FC<CustomModalMovieProps> = ({
                     marginVertical: 5,
                   }}
                 >
-                  {/* <BannerAd
+                  <BannerAd
                     unitId={adUnitId}
                     size="BANNER"
                     onAdLoaded={() => {}}
@@ -403,7 +403,7 @@ const CustomModalMovie: React.FC<CustomModalMovieProps> = ({
                     requestOptions={{
                       requestNonPersonalizedAdsOnly: true,
                     }}
-                  /> */}
+                  />
                 </View>
               </View>
             </Animated.ScrollView>

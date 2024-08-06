@@ -32,12 +32,12 @@ import { useConfiguration } from "../../contexts/ConfigurationContext";
 import ShareImageButton from "../../components/ShareMovieImage/shareMovieImage";
 import ImageContainer from "../../components/imageContainer/imageContainer";
 
-// import {
-//   AdEventType,
-//   BannerAd,
-//   InterstitialAd,
-//   TestIds,
-// } from "react-native-google-mobile-ads";
+import {
+  AdEventType,
+  BannerAd,
+  InterstitialAd,
+  TestIds,
+} from "react-native-google-mobile-ads";
 
 const { width, height } = Dimensions.get("window");
 
@@ -889,7 +889,7 @@ export default function TabFourScreen() {
                       </View>
                     </View>
 
-                    {/* <BannerAd
+                    <BannerAd
                       unitId={adUnitId}
                       size="BANNER"
                       onAdLoaded={() => {}}
@@ -899,7 +899,7 @@ export default function TabFourScreen() {
                       requestOptions={{
                         requestNonPersonalizedAdsOnly: true,
                       }}
-                    /> */}
+                    />
                   </View>
                 </View>
               </Animated.ScrollView>
@@ -1248,7 +1248,7 @@ export default function TabFourScreen() {
                       marginVertical: 5,
                     }}
                   >
-                    {/* <BannerAd
+                    <BannerAd
                       unitId={adUnitId}
                       size="BANNER"
                       onAdLoaded={() => {}}
@@ -1258,7 +1258,7 @@ export default function TabFourScreen() {
                       requestOptions={{
                         requestNonPersonalizedAdsOnly: true,
                       }}
-                    /> */}
+                    />
                   </View>
                 </View>
               </Animated.ScrollView>
@@ -1462,7 +1462,7 @@ export default function TabFourScreen() {
                       marginVertical: 5,
                     }}
                   >
-                    {/* <BannerAd
+                    <BannerAd
                       // unitId={TestIds.BANNER}
                       unitId={adUnitId}
                       size="BANNER"
@@ -1473,7 +1473,7 @@ export default function TabFourScreen() {
                       requestOptions={{
                         requestNonPersonalizedAdsOnly: true,
                       }}
-                    /> */}
+                    />
                   </View>
                 </View>
               </Animated.ScrollView>
@@ -1809,7 +1809,7 @@ export default function TabFourScreen() {
                       marginVertical: 5,
                     }}
                   >
-                    {/* <BannerAd
+                    <BannerAd
                       unitId={adUnitId}
                       size="BANNER"
                       onAdLoaded={() => {}}
@@ -1819,7 +1819,7 @@ export default function TabFourScreen() {
                       requestOptions={{
                         requestNonPersonalizedAdsOnly: true,
                       }}
-                    /> */}
+                    />
                   </View>
                 </View>
               </Animated.ScrollView>

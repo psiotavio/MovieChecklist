@@ -42,12 +42,12 @@ import { useConfiguration } from "../../contexts/ConfigurationContext";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { MaterialIcons } from "@expo/vector-icons";
 
-// import {
-//   AdEventType,
-//   InterstitialAd,
-//   TestIds,
-//   BannerAd,
-// } from "react-native-google-mobile-ads";
+import {
+  AdEventType,
+  InterstitialAd,
+  TestIds,
+  BannerAd,
+} from "react-native-google-mobile-ads";
 
 let adUnitId: string;
 
@@ -1318,7 +1318,7 @@ export default function HomeScreen() {
                               </TouchableHighlight>
                             </View>
                           </View>
-                          {/* <BannerAd
+                          <BannerAd
                             unitId={adUnitId}
                             size="BANNER"
                             onAdLoaded={() => {}}
@@ -1328,7 +1328,7 @@ export default function HomeScreen() {
                             requestOptions={{
                               requestNonPersonalizedAdsOnly: true,
                             }}
-                          /> */}
+                          />
                         </View>
                       </View>
                     </Animated.ScrollView>
@@ -1536,7 +1536,7 @@ export default function HomeScreen() {
                             marginVertical: 5,
                           }}
                         >
-                          {/* <BannerAd
+                          <BannerAd
                             unitId={adUnitId}
                             size="BANNER"
                             onAdLoaded={() => {}}
@@ -1546,7 +1546,7 @@ export default function HomeScreen() {
                             requestOptions={{
                               requestNonPersonalizedAdsOnly: true,
                             }}
-                          /> */}
+                          />
                         </View>
                       </View>
                     </Animated.ScrollView>
