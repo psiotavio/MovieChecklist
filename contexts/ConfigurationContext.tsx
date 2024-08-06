@@ -1,5 +1,11 @@
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+  useEffect,
+} from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const translations = {
   english: {
@@ -29,7 +35,8 @@ const translations = {
     Avaliados: "Rated",
     SeusAvaliados: "YOUR RATED MOVIES",
     ParaAssistir: "To Watch",
-    SemAssistir: "You have no movies in your list. Add a movie to watch later by searching in the Recommendations tab.",
+    SemAssistir:
+      "You have no movies in your list. Add a movie to watch later by searching in the Recommendations tab.",
     SemAvaliados: "You have not rated any movie.",
     javiu: "Have you watched this movie?",
     removeLista: "Remove from list",
@@ -66,14 +73,17 @@ const translations = {
     tema: "Dark Theme",
     voltar: "Back",
     RedefinirConta: "Reset Account",
-    ConfirmacaoRedefinir: "Do you really want to reset your account and delete all saved content?",
+    ConfirmacaoRedefinir:
+      "Do you really want to reset your account and delete all saved content?",
     VersaoWeb: "Web Version",
     chooseLanguage: "Choose a Language:",
     Recomendado: "Recommended",
     VocePodeGostar: "You might like:",
     shareOnInstagramStories: "Share on Instagram",
     shareOnSocialMedia: "Share on social networks:",
-    saveAndShare: "Save and share"
+    saveAndShare: "Save and share",
+    comment: "Comment",
+    deixeComentario: "Leave a comment about the movie here...",
   },
   portuguese: {
     digiteNomeFilme: "Digite o nome do filme",
@@ -102,7 +112,8 @@ const translations = {
     Avaliados: "Avaliados",
     SeusAvaliados: "SEUS FILMES AVALIADOS",
     ParaAssistir: "Para Assistir",
-    SemAssistir: "Você não tem nenhum filme na lista. Adicione um filme para assistir mais tarde procurando na aba Recomendações.",
+    SemAssistir:
+      "Você não tem nenhum filme na lista. Adicione um filme para assistir mais tarde procurando na aba Recomendações.",
     SemAvaliados: "Você ainda não avaliou nenhum filme.",
     javiu: "Você já viu esse filme?",
     removeLista: "Remover da lista",
@@ -139,14 +150,18 @@ const translations = {
     tema: "Tema Escuro",
     voltar: "Voltar",
     RedefinirConta: "Redefinir Conta",
-    ConfirmacaoRedefinir: "Você realmente deseja redefinir sua conta e deletar todo o conteúdo salvo?",
+    ConfirmacaoRedefinir:
+      "Você realmente deseja redefinir sua conta e deletar todo o conteúdo salvo?",
     VersaoWeb: "Versão Web",
     chooseLanguage: "Escolha um Idioma:",
     Recomendado: "Recomendado",
     VocePodeGostar: "Você pode gostar de:",
     shareOnInstagramStories: "Compartilhar no Instagram",
     shareOnSocialMedia: "Compartilhe nas redes sociais:",
-    saveAndShare: "Salvar e compartilhar"
+    saveAndShare: "Salvar e compartilhar",
+    comment: "Comentário",
+
+    deixeComentario: "Deixe um comentário sobre o filme aqui...",
   },
   spanish: {
     digiteNomeFilme: "Escribe el nombre de la película",
@@ -175,7 +190,8 @@ const translations = {
     Avaliados: "Calificados",
     SeusAvaliados: "TUS PELÍCULAS CALIFICADAS",
     ParaAssistir: "Para Ver",
-    SemAssistir: "No tienes películas en tu lista. Agrega una película para ver más tarde buscando en la pestaña Recomendaciones.",
+    SemAssistir:
+      "No tienes películas en tu lista. Agrega una película para ver más tarde buscando en la pestaña Recomendaciones.",
     SemAvaliados: "No has calificado ninguna película.",
     javiu: "¿Has visto esta película?",
     removeLista: "Eliminar de la lista",
@@ -212,14 +228,18 @@ const translations = {
     tema: "Tema Oscuro",
     voltar: "Volver",
     RedefinirConta: "Restablecer Cuenta",
-    ConfirmacaoRedefinir: "¿Realmente deseas restablecer tu cuenta y eliminar todo el contenido guardado?",
+    ConfirmacaoRedefinir:
+      "¿Realmente deseas restablecer tu cuenta y eliminar todo el contenido guardado?",
     VersaoWeb: "Versión Web",
     chooseLanguage: "Elige un Idioma:",
     Recomendado: "Recomendado",
     VocePodeGostar: "Te puede gustar:",
     shareOnInstagramStories: "Compartir en Instagram",
     shareOnSocialMedia: "Compartir en redes sociales:",
-    saveAndShare: "Guardar y compartir"
+    saveAndShare: "Guardar y compartir",
+    comment: "comentario",
+
+    deixeComentario: "Deja un comentario sobre la película aquí...",
   },
   french: {
     digiteNomeFilme: "Entrez le nom du film",
@@ -248,7 +268,8 @@ const translations = {
     Avaliados: "Évalués",
     SeusAvaliados: "VOS FILMS ÉVALUÉS",
     ParaAssistir: "À Voir",
-    SemAssistir: "Vous n'avez aucun film dans votre liste. Ajoutez un film à regarder plus tard en cherchant dans l'onglet Recommandations.",
+    SemAssistir:
+      "Vous n'avez aucun film dans votre liste. Ajoutez un film à regarder plus tard en cherchant dans l'onglet Recommandations.",
     SemAvaliados: "Vous n'avez évalué aucun film.",
     javiu: "Avez-vous déjà vu ce film ?",
     removeLista: "Retirer de la liste",
@@ -285,16 +306,20 @@ const translations = {
     tema: "Thème Sombre",
     voltar: "Retour",
     RedefinirConta: "Réinitialiser le Compte",
-    ConfirmacaoRedefinir: "Voulez-vous vraiment réinitialiser votre compte et supprimer tout le contenu enregistré ?",
+    ConfirmacaoRedefinir:
+      "Voulez-vous vraiment réinitialiser votre compte et supprimer tout le contenu enregistré ?",
     VersaoWeb: "Version Web",
     chooseLanguage: "Choisir une Langue :",
     Recomendado: "Recommandé",
     VocePodeGostar: "Vous pourriez aimer :",
     shareOnInstagramStories: "Partager sur les Instagram",
     shareOnSocialMedia: "Partagez sur les réseaux sociaux :",
-    saveAndShare: "Enregistrer et partager"
+    saveAndShare: "Enregistrer et partager",
+    comment: "commentaire",
+
+    deixeComentario: "Laissez un commentaire sur le film ici...",
   },
-    german: {
+  german: {
     digiteNomeFilme: "Geben Sie den Namen des Films ein",
     assistidosEm: "Gesehen in",
     melhores: "Beste",
@@ -321,7 +346,8 @@ const translations = {
     Avaliados: "Bewertet",
     SeusAvaliados: "IHRE BEWERTETEN FILME",
     ParaAssistir: "Zu sehen",
-    SemAssistir: "Sie haben keine Filme in Ihrer Liste. Fügen Sie einen Film hinzu, den Sie später sehen möchten, indem Sie in der Empfehlungen-Registerkarte suchen.",
+    SemAssistir:
+      "Sie haben keine Filme in Ihrer Liste. Fügen Sie einen Film hinzu, den Sie später sehen möchten, indem Sie in der Empfehlungen-Registerkarte suchen.",
     SemAvaliados: "Sie haben keinen Film bewertet.",
     javiu: "Haben Sie diesen Film gesehen?",
     removeLista: "Von der Liste entfernen",
@@ -358,15 +384,19 @@ const translations = {
     tema: "Dunkles Thema",
     voltar: "Zurück",
     RedefinirConta: "Konto zurücksetzen",
-    ConfirmacaoRedefinir: "Möchten Sie Ihr Konto wirklich zurücksetzen und alle gespeicherten Inhalte löschen?",
+    ConfirmacaoRedefinir:
+      "Möchten Sie Ihr Konto wirklich zurücksetzen und alle gespeicherten Inhalte löschen?",
     VersaoWeb: "Webversion",
     chooseLanguage: "Wählen Sie eine Sprache:",
     Recomendado: "Empfohlen",
     VocePodeGostar: "Das könnte Ihnen gefallen:",
     shareOnInstagramStories: "In Instagram teilen",
     shareOnSocialMedia: "Auf sozialen Netzwerken teilen:",
-    saveAndShare: "Speichern und teilen"
-  },  
+    saveAndShare: "Speichern und teilen",
+    comment: "Kommentar",
+
+    deixeComentario: "Hinterlassen Sie hier einen Kommentar zum Film...",
+  },
   italian: {
     digiteNomeFilme: "Digita il nome del film",
     assistidosEm: "Visti nel",
@@ -394,7 +424,8 @@ const translations = {
     Avaliados: "Valutati",
     SeusAvaliados: "I TUOI FILM VALUTATI",
     ParaAssistir: "Da guardare",
-    SemAssistir: "Non hai film nella tua lista. Aggiungi un film da guardare più tardi cercando nella scheda Raccomandazioni.",
+    SemAssistir:
+      "Non hai film nella tua lista. Aggiungi un film da guardare più tardi cercando nella scheda Raccomandazioni.",
     SemAvaliados: "Non hai valutato alcun film.",
     javiu: "Hai già visto questo film?",
     removeLista: "Rimuovi dalla lista",
@@ -431,14 +462,18 @@ const translations = {
     tema: "Tema Scuro",
     voltar: "Indietro",
     RedefinirConta: "Reimposta account",
-    ConfirmacaoRedefinir: "Vuoi davvero reimpostare il tuo account e cancellare tutti i contenuti salvati?",
+    ConfirmacaoRedefinir:
+      "Vuoi davvero reimpostare il tuo account e cancellare tutti i contenuti salvati?",
     VersaoWeb: "Versione Web",
     chooseLanguage: "Scegli una lingua:",
     Recomendado: "Raccomandato",
     VocePodeGostar: "Potrebbe piacerti:",
     shareOnInstagramStories: "Condividi nelle Instagram",
     shareOnSocialMedia: "Condividi sui social network:",
-    saveAndShare: "Salva e condividi"
+    saveAndShare: "Salva e condividi",
+    comment: "commento",
+
+    deixeComentario: "Lascia un commento sul film qui...",
   },
   chinese: {
     digiteNomeFilme: "输入电影名称",
@@ -512,26 +547,36 @@ const translations = {
     voltar: "返回",
     shareOnInstagramStories: "分享至Instagram",
     shareOnSocialMedia: "在社交网络上分享：",
-    saveAndShare: "保存并分享"
-  }// Adicione as traduções para os outros idiomas (francês, alemão, italiano, chinês) usando o mesmo esquema.
+    saveAndShare: "保存并分享",
+    comment: "评论",
+
+    deixeComentario: "在这里留下关于电影的评论...",
+  }, // Adicione as traduções para os outros idiomas (francês, alemão, italiano, chinês) usando o mesmo esquema.
 };
 
-
-type Language = 'english' | 'portuguese' | 'spanish' | 'french' | 'german' | 'italian' | 'chinese';
+type Language =
+  | "english"
+  | "portuguese"
+  | "spanish"
+  | "french"
+  | "german"
+  | "italian"
+  | "chinese";
 
 interface ConfigurationContextType {
   language: Language;
   setLanguage: (language: Language) => void;
-  translation: typeof translations[Language];
+  translation: (typeof translations)[Language];
 }
 
 const defaultState = {
-  language: 'portuguese' as Language,
+  language: "portuguese" as Language,
   setLanguage: () => {},
-  translation: translations['portuguese']
+  translation: translations["portuguese"],
 };
 
-const ConfigurationContext = createContext<ConfigurationContextType>(defaultState);
+const ConfigurationContext =
+  createContext<ConfigurationContextType>(defaultState);
 
 export const useConfiguration = () => useContext(ConfigurationContext);
 
@@ -539,16 +584,18 @@ interface ConfigurationProviderProps {
   children: ReactNode;
 }
 
-export const ConfigurationProvider: React.FC<ConfigurationProviderProps> = ({ children }) => {
-  const [language, setLanguage] = useState<Language>('english');
+export const ConfigurationProvider: React.FC<ConfigurationProviderProps> = ({
+  children,
+}) => {
+  const [language, setLanguage] = useState<Language>("english");
 
   useEffect(() => {
     const loadLanguage = async () => {
-      const storedLanguage = await AsyncStorage.getItem('language');
+      const storedLanguage = await AsyncStorage.getItem("language");
       if (storedLanguage) {
         setLanguage(storedLanguage as Language);
       } else {
-        setLanguage('english'); // Default to English if no language is stored
+        setLanguage("english"); // Default to English if no language is stored
       }
     };
 
@@ -556,12 +603,18 @@ export const ConfigurationProvider: React.FC<ConfigurationProviderProps> = ({ ch
   }, []);
 
   const handleSetLanguage = async (language: Language) => {
-    await AsyncStorage.setItem('language', language);
+    await AsyncStorage.setItem("language", language);
     setLanguage(language);
   };
 
   return (
-    <ConfigurationContext.Provider value={{ language, setLanguage: handleSetLanguage, translation: translations[language] }}>
+    <ConfigurationContext.Provider
+      value={{
+        language,
+        setLanguage: handleSetLanguage,
+        translation: translations[language],
+      }}
+    >
       {children}
     </ConfigurationContext.Provider>
   );

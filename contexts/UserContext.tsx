@@ -46,6 +46,7 @@ type MovieReview = {
   actors?: Actor[];
   genreId?: string;
   similarMovies?: Movie[]; // Nova propriedade para filmes semelhantes
+  comment: string; // Novo campo de comentário
 };
 
 type Movie = {
@@ -60,7 +61,9 @@ type Movie = {
   description?: string; // Descrição do filme
   actors?: Actor[];
   similarMovies?: Movie[]; // Nova propriedade para filmes semelhantes
+  comment: string; // Novo campo de comentário
 };
+
 
 interface GenreRecommendations {
   [key: string]: Movie[];
@@ -117,6 +120,7 @@ interface UserContextType {
   fetchMovieDetails: (
     movieId: number,
     rating: number,
+    comment: string,
     callback: (movie: Movie) => void
   ) => Promise<void>;
   fetchActorDetails: (
@@ -151,6 +155,7 @@ const UserContext = createContext<UserContextType>({
   fetchMovieDetails: async (
     movieId: number,
     rating: number,
+    comment: string,
     callback: (movie: Movie) => void
   ) => {
     console.warn("fetchMovieDetails function not implemented");
@@ -513,6 +518,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   const fetchMovieDetails = async (
     movieId: number,
     rating: number,
+    comment: string,
     callback: (movie: MovieReview) => void
   ) => {
     const detailsUrl = `https://api.themoviedb.org/3/movie/${movieId}?api_key=${TMDB_API_KEY}&language=${tmdbLanguage}`;
@@ -520,6 +526,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     const platformsUrl = `https://api.themoviedb.org/3/movie/${movieId}/watch/providers?api_key=${TMDB_API_KEY}`;
     const similarMoviesUrl = `https://api.themoviedb.org/3/movie/${movieId}/recommendations?api_key=${TMDB_API_KEY}&language=${tmdbLanguage}`;
     rating = rating;
+    comment = comment;
 
     if (typeof callback !== "function") {
       console.error("Erro: O callback fornecido não é uma função.");
@@ -609,6 +616,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
           .map((genre: GenreMappings) => genre.id)
           .join(","),
         similarMovies, // Adicionando filmes semelhantes
+        comment
       };
 
       // Usando callback para atualizar o estado no componente
@@ -1101,10 +1109,8 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   };
 
   const addMovieReview = (newMovie: MovieReview) => {
-    const existingMovieIndex = movies.findIndex(
-      (movie) => movie.id === newMovie.id
-    );
-
+    const existingMovieIndex = movies.findIndex((movie) => movie.id === newMovie.id);
+  
     if (existingMovieIndex !== -1) {
       const updatedMovies = [...movies];
       updatedMovies[existingMovieIndex] = {
@@ -1116,6 +1122,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       setMovies((prevMovies) => [...prevMovies, newMovie]);
     }
   };
+  
 
   // AREA DE TESTES
 
@@ -1233,6 +1240,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
           streamingPlatforms: [], // Isso precisaria de lógica adicional para preencher
           actors: [], // Isso precisaria de lógica adicional para preencher
           alternateImageUrl: `https://image.tmdb.org/t/p/${imageSize}${movie.backdrop_path}`,
+          comment: '',
         } as Movie;
       } else {
         return null;

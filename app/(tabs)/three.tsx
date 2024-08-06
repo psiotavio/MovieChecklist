@@ -53,6 +53,7 @@ interface Movie {
   description?: string; // Descrição do filme
   actors?: Actor[]; // Novo
   similarMovies?: Movie[];
+  comment: string,
 }
 
 type StreamingPlatform = {
@@ -237,7 +238,7 @@ export default function TabThreeScreen() {
     setShowModal(true); // Abre o modal
 
     // Chamada para fetchMovieDetails sem a verificação de showModal
-    fetchMovieDetails(movieId, 0, (movieDetails) => {
+    fetchMovieDetails(movieId, 0, " ",(movieDetails) => {
       setSelectedMovie(movieDetails);
       setIsDetailsLoading(false);
     });
@@ -285,6 +286,7 @@ export default function TabThreeScreen() {
         title: selectedMovie.title,
         date: new Date().toLocaleDateString(),
         rating: 0,
+        comment: " ",
         imageUrl: selectedMovie.imageUrl,
         rank: selectedMovie.rank,
 
@@ -326,7 +328,7 @@ export default function TabThreeScreen() {
   const handlePressItemModalType = (item: any) => {
     setShowModal(false); // Feche o modal atual
     setTimeout(() => {
-      fetchMovieDetails(item.id, 0, (movieDetails) => {
+      fetchMovieDetails(item.id, 0, " ",(movieDetails) => {
         setSelectedMovie(movieDetails);
         setIsDetailsLoading(false); // Carregamento concluído
         openModal(movieDetails.id);

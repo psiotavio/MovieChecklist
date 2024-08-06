@@ -47,14 +47,11 @@ const BANNER_H = isTablet ? 400 : 250;
 
 let adUnitId: string;
 
-
-
 if (Platform.OS === "ios") {
   adUnitId = "ca-app-pub-4303499199669342/6006099901"; // Coloque o ID do iOS aqui
 } else if (Platform.OS === "android") {
   adUnitId = "ca-app-pub-4303499199669342/1108657138"; // Coloque o ID do Android aqui
 }
-
 
 type Actor = {
   id: number;
@@ -88,6 +85,7 @@ interface Movie {
   description?: string; // Descrição do filme
   actors?: Actor[]; // Novo
   similarMovies?: Movie[];
+  comment: string;
 }
 
 type StreamingPlatform = {
@@ -163,11 +161,11 @@ export default function TabFourScreen() {
     neonTwilight: logoDefault,
     dracula: logoDefault,
     bladeRunner: logoDefault,
-    violetWitch:logoDefault,
-    thanos:logoDefault,
-    jediTemple:logoDefault,
-    hungerGames:logoDefault,
-    neoMatrix:logoDefault,
+    violetWitch: logoDefault,
+    thanos: logoDefault,
+    jediTemple: logoDefault,
+    hungerGames: logoDefault,
+    neoMatrix: logoDefault,
   };
 
   // Selecionar logo com base no tema atual
@@ -188,7 +186,7 @@ export default function TabFourScreen() {
     setIsDetailsLoading(true); // Inicia o loading
     setShowModal(true);
 
-    fetchMovieDetails(movie.id, 0, (movieDetails) => {
+    fetchMovieDetails(movie.id, 0, " ", (movieDetails) => {
       setIsDetailsLoading(false); // Inicia o loading
       setSelectedMovieId(movieDetails);
     });
@@ -199,7 +197,7 @@ export default function TabFourScreen() {
     setIsDetailsLoading(true); // Inicia o loading
     setShowModalMovie2(true);
 
-    fetchMovieDetails(movie.id, 0, (movieDetails) => {
+    fetchMovieDetails(movie.id, 0, " ", (movieDetails) => {
       setIsDetailsLoading(false); // Inicia o loading
       setSelectedMovie(movieDetails);
     });
@@ -214,7 +212,7 @@ export default function TabFourScreen() {
         rating: 0,
         imageUrl: selectedMovie.imageUrl,
         rank: selectedMovie.rank,
-
+        comment: " ",
         streamingPlatforms: selectedMovie.streamingPlatforms, // Adicionado aqui
 
         genreId: selectedMovie.genreId,
@@ -265,10 +263,15 @@ export default function TabFourScreen() {
     setIsDetailsLoading(true); // Inicia o loading
     setShowModalMovie(true); // Abre o modal
 
-    fetchMovieDetails(movieId, selectedMovieId?.rating, (movieDetails) => {
-      setIsDetailsLoading(false); // Inicia o loading
-      setSelectedMovieId(movieDetails);
-    });
+    fetchMovieDetails(
+      movieId,
+      selectedMovieId?.rating,
+      selectedMovieId?.comment!,
+      (movieDetails) => {
+        setIsDetailsLoading(false); // Inicia o loading
+        setSelectedMovieId(movieDetails);
+      }
+    );
   };
 
   const closeModalMovie = () => {
@@ -297,6 +300,7 @@ export default function TabFourScreen() {
         rating: 0,
         imageUrl: selectedMovieId.imageUrl,
         rank: selectedMovieId.rank,
+        comment: " ",
       };
 
       // setTimeout(() => {
@@ -368,7 +372,7 @@ export default function TabFourScreen() {
   const handlePressItemModalType = (item: any) => {
     setShowModalMovie(false); // Feche o modal atual
     setTimeout(() => {
-      fetchMovieDetails(item.id, 0, (movieDetails) => {
+      fetchMovieDetails(item.id, 0, " ", (movieDetails) => {
         setSelectedMovieId(movieDetails);
         setIsDetailsLoading(false); // Carregamento concluído
         openModalMovie(movieDetails.id, movieDetails);
@@ -379,7 +383,7 @@ export default function TabFourScreen() {
   const handlePressItemModalType2 = (item: any) => {
     setShowModalMovie2(false); // Feche o modal atual
     setTimeout(() => {
-      fetchMovieDetails(item.id, 0, (movieDetails) => {
+      fetchMovieDetails(item.id, 0, " ", (movieDetails) => {
         setSelectedMovieId(movieDetails);
         setIsDetailsLoading(false); // Carregamento concluído
         openModalMovie2(movieDetails);
@@ -1037,6 +1041,41 @@ export default function TabFourScreen() {
                         ></ShareImageButton>
                       </View>
                     </View>
+
+                    {selectedMovieId?.comment! !== undefined &&
+                      selectedMovieId?.rating! > 0.0 && (
+                        <View
+                          style={{
+                            marginTop: 20,
+                            backgroundColor: "rgba(0,0,0,0.15)",
+                            width: "100%",
+                            borderRadius: 10,
+                            borderWidth: 2,
+                            borderColor: theme.borderBottom
+                          }}
+                        >
+                          <Text
+                            style={{
+                              color: theme.text,
+                              marginVertical: 10,
+                              marginHorizontal: 5,
+                              textAlign: "justify",
+                            }}
+                          >
+                            <Text style={{ fontWeight: "bold", fontSize: 16 }}>
+                            {translation.comment}{" "}
+                            </Text>
+                            <Text
+                              style={[
+                                styles.modalText,
+                                { color: theme.text, marginBottom: 30 },
+                              ]}
+                            >
+                              {selectedMovieId?.comment}
+                            </Text>
+                          </Text>
+                        </View>
+                      )}
 
                     <Text
                       style={{

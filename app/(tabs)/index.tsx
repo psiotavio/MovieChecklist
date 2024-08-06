@@ -51,7 +51,6 @@ import { MaterialIcons } from "@expo/vector-icons";
 
 let adUnitId: string;
 
-
 if (Platform.OS === "ios") {
   adUnitId = "ca-app-pub-4303499199669342/6006099901"; // Coloque o ID do iOS aqui
 } else if (Platform.OS === "android") {
@@ -59,7 +58,7 @@ if (Platform.OS === "ios") {
 }
 
 const { width, height } = Dimensions.get("window");
-
+const { translation, language } = useConfiguration();
 const isTablet = width >= 768; // Um critério comum para tablets
 
 const BANNER_H = isTablet ? 400 : 250;
@@ -96,7 +95,7 @@ interface Movie {
   rating: number;
   date: string;
   imageUrl?: string;
-
+  comment: string;
   streamingPlatforms?: StreamingPlatform[]; // Adicionado aqui
   genreId?: string;
   alternateImageUrl?: string; // Nova propriedade para o banner do filme
@@ -219,11 +218,11 @@ export default function HomeScreen() {
     neonTwilight: logoDefault,
     dracula: logoDefault,
     bladeRunner: logoDefault,
-    violetWitch:logoDefault,
-    thanos:logoDefault,
-    jediTemple:logoDefault,
-    hungerGames:logoDefault,
-    neoMatrix:logoDefault,
+    violetWitch: logoDefault,
+    thanos: logoDefault,
+    jediTemple: logoDefault,
+    hungerGames: logoDefault,
+    neoMatrix: logoDefault,
 
     // blue: logoBlue,
     // orange: logoOrange,
@@ -235,6 +234,7 @@ export default function HomeScreen() {
 
   // Selecionar logo com base no tema atual
   const logo = logos[themeName] || logos.default;
+  const [comment, setComment] = useState(""); // Novo estado para comentário
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -632,7 +632,7 @@ export default function HomeScreen() {
         setModalType("movie");
         setIsDetailsLoading(true); // Indica que os detalhes estão carregando
 
-        fetchMovieDetails(item.id, 0, (movieDetails) => {
+        fetchMovieDetails(item.id, 0, " ", (movieDetails) => {
           setSelectedMovie(movieDetails);
           setIsDetailsLoading(false); // Carregamento concluído
         });
@@ -659,7 +659,7 @@ export default function HomeScreen() {
         rating: 0,
         imageUrl: selectedMovie.imageUrl,
         rank: selectedMovie.rank,
-
+        comment: " ",
         streamingPlatforms: selectedMovie.streamingPlatforms, // Adicionado aqui
 
         genreId: selectedMovie.genreId,
@@ -878,6 +878,7 @@ export default function HomeScreen() {
                             key={item.id}
                             onPress={() => {
                               setRating(item.rating);
+                              setComment(item.comment);
                               setSelectedMovieRating(item);
                               setSelectedDate(new Date(parseDate(item.date)));
                               setModalVisible1(true);
@@ -1703,19 +1704,25 @@ export default function HomeScreen() {
               setModalVisible1(!modalVisible1);
             }}
           >
-            <TouchableWithoutFeedback onPress={() => setModalVisible1(false)}>
+            <TouchableWithoutFeedback
+              onPress={() => {
+                setModalVisible1(false);
+              }}
+            >
               <View style={styles.modalContainer}>
-                <TouchableWithoutFeedback>
+                <TouchableWithoutFeedback
+                  onPress={() => {
+                    Keyboard.dismiss();
+                  }}
+                >
                   <View
                     style={[
-                      styles.modalContent, // Estilos pré-definidos
-                      { backgroundColor: theme.background }, // Estilo dinâmico baseado no tema atual
+                      styles.modalContent,
+                      { backgroundColor: theme.background },
                     ]}
                   >
                     <TouchableHighlight
-                      style={{
-                        ...styles.modalButtonIcon,
-                      }}
+                      style={styles.modalButtonIcon}
                       onPress={() => {
                         handleRemoveMovie(selectedMovieRating!);
                         setModalVisible1(false);
@@ -1726,9 +1733,7 @@ export default function HomeScreen() {
                     </TouchableHighlight>
 
                     <TouchableHighlight
-                      style={{
-                        ...styles.modalButtonIconCalendar,
-                      }}
+                      style={styles.modalButtonIconCalendar}
                       onPress={() => setDatePickerVisible(true)}
                     >
                       <MaterialIcons
@@ -1737,6 +1742,7 @@ export default function HomeScreen() {
                         color={theme.text}
                       />
                     </TouchableHighlight>
+
                     {datePickerVisible && (
                       <DateTimePicker
                         testID="dateTimePicker"
@@ -1748,26 +1754,24 @@ export default function HomeScreen() {
                       />
                     )}
 
-                    <Text
-                      style={
-                        { color: theme.text, marginTop: 5 } // Estilo dinâmico baseado no tema atual
-                      }
-                    >
+                    <Text style={{ color: theme.text, marginTop: 5 }}>
                       {translation.avaliarFilme}
                     </Text>
                     <Text
-                      style={
-                        {
-                          color: theme.text,
-                          fontWeight: "bold",
-                          fontSize: 18,
-                          marginTop: 10,
-                          textAlign: "center",
-                        } // Estilo dinâmico baseado no tema atual
-                      }
+                      style={{
+                        color: theme.text,
+                        fontWeight: "bold",
+                        fontSize: 18,
+                        marginTop: 10,
+                        textAlign: "center",
+                      }}
                     >
                       {selectedMovieRating?.title}
                     </Text>
+                    <View style={{ marginTop: 20, transform: "scale(1.3)" }}>
+                      <StarRating rating={rating}></StarRating>
+                    </View>
+
                     <View style={styles.ratingButtons}>
                       <View style={styles.slider}>
                         <Slider
@@ -1786,6 +1790,25 @@ export default function HomeScreen() {
                         </Text>
                       </View>
                     </View>
+
+                    {/* Adiciona campo de comentário */}
+                    <TextInput
+                      style={[
+                        styles.commentInput,
+                        {
+                          color: theme.text,
+                          borderColor: theme.borderRed,
+                          backgroundColor: theme.modalBackground,
+                        },
+                      ]}
+                      placeholder={translation.deixeComentario}
+                      placeholderTextColor={theme.text}
+                      value={comment}
+                      onChangeText={setComment}
+                      maxLength={500}
+                      multiline={true}
+                    />
+
                     <View style={styles.modalButtons}>
                       <TouchableHighlight
                         style={{
@@ -1807,18 +1830,18 @@ export default function HomeScreen() {
                           backgroundColor: theme.borderRed,
                         }}
                         onPress={() => {
-                          // Se `selectedMovie` e `selectedDate` estiverem definidos e `selectedMovie.id` não for undefined
-                          const formattedDate =
-                            selectedDate.toLocaleDateString();
-
                           if (selectedMovieRating) {
+                            const formattedDate =
+                              selectedDate.toLocaleDateString();
                             addMovieReview({
                               ...selectedMovieRating,
                               date: formattedDate,
                               rating: rating,
+                              comment: comment, // Adiciona o comentário ao salvar a avaliação
                             });
                             setModalVisible1(false);
                             setRating(0);
+                            setComment(""); // Limpa o campo de comentário
                           }
                         }}
                       >
@@ -2110,7 +2133,8 @@ const styles = StyleSheet.create({
     display: "flex",
     flexDirection: "column",
     gap: 10,
-    paddingVertical: 20,
+    paddingVertical: 10,
+    marginBottom: 10,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -2311,5 +2335,13 @@ const styles = StyleSheet.create({
     backgroundColor: "transparent",
     borderWidth: 0,
     padding: 0,
+  },
+  commentInput: {
+    height: 100, // Altura do campo de comentário
+    borderWidth: 1, // Largura da borda do campo
+    padding: 10, // Espaçamento interno
+    borderRadius: 5, // Bordas arredondadas
+    marginTop: 20, // Espaçamento superior
+    width: "100%", // Largura total do campo
   },
 });
