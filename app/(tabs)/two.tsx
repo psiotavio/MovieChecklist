@@ -32,10 +32,7 @@ import logoRed from "../../assets/images/logoRed.png";
 import logoOrange from "../../assets/images/logoOrange.png";
 
 import {
-  AdEventType,
   BannerAd,
-  InterstitialAd,
-  TestIds,
 } from "react-native-google-mobile-ads";
 
 //  // ANUNCIOS

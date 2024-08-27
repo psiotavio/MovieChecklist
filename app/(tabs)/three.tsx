@@ -13,6 +13,7 @@ import {
   Share,
   Platform,
   Dimensions,
+  Alert, // Importando o Alert
 } from "react-native";
 import { useUser } from "../../contexts/UserContext";
 import logoDefault from "../../assets/images/logo.png";
@@ -27,6 +28,23 @@ import { useConfiguration } from "../../contexts/ConfigurationContext";
 import ImageContainer from "../../components/imageContainer/imageContainer";
 import CustomModalMovie from "../../components/ModalMovie/customModalMovie";
 import CustomModalActor from "../../components/ModalMovie/customModalActor";
+import {
+  AdEventType,
+  InterstitialAd,
+  TestIds,
+  BannerAd,
+} from "react-native-google-mobile-ads";
+
+const adUnitId =
+  Platform.OS === "ios"
+    ? "ca-app-pub-4303499199669342/3117530301"
+    : "ca-app-pub-4303499199669342/4247575304";
+
+    const interstitialAd = InterstitialAd.createForAdRequest(adUnitId, {
+      requestNonPersonalizedAdsOnly: true,
+      // Passe outras opções aqui, se necessário
+    });
+
 
 const { width, height } = Dimensions.get("window");
 const isTablet = width >= 768; // Um critério comum para tablets
@@ -319,11 +337,6 @@ export default function TabThreeScreen() {
     }
   };
   
-  
-  
-  
-  
-
 
   const handlePressItemModalType = (item: any) => {
     setShowModal(false); // Feche o modal atual
@@ -340,6 +353,76 @@ export default function TabThreeScreen() {
     setSelectedMovie(null);
     setShowModal(false);
   };
+
+  const [interstitialLoaded, setInterstitialLoaded] = useState(false);
+  const [selectionCount, setSelectionCount] = useState(0);
+
+
+
+  useEffect(() => {
+    const loadInterstitial = () => {
+        const unsubscribeLoaded = interstitialAd.addAdEventListener(
+            AdEventType.LOADED,
+            () => {
+                setInterstitialLoaded(true);
+            }
+        );
+
+        const unsubscribeClosed = interstitialAd.addAdEventListener(
+            AdEventType.CLOSED,
+            () => {
+                setInterstitialLoaded(false);
+                interstitialAd.load(); // Recarrega o anúncio após ser fechado
+            }
+        );
+
+        interstitialAd.load(); // Carrega o anúncio quando o componente for montado
+
+        return () => {
+            unsubscribeLoaded();
+            unsubscribeClosed();
+        };
+    };
+
+    loadInterstitial();
+}, []);
+
+const handleMovieSelection = (movieId: number) => {
+    openModal(movieId);
+    setSelectionCount((prevCount) => {
+        const newCount = prevCount + 1;
+
+        if (newCount === 5) {
+            if (interstitialLoaded) {
+                interstitialAd
+                    .show()
+                    .then(() => {
+                        // Recarregar o anúncio para a próxima exibição
+                        interstitialAd.load();
+                    })
+                    .catch((error) => {
+                        console.error("Erro ao tentar exibir o anúncio: ", error);
+                        alert("Não foi possível exibir o anúncio. Por favor, tente novamente mais tarde.");
+                    });
+
+                // Resetar o contador e o estado de carregamento do anúncio
+                setSelectionCount(0);
+                setInterstitialLoaded(false);
+            }
+        }
+
+        return newCount;
+    });
+};
+
+
+  
+
+
+
+  /// RETURN
+
+
     return (
       <SafeAreaView
         edges={["top"]}
@@ -474,7 +557,7 @@ export default function TabThreeScreen() {
             onEndReachedThreshold={0.5}
             renderItem={({ item }) => (
               <View style={styles.movieItem}>
-                <TouchableOpacity onPress={() => openModal(item.id)}>
+                <TouchableOpacity onPress={() => handleMovieSelection(item.id)}>
                   <ImageContainer uri={item.imageUrl!} type={1} />
                 </TouchableOpacity>
               </View>

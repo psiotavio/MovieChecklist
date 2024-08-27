@@ -33,10 +33,7 @@ import ShareImageButton from "../../components/ShareMovieImage/shareMovieImage";
 import ImageContainer from "../../components/imageContainer/imageContainer";
 
 import {
-  AdEventType,
   BannerAd,
-  InterstitialAd,
-  TestIds,
 } from "react-native-google-mobile-ads";
 
 const { width, height } = Dimensions.get("window");

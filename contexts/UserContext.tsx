@@ -944,6 +944,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
           rating: movie.rating,
           date: movie.date,
           imageUrl: movie.imageUrl,
+          comment: movie.comment
         }));
 
         await AsyncStorage.setItem(

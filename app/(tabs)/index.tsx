@@ -10,7 +10,6 @@ import {
   TouchableHighlight,
   Text,
   View,
-  Linking,
   Animated,
   ActivityIndicator,
   Platform,
@@ -23,11 +22,6 @@ import StarRating from "../../components/starComponent/starComponent";
 import { isSameWeek, isSameYear, isSameMonth, parse } from "date-fns";
 import { useUser } from "../../contexts/UserContext";
 import logoDefault from "../../assets/images/logo.png";
-import logoBlue from "../../assets/images/logoBlue.png";
-import logoPink from "../../assets/images/logoPink.png";
-import logoGreen from "../../assets/images/logoGreen.png";
-import logoRed from "../../assets/images/logoRed.png";
-import logoOrange from "../../assets/images/logoOrange.png";
 import { useTheme } from "../../constants/temas/ThemeContext";
 import Slider from "@react-native-community/slider";
 import {
@@ -40,14 +34,10 @@ import FilterModal from "../../components/FilterModal/FilterModal";
 import { CheckBox } from "@rneui/base";
 import { useConfiguration } from "../../contexts/ConfigurationContext";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { MaterialIcons } from "@expo/vector-icons";
+import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
+import Tooltip from "react-native-walkthrough-tooltip";
 
-import {
-  AdEventType,
-  InterstitialAd,
-  TestIds,
-  BannerAd,
-} from "react-native-google-mobile-ads";
+import { BannerAd } from "react-native-google-mobile-ads";
 
 let adUnitId: string;
 
@@ -223,13 +213,6 @@ export default function HomeScreen() {
     jediTemple: logoDefault,
     hungerGames: logoDefault,
     neoMatrix: logoDefault,
-
-    // blue: logoBlue,
-    // orange: logoOrange,
-    // pink: logoPink,
-    // lightpink: logoPink,
-    // green: logoGreen,
-    // red: logoRed,
   };
 
   // Selecionar logo com base no tema atual
@@ -726,6 +709,14 @@ export default function HomeScreen() {
 
   const insets = useSafeAreaInsets();
 
+  //// TESTE
+
+  const [isTooltipVisible, setIsTooltipVisible] = useState(false);
+
+  const handleHelpPress = () => {
+    setIsTooltipVisible(!isTooltipVisible);
+  };
+
   return (
     <SafeAreaView
       edges={["top"]}
@@ -753,20 +744,41 @@ export default function HomeScreen() {
               { backgroundColor: theme.background },
             ]}
           >
-            <TextInput
-              style={[
-                styles.input, // Estilos pré-definidos do TextInput
-                {
-                  color: theme.text,
-                  borderColor: theme.borderRed,
-                  backgroundColor: theme.modalBackground,
-                }, // Estilo dinâmico baseado no tema atual
-              ]}
-              placeholder={translation.digiteNomeFilme}
-              placeholderTextColor={theme.text}
-              value={movieInput}
-              onChangeText={handleInputChange}
-            />
+            <Tooltip
+              isVisible={isTooltipVisible}
+              content={
+                <Text>
+                  Digite aqui o nome de um filme para buscar e adicionar na sua lista de
+                  filmes assistidos.
+                </Text>
+              }
+              placement="top"
+              onClose={() => setIsTooltipVisible(false)}
+              displayInsets={{ top: 0, bottom: 0, left: 0, right: 0 }}
+              showChildInTooltip={false} // Garante que o child não seja renderizado dentro do tooltip
+            >
+              <View
+                style={[
+                  styles.inputContainer,
+                  { backgroundColor: theme.background },
+                ]}
+              >
+                <TextInput
+                  style={[
+                    styles.input,
+                    {
+                      color: theme.text,
+                      borderColor: theme.borderRed,
+                      backgroundColor: theme.modalBackground,
+                    },
+                  ]}
+                  placeholder={translation.digiteNomeFilme}
+                  placeholderTextColor={theme.text}
+                  value={movieInput}
+                  onChangeText={handleInputChange}
+                />
+              </View>
+            </Tooltip>
           </View>
           <View style={styles.filterModalButton}>
             <FilterModal />
@@ -851,6 +863,12 @@ export default function HomeScreen() {
               ]}
               containerStyle={styles.checkboxContainer}
             />
+            <TouchableOpacity
+              onPress={handleHelpPress}
+              style={styles.helpButton}
+            >
+              <Icon name="question-circle" size={24} color={theme.borderRed} />
+            </TouchableOpacity>
           </View>
 
           {activeTab === "monthMovies" ? (
@@ -1923,16 +1941,19 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   inputContainer: {
-    width: "85%",
-    flexDirection: "row",
-    alignItems: "center",
+    width: "100%",
+    height: 40,
+    display: 'flex',
     zIndex: 9999,
   },
 
   input: {
+    width:'85%',
+    alignSelf:'center',
+    justifyContent: 'center',
     borderRadius: 50,
     flex: 1,
-    height: 40,
+    height: '100%',
     borderWidth: 2.5,
     paddingLeft: 8,
     position: "relative",
@@ -2321,9 +2342,12 @@ const styles = StyleSheet.create({
   //tabs
   tabsContainer: {
     display: "flex",
+    flexDirection: "row-reverse", // Alinha os itens horizontalmente
+    justifyContent: "space-between", // Coloca os botões em lados opostos
+    alignItems: "center", // Alinha os itens verticalmente
     position: "absolute",
-    justifyContent: "center",
     top: isTablet ? -80 : -100,
+    left: isTablet ? 40 : 20,
     right: isTablet ? 40 : 20,
     zIndex: 9,
   },
@@ -2343,5 +2367,8 @@ const styles = StyleSheet.create({
     borderRadius: 5, // Bordas arredondadas
     marginTop: 20, // Espaçamento superior
     width: "100%", // Largura total do campo
+  },
+  helpButton: {
+    padding: 10, // Ajuste o preenchimento conforme necessário
   },
 });

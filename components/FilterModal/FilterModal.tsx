@@ -23,7 +23,7 @@ import { useConfiguration } from "../../contexts/ConfigurationContext";
 import CustomModalActor from "../ModalMovie/customModalActor";
 import CustomModalMovie from "../ModalMovie/customModalMovie";
 
-import { BannerAd, TestIds } from "react-native-google-mobile-ads";
+import { BannerAd } from "react-native-google-mobile-ads";
 
 //  // ANUNCIOS
 let adUnitId: string;

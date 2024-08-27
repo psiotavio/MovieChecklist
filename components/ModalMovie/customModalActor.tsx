@@ -18,23 +18,16 @@ import { useTheme } from "../../constants/temas/ThemeContext";
 import { useConfiguration } from "../../contexts/ConfigurationContext";
 const { width } = Dimensions.get("window");
 const isTablet = width >= 768;
-import {
-  AdEventType,
-  BannerAd,
-  InterstitialAd,
-  TestIds,
-} from "react-native-google-mobile-ads";
+import { BannerAd } from "react-native-google-mobile-ads";
 
 //  // ANUNCIOS
 let adUnitId: string;
-
 
 if (Platform.OS === "ios") {
   adUnitId = "ca-app-pub-4303499199669342/6006099901"; // Coloque o ID do iOS aqui
 } else if (Platform.OS === "android") {
   adUnitId = "ca-app-pub-4303499199669342/1108657138"; // Coloque o ID do Android aqui
 }
-
 
 interface ActorDetails {
   id: number;
@@ -256,7 +249,7 @@ const CustomModalActor: React.FC<CustomModalActorProps> = ({
                     <Text style={styles.textStyle}>{translation.Fechar}</Text>
                   </TouchableHighlight>
                 </View>
-              <View
+                <View
                   style={{
                     justifyContent: "center",
                     alignContent: "center",

@@ -2,7 +2,7 @@
   "expo": {
     "name": "Watchfolio",
     "slug": "MovieChecklist",
-    "version": "2.1.3",
+    "version": "2.2.4",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "yourapp",
@@ -21,7 +21,7 @@
       "bitcode": false
     },
     "android": {
-      "versionCode": 10,
+      "versionCode": 13,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/Adaptive-Icon-foreground.png",
         "backgroundColor": "#250737"
